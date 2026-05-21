@@ -1,1270 +1,780 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Wardrobe</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-
-        :root {
-            --bg: #FAFAFA;
-            --surface: #FFFFFF;
-            --surface2: #F5F5F5;
-            --text: #1A1A1A;
-            --text2: #6B6B6B;
-            --text3: #A0A0A0;
-            --border: #EFEFEF;
-            --accent: #1A1A1A;
-            --accent-soft: #F0F0F0;
-            --blue: #3478F6;
-            --green: #34C759;
-            --red: #FF3B30;
-            --orange: #FF9500;
-            --purple: #AF52DE;
-            --radius: 12px;
-            --radius-sm: 8px;
-            --radius-xs: 6px;
-            --nav-height: 52px;
-            --header-height: 48px;
-            --safe-bottom: env(safe-area-inset-bottom, 0px);
-        }
-
-        body.dark {
-            --bg: #000000;
-            --surface: #1C1C1E;
-            --surface2: #2C2C2E;
-            --text: #F2F2F7;
-            --text2: #8E8E93;
-            --text3: #636366;
-            --border: #38383A;
-            --accent: #FFFFFF;
-            --accent-soft: #2C2C2E;
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            min-height: 100vh;
-            min-height: 100dvh;
-            overflow-x: hidden;
-            -webkit-font-smoothing: antialiased;
-        }
-
-        /* ========== HEADER ========== */
-        .header {
-            position: sticky; top: 0; z-index: 50;
-            height: var(--header-height);
-            background: var(--bg);
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 0 20px;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .header-title {
-            font-size: 17px; font-weight: 700; letter-spacing: -0.3px;
-        }
-
-        .header-actions { display: flex; gap: 16px; align-items: center; }
-
-        .header-btn {
-            background: none; border: none; cursor: pointer;
-            color: var(--text); font-size: 18px; padding: 4px;
-            display: flex; align-items: center; justify-content: center;
-        }
-
-        .header-badge {
-            font-size: 11px; font-weight: 600; color: var(--green);
-            display: flex; align-items: center; gap: 4px;
-        }
-
-        .header-badge::before {
-            content: ''; width: 6px; height: 6px; border-radius: 50%;
-            background: var(--green);
-        }
-
-        .header-badge.off { color: var(--text3); }
-        .header-badge.off::before { background: var(--text3); }
-
-        /* ========== BOTTOM NAV ========== */
-        .tab-bar {
-            position: fixed; bottom: 0; left: 0; right: 0; z-index: 50;
-            height: calc(var(--nav-height) + var(--safe-bottom));
-            padding-bottom: var(--safe-bottom);
-            background: var(--surface);
-            border-top: 1px solid var(--border);
-            display: flex; justify-content: space-around; align-items: center;
-        }
-
-        .tab-item {
-            display: flex; flex-direction: column; align-items: center; gap: 2px;
-            padding: 6px 0; border: none; background: none; cursor: pointer;
-            color: var(--text3); font-size: 10px; font-weight: 500;
-            font-family: inherit; min-width: 56px; transition: color 0.15s;
-        }
-
-        .tab-item svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 1.8; }
-        .tab-item.active { color: var(--accent); }
-        .tab-item.active svg { stroke-width: 2.2; }
-
-        /* ========== PAGES ========== */
-        .page {
-            display: none;
-            padding: 0 0 calc(var(--nav-height) + var(--safe-bottom) + 16px) 0;
-            min-height: calc(100vh - var(--header-height));
-            min-height: calc(100dvh - var(--header-height));
-        }
-        .page.active { display: block; }
-
-        /* ========== SECTION ========== */
-        .section { padding: 20px; }
-        .section + .section { padding-top: 0; }
-
-        .section-header {
-            display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 16px;
-        }
-
-        .section-title {
-            font-size: 20px; font-weight: 700; letter-spacing: -0.5px;
-        }
-
-        .section-subtitle {
-            font-size: 13px; color: var(--text2); margin-top: 4px;
-            line-height: 1.5;
-        }
-
-        .section-link {
-            font-size: 13px; font-weight: 600; color: var(--blue);
-            background: none; border: none; cursor: pointer; font-family: inherit;
-        }
-
-        /* ========== CARDS ========== */
-        .card {
-            background: var(--surface);
-            border-radius: var(--radius);
-            border: 1px solid var(--border);
-            overflow: hidden;
-        }
-
-        .card-body { padding: 16px; }
-
-        .card + .card { margin-top: 12px; }
-
-        /* ========== TODAY CARD ========== */
-        .today-card {
-            background: var(--accent);
-            color: var(--bg);
-            border-radius: var(--radius);
-            padding: 20px;
-            margin: 20px;
-        }
-
-        .today-label {
-            font-size: 11px; font-weight: 600; text-transform: uppercase;
-            letter-spacing: 1px; opacity: 0.6; margin-bottom: 8px;
-        }
-
-        .today-outfit { font-size: 18px; font-weight: 700; margin-bottom: 12px; letter-spacing: -0.3px; }
-
-        .today-items {
-            display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px;
-        }
-
-        .today-chip {
-            padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 500;
-            background: rgba(255,255,255,0.15);
-        }
-
-        body.dark .today-chip { background: rgba(0,0,0,0.2); }
-
-        .today-actions { display: flex; gap: 8px; }
-
-        .today-btn {
-            padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: 600;
-            border: 1px solid rgba(255,255,255,0.25); background: transparent;
-            color: inherit; cursor: pointer; font-family: inherit;
-        }
-
-        .today-btn:first-child { background: var(--bg); color: var(--accent); border-color: transparent; }
-        body.dark .today-btn:first-child { background: var(--surface); }
-
-        /* ========== WEATHER ========== */
-        .weather-bar {
-            display: flex; align-items: center; gap: 12px;
-            padding: 14px 16px;
-            background: var(--surface2);
-            border-radius: var(--radius);
-            margin: 0 20px 16px;
-        }
-
-        .weather-temp { font-size: 28px; font-weight: 700; letter-spacing: -1px; }
-        .weather-info { flex: 1; }
-        .weather-desc { font-size: 13px; font-weight: 500; }
-        .weather-detail { font-size: 11px; color: var(--text3); margin-top: 2px; }
-        .weather-sug { font-size: 11px; color: var(--text2); text-align: right; max-width: 120px; }
-
-        /* ========== QUICK STATS ========== */
-        .quick-stats {
-            display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px;
-            background: var(--border); border-radius: var(--radius); overflow: hidden;
-            margin: 0 20px 16px;
-        }
-
-        .qs-item {
-            background: var(--surface); padding: 14px 8px; text-align: center;
-        }
-
-        .qs-val { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
-        .qs-lbl { font-size: 10px; color: var(--text3); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 500; }
-
-        /* ========== GRID ========== */
-        .items-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
-            gap: 2px;
-        }
-
-        .item-card {
-            background: var(--surface);
-            cursor: pointer;
-            position: relative;
-            transition: opacity 0.15s;
-        }
-
-        .item-card:active { opacity: 0.7; }
-        .item-card.in-laundry { opacity: 0.4; }
-
-        .item-card .fav-btn {
-            position: absolute; top: 8px; right: 8px; z-index: 2;
-            background: none; border: none; cursor: pointer; font-size: 14px;
-            width: 28px; height: 28px; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            background: rgba(0,0,0,0.3); color: white;
-        }
-
-        .item-card .laundry-indicator {
-            position: absolute; top: 8px; left: 8px; z-index: 2;
-            padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 600;
-            background: var(--orange); color: white; letter-spacing: 0.3px;
-        }
-
-        .item-img {
-            width: 100%; aspect-ratio: 3/4; background: var(--surface2);
-            display: flex; align-items: center; justify-content: center;
-            font-size: 40px; overflow: hidden;
-        }
-
-        .item-img img { width: 100%; height: 100%; object-fit: cover; }
-
-        .item-info { padding: 10px 12px 12px; }
-
-        .item-name {
-            font-size: 13px; font-weight: 600;
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-        }
-
-        .item-meta {
-            font-size: 11px; color: var(--text3); margin-top: 2px;
-            display: flex; align-items: center; gap: 6px;
-        }
-
-        .item-dot {
-            width: 8px; height: 8px; border-radius: 50%;
-            border: 1px solid var(--border); flex-shrink: 0;
-        }
-
-        .item-cpw {
-            font-size: 10px; color: var(--blue); font-weight: 600; margin-top: 4px;
-        }
-
-        /* ========== SEARCH & FILTERS ========== */
-        .search-section { padding: 12px 20px; }
-
-        .search-input {
-            width: 100%; padding: 10px 14px 10px 36px;
-            border: none; border-radius: var(--radius-sm);
-            background: var(--surface2);
-            font-size: 15px; font-family: inherit;
-            color: var(--text);
-            -webkit-appearance: none;
-        }
-
-        .search-input:focus { outline: none; }
-        .search-input::placeholder { color: var(--text3); }
-
-        .search-wrap {
-            position: relative;
-        }
-
-        .search-wrap svg {
-            position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
-            width: 16px; height: 16px; stroke: var(--text3); fill: none; stroke-width: 2;
-        }
-
-        .filter-scroll {
-            display: flex; gap: 8px; overflow-x: auto; padding: 0 20px 12px;
-            -webkit-overflow-scrolling: touch;
-            scrollbar-width: none;
-        }
-
-        .filter-scroll::-webkit-scrollbar { display: none; }
-
-        .filter-chip {
-            padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 500;
-            white-space: nowrap; border: 1px solid var(--border);
-            background: var(--surface); color: var(--text2); cursor: pointer;
-            font-family: inherit; transition: all 0.15s;
-            flex-shrink: 0;
-        }
-
-        .filter-chip.active {
-            background: var(--accent); color: var(--bg);
-            border-color: var(--accent);
-        }
-
-        /* ========== BUTTONS ========== */
-        .btn {
-            display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-            padding: 12px 20px; border-radius: var(--radius-sm);
-            font-size: 14px; font-weight: 600; font-family: inherit;
-            border: none; cursor: pointer; transition: opacity 0.15s;
-            -webkit-appearance: none;
-        }
-
-        .btn:active { opacity: 0.7; }
-        .btn:disabled { opacity: 0.3; pointer-events: none; }
-
-        .btn-primary { background: var(--accent); color: var(--bg); }
-        .btn-secondary { background: var(--surface2); color: var(--text); }
-        .btn-outline { background: transparent; color: var(--accent); border: 1px solid var(--border); }
-        .btn-danger { background: var(--red); color: white; }
-        .btn-blue { background: var(--blue); color: white; }
-        .btn-full { width: 100%; }
-        .btn-sm { padding: 8px 14px; font-size: 12px; }
-
-        .btn-row { display: flex; gap: 8px; }
-
-        .btn-icon {
-            width: 36px; height: 36px; padding: 0;
-            border-radius: 50%; font-size: 16px;
-        }
-
-        /* ========== FORM ========== */
-        .form-group { margin-bottom: 16px; }
-
-        .form-label {
-            font-size: 12px; font-weight: 600; color: var(--text2);
-            margin-bottom: 6px; display: block; text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .form-input, .form-select {
-            width: 100%; padding: 12px 14px;
-            border: 1px solid var(--border);
-            border-radius: var(--radius-sm);
-            font-size: 15px; font-family: inherit;
-            background: var(--surface); color: var(--text);
-            -webkit-appearance: none;
-        }
-
-        .form-input:focus, .form-select:focus {
-            outline: none; border-color: var(--accent);
-        }
-
-        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .form-row.c3 { grid-template-columns: 1fr 1fr 1fr; }
-
-        /* ========== PHOTO UPLOAD ========== */
-        .upload-area {
-            border: 2px dashed var(--border);
-            border-radius: var(--radius);
-            padding: 32px;
-            text-align: center;
-            cursor: pointer;
-            transition: border-color 0.2s;
-        }
-
-        .upload-area:hover, .upload-area.dragover {
-            border-color: var(--accent);
-        }
-
-        .upload-icon {
-            width: 48px; height: 48px; margin: 0 auto 12px;
-            background: var(--surface2); border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-        }
-
-        .upload-icon svg { width: 24px; height: 24px; stroke: var(--text2); fill: none; stroke-width: 1.8; }
-
-        .upload-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
-        .upload-desc { font-size: 12px; color: var(--text3); }
-
-        .thumb-row { display: flex; gap: 8px; overflow-x: auto; padding: 12px 0; }
-
-        .thumb {
-            width: 72px; height: 72px; border-radius: var(--radius-sm);
-            overflow: hidden; flex-shrink: 0; position: relative;
-            border: 1px solid var(--border);
-        }
-
-        .thumb img { width: 100%; height: 100%; object-fit: cover; }
-
-        .thumb-rm {
-            position: absolute; top: 4px; right: 4px;
-            width: 18px; height: 18px; border-radius: 50%;
-            background: rgba(0,0,0,0.5); color: white;
-            border: none; cursor: pointer; font-size: 10px;
-            display: flex; align-items: center; justify-content: center;
-        }
-
-        .thumb-st {
-            position: absolute; bottom: 0; left: 0; right: 0;
-            padding: 2px; text-align: center; font-size: 8px;
-            font-weight: 700; color: white; text-transform: uppercase; letter-spacing: 0.5px;
-        }
-
-        .thumb-st.pending { background: var(--orange); }
-        .thumb-st.analyzing { background: var(--blue); }
-        .thumb-st.done { background: var(--green); }
-        .thumb-st.error { background: var(--red); }
-
-        /* ========== OUTFIT BUILDER ========== */
-        .builder-stack {
-            display: flex; flex-direction: column; align-items: center;
-            gap: 4px; padding: 24px 16px;
-            background: var(--surface2);
-            border-radius: var(--radius);
-        }
-
-        .builder-slot {
-            width: 140px; border: 1.5px dashed var(--border);
-            border-radius: var(--radius-sm);
-            display: flex; align-items: center; justify-content: center;
-            cursor: pointer; background: var(--surface);
-            overflow: hidden; position: relative; transition: all 0.15s;
-        }
-
-        .builder-slot.h-sm { height: 48px; width: 100px; }
-        .builder-slot.h-md { height: 72px; }
-        .builder-slot.h-lg { height: 90px; width: 150px; }
-
-        .builder-slot.filled { border-style: solid; border-color: var(--accent); }
-
-        .builder-slot img { width: 100%; height: 100%; object-fit: cover; }
-
-        .builder-slot .slot-label {
-            font-size: 11px; color: var(--text3); font-weight: 500;
-        }
-
-        .builder-slot .slot-name {
-            position: absolute; bottom: 0; left: 0; right: 0;
-            padding: 3px 6px; font-size: 9px; font-weight: 600;
-            background: var(--surface); border-top: 1px solid var(--border);
-            text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-        }
-
-        .builder-slot .slot-rm {
-            position: absolute; top: 2px; right: 2px;
-            width: 16px; height: 16px; border-radius: 50%;
-            background: var(--red); color: white; border: none; cursor: pointer;
-            font-size: 8px; display: none; align-items: center; justify-content: center;
-        }
-
-        .builder-slot:hover .slot-rm { display: flex; }
-
-        /* ========== AI PANEL ========== */
-        .ai-panel {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            overflow: hidden;
-        }
-
-        .ai-panel-header {
-            padding: 14px 16px;
-            display: flex; align-items: center; gap: 8px;
-            border-bottom: 1px solid var(--border);
-            font-size: 13px; font-weight: 600;
-        }
-
-        .ai-dot {
-            width: 6px; height: 6px; border-radius: 50%; background: var(--purple);
-        }
-
-        .ai-panel-body { padding: 16px; }
-
-        .ai-input-row { display: flex; gap: 8px; }
-
-        .ai-input {
-            flex: 1; padding: 10px 14px;
-            border: 1px solid var(--border);
-            border-radius: var(--radius-sm);
-            font-size: 14px; font-family: inherit;
-            background: var(--surface); color: var(--text);
-        }
-
-        .ai-input:focus { outline: none; border-color: var(--accent); }
-
-        .ai-response {
-            margin-top: 12px; padding: 16px;
-            background: var(--surface2); border-radius: var(--radius-sm);
-            font-size: 13px; line-height: 1.7; color: var(--text);
-            max-height: 360px; overflow-y: auto;
-        }
-
-        .ai-response strong { font-weight: 700; }
-        .ai-response h3 { font-size: 14px; font-weight: 700; margin: 14px 0 6px; }
-
-        .ai-chips {
-            display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px;
-        }
-
-        .ai-chip {
-            padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: 500;
-            border: 1px solid var(--border); background: var(--surface);
-            color: var(--text2); cursor: pointer; font-family: inherit;
-        }
-
-        .ai-chip:active { background: var(--surface2); }
-
-        .ai-loading {
-            display: flex; align-items: center; gap: 8px; padding: 16px 0;
-            font-size: 13px; color: var(--text2);
-        }
-
-        @keyframes pulse { 0%,100%{opacity:0.3} 50%{opacity:1} }
-        .ai-loading-dots span { animation: pulse 1.4s infinite; }
-        .ai-loading-dots span:nth-child(2) { animation-delay: 0.2s; }
-        .ai-loading-dots span:nth-child(3) { animation-delay: 0.4s; }
-
-        /* ========== CALENDAR ========== */
-        .cal-nav {
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 0 20px; margin-bottom: 16px;
-        }
-
-        .cal-nav h2 { font-size: 17px; font-weight: 700; }
-
-        .cal-arrow {
-            width: 32px; height: 32px; border-radius: 50%;
-            background: var(--surface2); border: none; cursor: pointer;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 14px; color: var(--text);
-        }
-
-        .cal-grid {
-            display: grid; grid-template-columns: repeat(7,1fr); gap: 2px;
-            padding: 0 20px;
-        }
-
-        .cal-head {
-            text-align: center; font-size: 11px; font-weight: 600;
-            color: var(--text3); padding: 8px 0;
-        }
-
-        .cal-day {
-            aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
-            font-size: 13px; border-radius: 50%; cursor: pointer;
-            position: relative; font-weight: 500;
-        }
-
-        .cal-day:hover { background: var(--surface2); }
-        .cal-day.today { background: var(--accent); color: var(--bg); font-weight: 700; }
-
-        .cal-day.has-outfit::after {
-            content: ''; width: 4px; height: 4px; border-radius: 50%;
-            background: var(--blue); position: absolute; bottom: 4px;
-        }
-
-        .cal-day.today.has-outfit::after { background: var(--bg); }
-        .cal-day.other { color: var(--text3); opacity: 0.4; }
-
-        /* ========== LIST ITEMS ========== */
-        .list-item {
-            display: flex; align-items: center; gap: 14px;
-            padding: 14px 20px;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .list-item:last-child { border-bottom: none; }
-        .list-item:active { background: var(--surface2); }
-
-        .list-icon {
-            width: 44px; height: 44px; border-radius: var(--radius-sm);
-            background: var(--surface2); display: flex; align-items: center;
-            justify-content: center; font-size: 20px; flex-shrink: 0;
-            overflow: hidden;
-        }
-
-        .list-icon img { width: 100%; height: 100%; object-fit: cover; }
-
-        .list-body { flex: 1; min-width: 0; }
-        .list-title { font-size: 14px; font-weight: 600; }
-        .list-sub { font-size: 12px; color: var(--text3); margin-top: 1px; }
-        .list-right { font-size: 12px; color: var(--text3); flex-shrink: 0; }
-
-        /* ========== MODAL ========== */
-        .modal-bg {
-            display: none; position: fixed; inset: 0; z-index: 100;
-            background: rgba(0,0,0,0.4); align-items: flex-end; justify-content: center;
-        }
-
-        .modal-bg.open { display: flex; }
-
-        .modal-sheet {
-            background: var(--surface); border-radius: 16px 16px 0 0;
-            width: 100%; max-width: 500px; max-height: 85vh;
-            overflow-y: auto; padding-bottom: var(--safe-bottom);
-        }
-
-        .modal-handle {
-            width: 36px; height: 4px; border-radius: 2px;
-            background: var(--border); margin: 8px auto 0;
-        }
-
-        .modal-header {
-            padding: 16px 20px; display: flex; align-items: center; justify-content: space-between;
-            border-bottom: 1px solid var(--border); position: sticky; top: 0;
-            background: var(--surface); z-index: 1;
-        }
-
-        .modal-title { font-size: 16px; font-weight: 700; }
-
-        .modal-close {
-            width: 28px; height: 28px; border-radius: 50%;
-            background: var(--surface2); border: none; cursor: pointer;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 14px; color: var(--text2);
-        }
-
-        .modal-body { padding: 20px; }
-
-        /* ========== SETTINGS ========== */
-        .setting-group { margin-bottom: 24px; }
-
-        .setting-group-title {
-            font-size: 11px; font-weight: 600; color: var(--text3);
-            text-transform: uppercase; letter-spacing: 0.8px;
-            padding: 0 20px; margin-bottom: 8px;
-        }
-
-        .setting-card {
-            background: var(--surface);
-            border-radius: var(--radius);
-            border: 1px solid var(--border);
-            margin: 0 20px;
-            overflow: hidden;
-        }
-
-        .setting-row {
-            display: flex; align-items: center; padding: 14px 16px;
-            border-bottom: 1px solid var(--border); gap: 12px;
-        }
-
-        .setting-row:last-child { border-bottom: none; }
-
-        .setting-label { flex: 1; font-size: 14px; }
-
-        .setting-value {
-            font-size: 13px; color: var(--text3); display: flex;
-            align-items: center; gap: 4px;
-        }
-
-        .toggle {
-            width: 44px; height: 24px; border-radius: 12px;
-            background: var(--border); border: none; cursor: pointer;
-            position: relative; transition: background 0.2s;
-        }
-
-        .toggle::after {
-            content: ''; width: 20px; height: 20px; border-radius: 50%;
-            background: white; position: absolute; top: 2px; left: 2px;
-            transition: transform 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-        }
-
-        .toggle.on { background: var(--green); }
-        .toggle.on::after { transform: translateX(20px); }
-
-        /* ========== EMPTY ========== */
-        .empty {
-            text-align: center; padding: 48px 20px; color: var(--text3);
-        }
-
-        .empty-icon { font-size: 48px; margin-bottom: 12px; opacity: 0.5; }
-        .empty-text { font-size: 14px; }
-
-        /* ========== RESPONSIVE ========== */
-        @media (min-width: 768px) {
-            .items-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
-            .form-row { grid-template-columns: 1fr 1fr; }
-        }
-
-        @media (max-width: 380px) {
-            .quick-stats { grid-template-columns: repeat(2, 1fr); }
-        }
-
-        /* ========== RECOGNIZED ========== */
-        .rec-card {
-            display: flex; gap: 12px; padding: 12px;
-            border: 1px solid var(--border); border-radius: var(--radius-sm);
-            margin-bottom: 8px; align-items: center;
-        }
-
-        .rec-card img {
-            width: 48px; height: 48px; border-radius: var(--radius-xs);
-            object-fit: cover;
-        }
-
-        .rec-info { flex: 1; }
-        .rec-name { font-size: 13px; font-weight: 600; }
-        .rec-detail { font-size: 11px; color: var(--text3); }
-        .rec-comment { font-size: 11px; color: var(--purple); font-style: italic; margin-top: 2px; }
-
-        /* ========== DETAIL TABLE ========== */
-        .detail-table { width: 100%; }
-        .detail-table td { padding: 8px 0; font-size: 13px; vertical-align: top; }
-        .detail-table td:first-child { color: var(--text3); width: 100px; }
-
-        /* Sustainability */
-        .sus-meter {
-            height: 6px; background: var(--surface2); border-radius: 3px;
-            overflow: hidden; margin: 8px 0;
-        }
-        .sus-fill { height: 100%; border-radius: 3px; transition: width 0.5s; }
-
-        /* Divider */
-        .divider { height: 1px; background: var(--border); margin: 0 20px; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#000000">
+<title>Wardrobe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F2F2F7;--s1:#FFF;--s2:#E5E5EA;--s3:#F9F9F9;
+  --t1:#000;--t2:#3C3C43;--t3:#8E8E93;--t4:#C7C7CC;
+  --sep:rgba(60,60,67,0.1);
+  --blue:#007AFF;--green:#34C759;--red:#FF3B30;--orange:#FF9500;--purple:#AF52DE;
+  --r:14px;--rs:10px;--nav:50px;--head:44px;
+  --sab:env(safe-area-inset-bottom,0px);
+  --sat:env(safe-area-inset-top,0px);
+}
+.dk{
+  --bg:#000;--s1:#1C1C1E;--s2:#2C2C2E;--s3:#1C1C1E;
+  --t1:#FFF;--t2:#EBEBF5;--t3:#636366;--t4:#48484A;
+  --sep:rgba(84,84,88,0.35);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden}
+body{
+  font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+  background:var(--bg);color:var(--t1);
+  -webkit-font-smoothing:antialiased;
+  position:relative;
+}
+
+/* === APP SHELL === */
+.app{display:flex;flex-direction:column;height:100%}
+.app-body{flex:1;position:relative;overflow:hidden}
+
+/* === VIEWS === */
+.view{
+  position:absolute;inset:0;
+  background:var(--bg);
+  overflow-y:auto;overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;
+  opacity:1;transform:translateX(0);
+  transition:transform .3s cubic-bezier(.4,0,.2,1),opacity .3s;
+  z-index:1;
+}
+.view.hidden{display:none}
+.view.slide-out{transform:translateX(-30%);opacity:.5;pointer-events:none}
+.view.slide-in{transform:translateX(100%);opacity:1}
+.view.slide-in.entering{transform:translateX(0)}
+
+/* === NAV BAR (top) === */
+.nav{
+  position:sticky;top:0;z-index:20;
+  backdrop-filter:saturate(180%) blur(20px);
+  -webkit-backdrop-filter:saturate(180%) blur(20px);
+  background:rgba(242,242,247,.72);
+  border-bottom:.5px solid var(--sep);
+}
+.dk .nav{background:rgba(0,0,0,.72)}
+.nav-inner{
+  height:var(--head);display:flex;align-items:center;
+  padding:0 16px;gap:12px;
+}
+.nav-title{font-size:17px;font-weight:600;flex:1;text-align:center}
+.nav-btn{
+  background:none;border:none;color:var(--blue);
+  font-size:17px;font-weight:400;cursor:pointer;
+  font-family:inherit;padding:0;min-width:44px;
+  display:flex;align-items:center;
+}
+.nav-btn svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.nav-large-title{
+  font-size:34px;font-weight:800;letter-spacing:-.5px;
+  padding:0 20px 12px;
+}
+
+/* === TAB BAR === */
+.tabs{
+  display:flex;height:calc(var(--nav) + var(--sab));
+  padding-bottom:var(--sab);
+  background:var(--s1);
+  border-top:.5px solid var(--sep);
+  backdrop-filter:saturate(180%) blur(20px);
+  -webkit-backdrop-filter:saturate(180%) blur(20px);
+  z-index:50;position:relative;
+}
+.dk .tabs{background:rgba(28,28,30,.92)}
+.tab{
+  flex:1;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:2px;border:none;background:none;
+  cursor:pointer;color:var(--t3);font-size:10px;font-weight:500;
+  font-family:inherit;padding:0;
+}
+.tab svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.tab.on{color:var(--blue)}
+.tab.on svg{stroke-width:2}
+
+/* === SECTIONS === */
+.pad{padding:0 20px}
+.gap{height:24px}
+.gap-sm{height:12px}
+
+.group{
+  background:var(--s1);border-radius:var(--r);
+  margin:0 20px;overflow:hidden;
+}
+
+.group+.group{margin-top:12px}
+
+.row{
+  display:flex;align-items:center;gap:14px;
+  padding:12px 16px;min-height:44px;
+  border-bottom:.5px solid var(--sep);
+}
+.row:last-child{border-bottom:none}
+.row:active{background:var(--s2)}
+
+.row-icon{
+  width:30px;height:30px;border-radius:7px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:15px;color:#FFF;flex-shrink:0;
+}
+
+.row-body{flex:1;min-width:0}
+.row-label{font-size:15px}
+.row-sub{font-size:13px;color:var(--t3);margin-top:1px}
+.row-right{font-size:15px;color:var(--t3);display:flex;align-items:center;gap:4px;flex-shrink:0}
+.row-chev::after{content:'›';font-size:18px;color:var(--t4);margin-left:4px}
+
+.section-head{
+  font-size:13px;font-weight:600;color:var(--t3);
+  text-transform:uppercase;letter-spacing:.5px;
+  padding:24px 20px 8px;
+}
+
+/* === GRID === */
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(calc(50% - 3px),1fr));
+  gap:2px;
+}
+@media(min-width:500px){.grid{grid-template-columns:repeat(3,1fr)}}
+@media(min-width:768px){.grid{grid-template-columns:repeat(4,1fr)}}
+
+.cell{
+  background:var(--s1);cursor:pointer;
+  position:relative;overflow:hidden;
+}
+.cell:active{opacity:.8}
+.cell-img{
+  width:100%;aspect-ratio:3/4;background:var(--bg);
+  display:flex;align-items:center;justify-content:center;
+  font-size:36px;color:var(--t4);overflow:hidden;
+}
+.cell-img img{width:100%;height:100%;object-fit:cover}
+.cell-info{padding:8px 10px 10px}
+.cell-name{font-size:12px;font-weight:600;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.cell-sub{font-size:10px;color:var(--t3);margin-top:2px}
+.cell .cell-fav{
+  position:absolute;top:6px;right:6px;
+  width:26px;height:26px;border-radius:50%;
+  background:rgba(0,0,0,.25);backdrop-filter:blur(8px);
+  border:none;cursor:pointer;color:#FFF;font-size:12px;
+  display:flex;align-items:center;justify-content:center;
+}
+.cell .cell-badge{
+  position:absolute;top:6px;left:6px;
+  padding:2px 7px;border-radius:4px;
+  background:var(--orange);color:#FFF;
+  font-size:9px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;
+}
+
+/* === FAB === */
+.fab{
+  position:fixed;z-index:40;
+  bottom:calc(var(--nav) + var(--sab) + 16px);
+  right:20px;
+  width:56px;height:56px;border-radius:50%;
+  background:var(--blue);color:#FFF;
+  border:none;cursor:pointer;font-size:28px;
+  box-shadow:0 4px 16px rgba(0,122,255,.35);
+  display:flex;align-items:center;justify-content:center;
+  transition:transform .15s;
+}
+.fab:active{transform:scale(.9)}
+.fab svg{width:24px;height:24px;stroke:#FFF;fill:none;stroke-width:2.5;stroke-linecap:round}
+
+/* === BUTTONS === */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  padding:14px 20px;border-radius:var(--rs);
+  font-size:15px;font-weight:600;font-family:inherit;
+  border:none;cursor:pointer;transition:opacity .15s;
+  -webkit-appearance:none;width:100%;
+}
+.btn:active{opacity:.7}
+.btn:disabled{opacity:.35;pointer-events:none}
+.btn-p{background:var(--blue);color:#FFF}
+.btn-s{background:rgba(0,122,255,.1);color:var(--blue)}
+.btn-d{background:rgba(255,59,48,.1);color:var(--red)}
+.btn-g{background:var(--s2);color:var(--t1)}
+
+/* === FORM === */
+.field{margin-bottom:16px}
+.field-label{font-size:12px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;display:block}
+.inp{
+  width:100%;padding:12px 14px;
+  background:var(--s1);color:var(--t1);
+  border:none;border-radius:var(--rs);
+  font-size:16px;font-family:inherit;
+  -webkit-appearance:none;
+}
+.dk .inp{background:var(--s2)}
+.inp:focus{outline:2px solid var(--blue);outline-offset:-2px}
+.inp::placeholder{color:var(--t4)}
+.inp-search{
+  background:rgba(118,118,128,.12);
+  padding:8px 12px 8px 32px;
+  border-radius:10px;font-size:15px;
+}
+.search-wrap{position:relative;margin:0 20px}
+.search-wrap svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);width:16px;height:16px;stroke:var(--t3);fill:none;stroke-width:2}
+
+/* === PILLS (segmented) === */
+.pills{
+  display:flex;background:rgba(118,118,128,.12);
+  border-radius:8px;padding:2px;margin:0 20px;
+}
+.pill{
+  flex:1;padding:6px 0;text-align:center;
+  border-radius:7px;font-size:13px;font-weight:500;
+  border:none;background:none;cursor:pointer;
+  color:var(--t2);font-family:inherit;
+}
+.pill.on{background:var(--s1);box-shadow:0 1px 4px rgba(0,0,0,.08);color:var(--t1);font-weight:600}
+.dk .pill.on{background:var(--s2)}
+
+/* === CHIPS === */
+.chips{display:flex;gap:6px;overflow-x:auto;padding:0 20px 4px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{
+  padding:6px 14px;border-radius:20px;font-size:13px;font-weight:500;
+  white-space:nowrap;border:1px solid var(--sep);
+  background:var(--s1);color:var(--t2);cursor:pointer;
+  font-family:inherit;flex-shrink:0;
+}
+.chip.on{background:var(--t1);color:var(--bg);border-color:var(--t1)}
+
+/* === OUTFIT BUILDER === */
+.builder{
+  display:flex;flex-direction:column;align-items:center;
+  gap:4px;padding:20px;background:var(--s1);
+  border-radius:var(--r);margin:0 20px;
+}
+.slot{
+  border:1.5px dashed var(--t4);border-radius:var(--rs);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;background:var(--bg);overflow:hidden;
+  position:relative;transition:all .2s;
+}
+.slot.sm{width:80px;height:40px}
+.slot.md{width:130px;height:64px}
+.slot.lg{width:150px;height:80px}
+.slot.on{border-style:solid;border-color:var(--t1)}
+.slot img{width:100%;height:100%;object-fit:cover}
+.slot-lbl{font-size:10px;color:var(--t4);font-weight:500;text-transform:uppercase;letter-spacing:.5px}
+.slot-nm{
+  position:absolute;bottom:0;left:0;right:0;padding:2px 4px;
+  font-size:8px;font-weight:600;background:rgba(255,255,255,.85);
+  text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.dk .slot-nm{background:rgba(0,0,0,.7)}
+.slot-x{
+  position:absolute;top:2px;right:2px;width:14px;height:14px;
+  border-radius:50%;background:var(--red);color:#FFF;border:none;
+  cursor:pointer;font-size:8px;display:none;align-items:center;justify-content:center;
+}
+.slot:hover .slot-x{display:flex}
+
+/* === AI === */
+.ai-bar{
+  display:flex;gap:8px;padding:12px 20px;
+  background:var(--s1);border-top:.5px solid var(--sep);
+  position:sticky;bottom:0;
+}
+.ai-inp{
+  flex:1;padding:10px 14px;background:var(--bg);
+  border:none;border-radius:20px;font-size:15px;
+  font-family:inherit;color:var(--t1);
+}
+.dk .ai-inp{background:var(--s2)}
+.ai-inp:focus{outline:none}
+.ai-send{
+  width:36px;height:36px;border-radius:50%;
+  background:var(--blue);border:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+}
+.ai-send svg{width:18px;height:18px;stroke:#FFF;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.ai-msg{padding:12px 20px;font-size:14px;line-height:1.6}
+.ai-msg.bot{background:var(--s1);border-radius:0 18px 18px 18px;margin:8px 20px 8px 12px}
+.ai-msg.user{background:var(--blue);color:#FFF;border-radius:18px 0 18px 18px;margin:8px 12px 8px 20px;text-align:right}
+.ai-msg strong{font-weight:700}
+.ai-msg h3{font-size:15px;font-weight:700;margin:10px 0 4px}
+.ai-typing{padding:12px 20px;font-size:13px;color:var(--t3)}
+.ai-quick{display:flex;gap:6px;flex-wrap:wrap;padding:8px 20px}
+.ai-qbtn{
+  padding:6px 12px;border-radius:16px;font-size:12px;font-weight:500;
+  border:1px solid var(--sep);background:var(--s1);
+  color:var(--t2);cursor:pointer;font-family:inherit;
+}
+
+/* === DETAIL === */
+.detail-hero{width:100%;aspect-ratio:1;background:var(--bg);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:80px;color:var(--t4)}
+.detail-hero img{width:100%;height:100%;object-fit:cover}
+.detail-meta{padding:20px}
+.detail-name{font-size:24px;font-weight:700;letter-spacing:-.3px}
+.detail-brand{font-size:15px;color:var(--t3);margin-top:2px}
+
+/* === CALENDAR === */
+.cal-head{display:flex;align-items:center;justify-content:space-between;padding:0 20px;margin-bottom:16px}
+.cal-head h2{font-size:20px;font-weight:700}
+.cal-arr{width:32px;height:32px;border-radius:50%;background:var(--s2);border:none;cursor:pointer;font-size:14px;color:var(--t1);display:flex;align-items:center;justify-content:center}
+.cal-g{display:grid;grid-template-columns:repeat(7,1fr);gap:0;padding:0 20px}
+.cal-dh{text-align:center;font-size:11px;font-weight:600;color:var(--t3);padding:8px 0}
+.cal-d{
+  aspect-ratio:1;display:flex;align-items:center;justify-content:center;
+  font-size:15px;border-radius:50%;cursor:pointer;position:relative;
+}
+.cal-d:active{background:var(--s2)}
+.cal-d.td{background:var(--blue);color:#FFF;font-weight:700}
+.cal-d.ho::after{content:'';width:5px;height:5px;border-radius:50%;background:var(--blue);position:absolute;bottom:4px}
+.cal-d.td.ho::after{background:#FFF}
+.cal-d.ot{color:var(--t4)}
+
+/* === SHEET === */
+.sheet-bg{
+  display:none;position:fixed;inset:0;z-index:60;
+  background:rgba(0,0,0,.3);
+  transition:opacity .25s;
+}
+.sheet-bg.open{display:flex;align-items:flex-end;justify-content:center}
+.sheet{
+  background:var(--s1);border-radius:14px 14px 0 0;
+  width:100%;max-width:500px;max-height:92vh;
+  overflow-y:auto;-webkit-overflow-scrolling:touch;
+  transform:translateY(100%);transition:transform .35s cubic-bezier(.32,.72,0,1);
+  padding-bottom:var(--sab);
+}
+.sheet-bg.open .sheet{transform:translateY(0)}
+.sheet-bar{width:36px;height:5px;border-radius:3px;background:var(--t4);margin:6px auto 0}
+.sheet-head{padding:14px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:.5px solid var(--sep)}
+.sheet-title{font-size:17px;font-weight:600}
+.sheet-x{background:var(--s2);border:none;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:14px;color:var(--t3);display:flex;align-items:center;justify-content:center}
+.sheet-body{padding:20px}
+
+/* === WEATHER === */
+.wx{display:flex;align-items:center;gap:14px;padding:16px 20px;background:var(--s1);border-radius:var(--r);margin:0 20px}
+.wx-temp{font-size:32px;font-weight:700;letter-spacing:-1px}
+.wx-info{flex:1}
+.wx-desc{font-size:14px;font-weight:500}
+.wx-det{font-size:12px;color:var(--t3);margin-top:1px}
+
+/* === TODAY === */
+.today{
+  background:var(--t1);color:var(--bg);
+  border-radius:var(--r);padding:20px;margin:12px 20px 0;
+}
+.today-lbl{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1px;opacity:.5;margin-bottom:6px}
+.today-name{font-size:20px;font-weight:700;letter-spacing:-.3px;margin-bottom:10px}
+.today-pills{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.today-pill{padding:5px 11px;border-radius:16px;font-size:12px;font-weight:500;background:rgba(255,255,255,.12)}
+.dk .today-pill{background:rgba(255,255,255,.08)}
+.today-btns{display:flex;gap:8px}
+.today-b{
+  padding:8px 16px;border-radius:20px;font-size:13px;font-weight:600;
+  border:none;cursor:pointer;font-family:inherit;
+}
+.today-b:first-child{background:var(--bg);color:var(--t1)}
+.today-b:nth-child(2){background:rgba(255,255,255,.15);color:inherit;border:1px solid rgba(255,255,255,.2)}
+
+/* === UPLOAD === */
+.upload{
+  border:2px dashed var(--t4);border-radius:var(--r);
+  padding:32px;text-align:center;cursor:pointer;
+  transition:border-color .2s;margin-bottom:20px;
+}
+.upload:active,.upload.ov{border-color:var(--blue)}
+.upload-ico{width:48px;height:48px;border-radius:50%;background:var(--s2);display:flex;align-items:center;justify-content:center;margin:0 auto 10px}
+.upload-ico svg{width:22px;height:22px;stroke:var(--t3);fill:none;stroke-width:1.8}
+.upload-t{font-size:15px;font-weight:600;margin-bottom:3px}
+.upload-d{font-size:13px;color:var(--t3)}
+
+.thumbs{display:flex;gap:6px;overflow-x:auto;padding:4px 0 12px;scrollbar-width:none}
+.thumbs::-webkit-scrollbar{display:none}
+.tmb{width:64px;height:64px;border-radius:8px;overflow:hidden;flex-shrink:0;position:relative;border:1px solid var(--sep)}
+.tmb img{width:100%;height:100%;object-fit:cover}
+.tmb-x{position:absolute;top:3px;right:3px;width:16px;height:16px;border-radius:50%;background:rgba(0,0,0,.5);color:#FFF;border:none;cursor:pointer;font-size:8px;display:flex;align-items:center;justify-content:center}
+.tmb-s{position:absolute;bottom:0;left:0;right:0;height:3px}
+.tmb-s.p{background:var(--orange)}.tmb-s.a{background:var(--blue)}.tmb-s.d{background:var(--green)}.tmb-s.e{background:var(--red)}
+
+/* === EMPTY === */
+.empty{text-align:center;padding:60px 40px}
+.empty-ico{font-size:48px;opacity:.3;margin-bottom:12px}
+.empty-t{font-size:15px;color:var(--t3)}
+
+/* === QUICK STATS === */
+.qst{display:grid;grid-template-columns:repeat(4,1fr);gap:0;background:var(--s1);border-radius:var(--r);margin:12px 20px 0;overflow:hidden}
+.qst-i{padding:14px 4px;text-align:center;border-right:.5px solid var(--sep)}
+.qst-i:last-child{border-right:none}
+.qst-v{font-size:20px;font-weight:700}
+.qst-l{font-size:9px;color:var(--t3);margin-top:2px;text-transform:uppercase;letter-spacing:.3px;font-weight:500}
+
+/* === REC === */
+.rec{display:flex;gap:10px;padding:10px;border:1px solid var(--sep);border-radius:var(--rs);margin-bottom:6px;align-items:center}
+.rec-info{flex:1;min-width:0}
+.rec-n{font-size:13px;font-weight:600}
+.rec-d{font-size:11px;color:var(--t3)}
+.rec-c{font-size:11px;color:var(--purple);font-style:italic;margin-top:1px}
+</style>
 </head>
 <body>
+<div class="app">
+<div class="app-body" id="appBody">
 
-<!-- HEADER -->
-<div class="header">
-    <span class="header-title">Wardrobe</span>
-    <div class="header-actions">
-        <span class="header-badge off" id="aiBadge">AI</span>
-        <button class="header-btn" onclick="toggleDark()">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 12.79A9 9 0 1111.21 3a7 7 0 009.79 9.79z"/></svg>
-        </button>
-    </div>
+<!-- ============ HOME ============ -->
+<div class="view" id="v-home">
+  <div class="nav"><div class="nav-inner"><div style="min-width:44px"></div><div class="nav-title">Wardrobe</div><button class="nav-btn" onclick="openSheet('settingsSheet')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></button></div></div>
+  <div class="wx" id="wxBar"><span class="wx-temp" id="wxT">--°</span><div class="wx-info"><div class="wx-desc" id="wxD">Standort eintragen</div><div class="wx-det" id="wxDet"></div></div></div>
+  <div class="today" id="todayCard"><div class="today-lbl">Outfit des Tages</div><div class="today-name" id="todayN">Tippe für einen Vorschlag</div><div class="today-pills" id="todayP"></div><div class="today-btns"><button class="today-b" onclick="genOOTD()">Neuer Vorschlag</button><button class="today-b" onclick="wearOOTD()">Trage ich</button></div></div>
+  <div class="qst" id="qst"></div>
+  <div id="homeAlerts" style="padding:12px 0"></div>
+  <div class="gap"></div>
 </div>
 
-<!-- ===== HOME ===== -->
-<div class="page active" id="p-home">
-    <div class="weather-bar" id="weatherBar">
-        <span class="weather-temp" id="wTemp">--°</span>
-        <div class="weather-info">
-            <div class="weather-desc" id="wDesc">Wetter laden</div>
-            <div class="weather-detail" id="wDetail"></div>
-        </div>
-        <div class="weather-sug" id="wSug"></div>
-    </div>
-
-    <div class="today-card" id="todayCard">
-        <div class="today-label">Outfit des Tages</div>
-        <div class="today-outfit" id="todayTitle">Tippe für einen Vorschlag</div>
-        <div class="today-items" id="todayItems"></div>
-        <div class="today-actions">
-            <button class="today-btn" onclick="genOOTD()">Neuer Vorschlag</button>
-            <button class="today-btn" onclick="wearOOTD()">Trage ich</button>
-        </div>
-    </div>
-
-    <div class="quick-stats" id="qStats"></div>
-
-    <div class="section" id="homeAlerts"></div>
+<!-- ============ CLOSET ============ -->
+<div class="view hidden" id="v-closet">
+  <div class="nav"><div class="nav-inner"><div style="min-width:44px"></div><div class="nav-title">Kleiderschrank</div><div style="min-width:44px"></div></div></div>
+  <div class="gap-sm"></div>
+  <div class="search-wrap"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg><input class="inp inp-search" id="sq" placeholder="Suchen" oninput="rCloset()"></div>
+  <div class="gap-sm"></div>
+  <div class="chips" id="filterChips"></div>
+  <div class="gap-sm"></div>
+  <div class="grid" id="cGrid"></div>
+  <div class="gap"></div>
+  <button class="fab" onclick="openSheet('addSheet')"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
 </div>
 
-<!-- ===== CLOSET ===== -->
-<div class="page" id="p-closet">
-    <div class="search-section">
-        <div class="search-wrap">
-            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-            <input type="text" class="search-input" id="searchInput" placeholder="Suchen" oninput="renderCloset()">
-        </div>
-    </div>
-
-    <div class="filter-scroll" id="filterChips"></div>
-    <div class="items-grid" id="closetGrid"></div>
-
-    <div class="section" style="padding-top:16px;">
-        <button class="btn btn-primary btn-full" onclick="openM('addModal')">Kleidung hinzufügen</button>
-    </div>
+<!-- ============ DETAIL (pushed view) ============ -->
+<div class="view hidden slide-in" id="v-detail">
+  <div class="nav"><div class="nav-inner"><button class="nav-btn" onclick="popView()"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg> Zurück</button><div class="nav-title" id="detNavTitle"></div><div style="min-width:44px"></div></div></div>
+  <div id="detContent"></div>
 </div>
 
-<!-- ===== OUTFIT ===== -->
-<div class="page" id="p-outfit">
-    <div class="section">
-        <div class="form-group">
-            <input class="form-input" id="outfitName" placeholder="Outfit benennen">
-        </div>
-
-        <div class="builder-stack" id="builderStack">
-            <div class="builder-slot h-sm" data-s="muetze" onclick="pickSlot('muetze')"><span class="slot-label">Kopf</span></div>
-            <div class="builder-slot h-lg" data-s="oberteil" onclick="pickSlot('oberteil')"><span class="slot-label">Oberteil</span></div>
-            <div class="builder-slot h-md" data-s="jacke" onclick="pickSlot('jacke')"><span class="slot-label">Jacke</span></div>
-            <div class="builder-slot h-lg" data-s="unterteil" onclick="pickSlot('unterteil')"><span class="slot-label">Unterteil</span></div>
-            <div class="builder-slot h-sm" data-s="schuhe" onclick="pickSlot('schuhe')"><span class="slot-label">Schuhe</span></div>
-            <div class="builder-slot h-sm" data-s="accessoire" onclick="pickSlot('accessoire')"><span class="slot-label">Accessoire</span></div>
-        </div>
-
-        <div class="btn-row" style="margin-top:16px;">
-            <button class="btn btn-primary btn-full" onclick="saveOutfit()">Speichern</button>
-        </div>
-        <div class="btn-row" style="margin-top:8px;">
-            <button class="btn btn-secondary" style="flex:1" onclick="randOutfit()">Zufällig</button>
-            <button class="btn btn-secondary" style="flex:1" onclick="aiSmartOutfit()">AI Vorschlag</button>
-        </div>
+<!-- ============ OUTFIT ============ -->
+<div class="view hidden" id="v-outfit">
+  <div class="nav"><div class="nav-inner"><div style="min-width:44px"></div><div class="nav-title">Outfit</div><div style="min-width:44px"></div></div></div>
+  <div class="gap-sm"></div>
+  <div class="pad"><div class="field"><input class="inp" id="oName" placeholder="Outfit benennen"></div></div>
+  <div class="builder" id="builderStack">
+    <div class="slot sm" data-s="muetze" onclick="pickSlot('muetze')"><span class="slot-lbl">Kopf</span></div>
+    <div class="slot lg" data-s="oberteil" onclick="pickSlot('oberteil')"><span class="slot-lbl">Oberteil</span></div>
+    <div class="slot md" data-s="jacke" onclick="pickSlot('jacke')"><span class="slot-lbl">Jacke</span></div>
+    <div class="slot lg" data-s="unterteil" onclick="pickSlot('unterteil')"><span class="slot-lbl">Unterteil</span></div>
+    <div class="slot sm" data-s="schuhe" onclick="pickSlot('schuhe')"><span class="slot-lbl">Schuhe</span></div>
+    <div class="slot sm" data-s="accessoire" onclick="pickSlot('accessoire')"><span class="slot-lbl">Acc</span></div>
+  </div>
+  <div class="pad" style="margin-top:16px">
+    <button class="btn btn-p" onclick="saveOutfit()">Speichern</button>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button class="btn btn-g" style="flex:1" onclick="randOutfit()">Zufällig</button>
+      <button class="btn btn-s" style="flex:1" onclick="aiSmartO()">AI Vorschlag</button>
     </div>
-
-    <div class="section">
-        <div class="ai-panel">
-            <div class="ai-panel-header"><span class="ai-dot"></span> AI Feedback</div>
-            <div class="ai-panel-body">
-                <button class="btn btn-outline btn-full btn-sm" onclick="aiRate()">Outfit bewerten lassen</button>
-                <div id="aiRateRes"></div>
-                <div style="margin-top:12px;">
-                    <div class="ai-input-row">
-                        <input class="ai-input" id="occasionIn" placeholder="Anlass eingeben">
-                        <button class="btn btn-primary btn-sm" onclick="aiOccasion()">Fragen</button>
-                    </div>
-                    <div id="aiOccRes"></div>
-                </div>
-            </div>
-        </div>
-    </div>
+  </div>
+  <div class="section-head">AI Feedback</div>
+  <div class="group">
+    <div class="row" style="cursor:pointer" onclick="aiRate()"><div class="row-icon" style="background:var(--purple)">✦</div><div class="row-body"><div class="row-label">Outfit bewerten lassen</div><div class="row-sub">Ehrliches Feedback von der AI</div></div><div class="row-right row-chev"></div></div>
+    <div class="row" style="cursor:pointer" onclick="openSheet('occasionSheet')"><div class="row-icon" style="background:var(--blue)">◎</div><div class="row-body"><div class="row-label">Outfit für Anlass</div><div class="row-sub">AI schlägt passendes Outfit vor</div></div><div class="row-right row-chev"></div></div>
+  </div>
+  <div id="aiOutfitRes" style="padding:0 20px"></div>
+  <div class="gap"></div>
 </div>
 
-<!-- ===== CALENDAR ===== -->
-<div class="page" id="p-cal">
-    <div class="section" style="padding-bottom:0;">
-        <div class="ai-panel" style="margin-bottom:16px;">
-            <div class="ai-panel-header"><span class="ai-dot"></span> Wochenplan erstellen</div>
-            <div class="ai-panel-body">
-                <div class="form-row">
-                    <div class="form-group"><label class="form-label">Wetter</label><input class="form-input" id="weekW" placeholder="Mo 15° Regen..."></div>
-                    <div class="form-group"><label class="form-label">Anlässe</label><input class="form-input" id="weekE" placeholder="Mi Meeting"></div>
-                </div>
-                <button class="btn btn-primary btn-full btn-sm" onclick="aiWeek()">Woche planen</button>
-                <div id="aiWeekRes"></div>
-            </div>
-        </div>
-    </div>
-
-    <div class="cal-nav">
-        <button class="cal-arrow" onclick="calNav(-1)">‹</button>
-        <h2 id="calTitle"></h2>
-        <button class="cal-arrow" onclick="calNav(1)">›</button>
-    </div>
-    <div class="cal-grid" id="calGrid"></div>
+<!-- ============ CALENDAR ============ -->
+<div class="view hidden" id="v-cal">
+  <div class="nav"><div class="nav-inner"><div style="min-width:44px"></div><div class="nav-title">Kalender</div><div style="min-width:44px"></div></div></div>
+  <div class="gap-sm"></div>
+  <div class="cal-head"><button class="cal-arr" onclick="calNav(-1)">‹</button><h2 id="calT"></h2><button class="cal-arr" onclick="calNav(1)">›</button></div>
+  <div class="cal-g" id="calG"></div>
+  <div class="section-head">AI Wochenplan</div>
+  <div class="group">
+    <div class="row" style="cursor:pointer" onclick="openSheet('weekSheet')"><div class="row-icon" style="background:var(--purple)">✦</div><div class="row-body"><div class="row-label">Woche planen lassen</div><div class="row-sub">AI plant Outfits für die ganze Woche</div></div><div class="row-right row-chev"></div></div>
+  </div>
+  <div class="gap"></div>
 </div>
 
-<!-- ===== AI ===== -->
-<div class="page" id="p-ai">
-    <div class="section">
-        <div class="section-title">AI Berater</div>
-        <div class="section-subtitle">Ehrlich, direkt und ungeschönt.</div>
-
-        <div class="ai-panel" style="margin-top:16px;">
-            <div class="ai-panel-body">
-                <div class="ai-input-row">
-                    <input class="ai-input" id="aiQ" placeholder="Frage stellen..." onkeypress="if(event.key==='Enter')aiChat()">
-                    <button class="btn btn-primary btn-sm" onclick="aiChat()">Senden</button>
-                </div>
-
-                <div class="ai-chips">
-                    <button class="ai-chip" onclick="aiAsk('Farbcheck: Was passt, was beißt sich?')">Farben</button>
-                    <button class="ai-chip" onclick="aiAsk('Was fehlt? Was ist überflüssig?')">Kaufberatung</button>
-                    <button class="ai-chip" onclick="aiAsk('3 Outfit-Ideen, ehrlich bewertet')">Ideen</button>
-                    <button class="ai-chip" onclick="aiAsk('Stil-Analyse: Wer bin ich modisch?')">Stil</button>
-                    <button class="ai-chip" onclick="aiAsk('Fehlkäufe identifizieren')">Fehlkäufe</button>
-                    <button class="ai-chip" onclick="aiAsk('Cost-per-Wear: Was lohnt sich?')">CPW</button>
-                    <button class="ai-chip" onclick="aiAsk('Capsule Wardrobe Vorschlag')">Capsule</button>
-                    <button class="ai-chip" onclick="aiAsk('Nachhaltigkeits-Analyse')">Nachhaltigkeit</button>
-                    <button class="ai-chip" onclick="aiAsk('Aktuelle Trends für mich')">Trends</button>
-                    <button class="ai-chip" onclick="aiAsk('Pflege-Tipps für meine Kleidung')">Pflege</button>
-                </div>
-
-                <div id="aiChatRes"></div>
-            </div>
-        </div>
+<!-- ============ AI ============ -->
+<div class="view hidden" id="v-ai" style="display:none;flex-direction:column">
+  <div class="nav"><div class="nav-inner"><div style="min-width:44px"></div><div class="nav-title">AI Berater</div><div style="min-width:44px"></div></div></div>
+  <div style="flex:1;overflow-y:auto" id="aiScroll">
+    <div class="pad" style="padding-top:16px"><p style="font-size:14px;color:var(--t3);line-height:1.5">Ehrlich, direkt und ungeschönt. Stelle Fragen zu deinem Stil, Outfits oder Kleiderschrank.</p></div>
+    <div class="ai-quick" id="aiQuick">
+      <button class="ai-qbtn" onclick="aiAsk('Farbcheck: Was passt zusammen, was beißt sich?')">Farben</button>
+      <button class="ai-qbtn" onclick="aiAsk('Was fehlt dringend? Was raus?')">Kaufberatung</button>
+      <button class="ai-qbtn" onclick="aiAsk('3 Outfit-Ideen, ehrlich bewertet')">Ideen</button>
+      <button class="ai-qbtn" onclick="aiAsk('Knallharte Stil-Analyse')">Stil</button>
+      <button class="ai-qbtn" onclick="aiAsk('Cost-per-Wear Analyse')">CPW</button>
+      <button class="ai-qbtn" onclick="aiAsk('Capsule Wardrobe Vorschlag')">Capsule</button>
+      <button class="ai-qbtn" onclick="aiAsk('Trends die zu mir passen')">Trends</button>
     </div>
+    <div id="aiMsgs"></div>
+    <div class="gap"></div>
+  </div>
+  <div class="ai-bar"><input class="ai-inp" id="aiInput" placeholder="Frage stellen..." onkeypress="if(event.key==='Enter')aiSend()"><button class="ai-send" onclick="aiSend()"><svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button></div>
 </div>
 
-<!-- ===== MODALS ===== -->
-<div class="modal-bg" id="addModal">
-    <div class="modal-sheet">
-        <div class="modal-handle"></div>
-        <div class="modal-header">
-            <span class="modal-title">Hinzufügen</span>
-            <button class="modal-close" onclick="closeM('addModal')">✕</button>
-        </div>
-        <div class="modal-body">
-            <div class="upload-area" id="dropZone" onclick="document.getElementById('fileIn').click()" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="handleDrop(event)">
-                <div class="upload-icon"><svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg></div>
-                <div class="upload-title">Foto aufnehmen oder hochladen</div>
-                <div class="upload-desc">AI erkennt Kleidung automatisch</div>
-            </div>
-            <div class="btn-row" style="margin-bottom:16px;">
-                <button class="btn btn-secondary" style="flex:1" onclick="openCam()">Kamera</button>
-                <button class="btn btn-secondary" style="flex:1" onclick="document.getElementById('fileIn').click()">Galerie</button>
-                <button class="btn btn-primary" style="flex:1" onclick="scanPhotos()" id="scanBtn" disabled>AI Scan</button>
-            </div>
-            <input type="file" id="fileIn" accept="image/*" multiple style="display:none" onchange="onFiles(event)">
-            <input type="file" id="camIn" accept="image/*" capture="environment" style="display:none" onchange="onCamFile(event)">
-            <div id="camBox" style="display:none;margin-bottom:16px;">
-                <div style="background:#000;border-radius:12px;overflow:hidden;position:relative;">
-                    <video id="camVid" autoplay playsinline style="width:100%;max-height:280px;display:block;"></video>
-                    <div style="position:absolute;bottom:10px;left:0;right:0;text-align:center;">
-                        <button class="btn btn-primary btn-sm" onclick="snap()">Auslösen</button>
-                        <button class="btn btn-secondary btn-sm" onclick="closeCam()">Schließen</button>
-                    </div>
-                </div>
-                <canvas id="camCan" style="display:none;"></canvas>
-            </div>
-            <div class="thumb-row" id="thumbRow"></div>
-            <div id="recBox"></div>
-
-            <div style="border-top:1px solid var(--border);padding-top:20px;margin-top:16px;">
-                <div style="font-size:13px;font-weight:600;margin-bottom:12px;">Manuell hinzufügen</div>
-                <div class="form-row">
-                    <div class="form-group"><label class="form-label">Name</label><input class="form-input" id="mName" placeholder="Weißes T-Shirt"></div>
-                    <div class="form-group"><label class="form-label">Kategorie</label><select class="form-select" id="mCat"><option value="tshirt">T-Shirt</option><option value="hemd">Hemd/Bluse</option><option value="pullover">Pullover</option><option value="hoodie">Hoodie</option><option value="hose">Hose</option><option value="jeans">Jeans</option><option value="shorts">Shorts</option><option value="rock">Rock</option><option value="kleid">Kleid</option><option value="jacke">Jacke</option><option value="mantel">Mantel</option><option value="sneaker">Sneaker</option><option value="stiefel">Stiefel</option><option value="sandalen">Sandalen</option><option value="tasche">Tasche</option><option value="schmuck">Schmuck</option><option value="muetze">Mütze</option><option value="schal">Schal</option><option value="sonnenbrille">Sonnenbrille</option><option value="sonstiges">Sonstiges</option></select></div>
-                </div>
-                <div class="form-row c3">
-                    <div class="form-group"><label class="form-label">Farbe</label><input type="color" class="form-input" id="mColor" value="#1A1A1A" style="height:44px;padding:4px;cursor:pointer;"></div>
-                    <div class="form-group"><label class="form-label">Saison</label><select class="form-select" id="mSeason"><option value="alle">Alle</option><option value="fruehling">Frühling</option><option value="sommer">Sommer</option><option value="herbst">Herbst</option><option value="winter">Winter</option></select></div>
-                    <div class="form-group"><label class="form-label">Preis</label><input type="number" class="form-input" id="mPrice" placeholder="€" step="0.01"></div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group"><label class="form-label">Marke</label><input class="form-input" id="mBrand" placeholder="Optional"></div>
-                    <div class="form-group"><label class="form-label">Material</label><input class="form-input" id="mMat" placeholder="Optional"></div>
-                </div>
-                <button class="btn btn-primary btn-full" onclick="addManual()">Hinzufügen</button>
-            </div>
-
-            <div style="border-top:1px solid var(--border);padding-top:20px;margin-top:20px;">
-                <div class="ai-panel">
-                    <div class="ai-panel-header"><span class="ai-dot"></span> Per Text beschreiben</div>
-                    <div class="ai-panel-body">
-                        <div class="ai-input-row">
-                            <input class="ai-input" id="aiTextIn" placeholder="Rotes Kleid, weiße Sneaker...">
-                            <button class="btn btn-primary btn-sm" onclick="aiTextAdd()">Erkennen</button>
-                        </div>
-                        <div id="aiTextRes"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="modal-bg" id="slotModal">
-    <div class="modal-sheet">
-        <div class="modal-handle"></div>
-        <div class="modal-header"><span class="modal-title" id="slotTitle">Wählen</span><button class="modal-close" onclick="closeM('slotModal')">✕</button></div>
-        <div class="modal-body"><div class="items-grid" id="slotGrid"></div></div>
-    </div>
-</div>
-
-<div class="modal-bg" id="detailModal">
-    <div class="modal-sheet">
-        <div class="modal-handle"></div>
-        <div class="modal-header"><span class="modal-title">Details</span><button class="modal-close" onclick="closeM('detailModal')">✕</button></div>
-        <div class="modal-body" id="detailBody"></div>
-    </div>
-</div>
-
-<div class="modal-bg" id="dayModal">
-    <div class="modal-sheet">
-        <div class="modal-handle"></div>
-        <div class="modal-header"><span class="modal-title" id="dayTitle">Tag</span><button class="modal-close" onclick="closeM('dayModal')">✕</button></div>
-        <div class="modal-body" id="dayBody"></div>
-    </div>
-</div>
-
-<div class="modal-bg" id="settingsModal">
-    <div class="modal-sheet">
-        <div class="modal-handle"></div>
-        <div class="modal-header"><span class="modal-title">Einstellungen</span><button class="modal-close" onclick="closeM('settingsModal')">✕</button></div>
-        <div class="modal-body" style="padding:20px 0;">
-            <div class="setting-group">
-                <div class="setting-group-title">AI Konfiguration</div>
-                <div class="setting-card">
-                    <div class="setting-row"><span class="setting-label">API Key</span><input type="password" id="keyIn" placeholder="AIza..." style="width:140px;padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-size:12px;font-family:monospace;background:var(--surface);color:var(--text);text-align:right;"></div>
-                    <div class="setting-row"><span class="setting-label">Modell</span><select id="modelSel" style="padding:6px;border:1px solid var(--border);border-radius:6px;font-size:12px;background:var(--surface);color:var(--text);" onchange="localStorage.setItem('ai_m',this.value)"><option value="gemini-2.0-flash">Flash 2.0</option><option value="gemini-2.5-flash-preview-05-20">Flash 2.5</option><option value="gemini-2.5-pro-preview-05-06">Pro 2.5</option></select></div>
-                    <div class="setting-row"><span class="setting-label">Kreativität</span><div style="display:flex;align-items:center;gap:8px;"><input type="range" id="tempSl" min="0" max="1" step="0.1" value="0.7" onchange="localStorage.setItem('ai_t',this.value);document.getElementById('tempV').textContent=this.value" style="width:80px;"><span id="tempV" style="font-size:12px;color:var(--text3);width:24px;">0.7</span></div></div>
-                </div>
-            </div>
-            <div class="setting-group">
-                <div class="setting-group-title">Wetter</div>
-                <div class="setting-card">
-                    <div class="setting-row"><span class="setting-label">Standort</span><input id="cityIn" placeholder="Berlin" style="width:120px;padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-size:12px;background:var(--surface);color:var(--text);text-align:right;"></div>
-                </div>
-            </div>
-            <div class="setting-group">
-                <div class="setting-group-title">Daten</div>
-                <div class="setting-card">
-                    <div class="setting-row" style="cursor:pointer;" onclick="xport()"><span class="setting-label">Exportieren</span><span class="setting-value">›</span></div>
-                    <div class="setting-row" style="cursor:pointer;" onclick="document.getElementById('impIn').click()"><span class="setting-label">Importieren</span><span class="setting-value">›</span></div>
-                    <div class="setting-row" style="cursor:pointer;" onclick="nuke()"><span class="setting-label" style="color:var(--red);">Alles löschen</span><span class="setting-value">›</span></div>
-                </div>
-                <input type="file" id="impIn" accept=".json" style="display:none" onchange="imp(event)">
-            </div>
-            <div style="padding:0 20px;">
-                <button class="btn btn-primary btn-full" onclick="saveSettings()">Speichern</button>
-                <button class="btn btn-outline btn-full" style="margin-top:8px;" onclick="testAPI()">Verbindung testen</button>
-                <div id="testRes" style="margin-top:8px;font-size:12px;text-align:center;color:var(--text3);"></div>
-            </div>
-        </div>
-    </div>
-</div>
+</div><!-- /app-body -->
 
 <!-- TAB BAR -->
-<div class="tab-bar">
-    <button class="tab-item active" onclick="go('home',this)">
-        <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-        Home
-    </button>
-    <button class="tab-item" onclick="go('closet',this)">
-        <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="18" rx="2"/><line x1="12" y1="3" x2="12" y2="21"/><path d="M9 10h-1"/><path d="M16 10h-1"/></svg>
-        Schrank
-    </button>
-    <button class="tab-item" onclick="go('outfit',this)">
-        <svg viewBox="0 0 24 24"><path d="M20.38 3.46L16 2 12 5.5 8 2 3.62 3.46a2 2 0 00-1.34 2.23l.58 3.47a1 1 0 00.99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 002-2V10h2.15a1 1 0 00.99-.84l.58-3.47a2 2 0 00-1.34-2.23z"/></svg>
-        Outfit
-    </button>
-    <button class="tab-item" onclick="go('cal',this)">
-        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        Kalender
-    </button>
-    <button class="tab-item" onclick="go('ai',this)">
-        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
-        AI
-    </button>
+<div class="tabs">
+  <button class="tab on" onclick="switchTab('home',this)"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Home</button>
+  <button class="tab" onclick="switchTab('closet',this)"><svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="18" rx="2"/><line x1="12" y1="3" x2="12" y2="21"/></svg>Schrank</button>
+  <button class="tab" onclick="switchTab('outfit',this)"><svg viewBox="0 0 24 24"><path d="M20.38 3.46L16 2 12 5.5 8 2 3.62 3.46a2 2 0 00-1.34 2.23l.58 3.47a1 1 0 00.99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 002-2V10h2.15a1 1 0 00.99-.84l.58-3.47a2 2 0 00-1.34-2.23z"/></svg>Outfit</button>
+  <button class="tab" onclick="switchTab('cal',this)"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Kalender</button>
+  <button class="tab" onclick="switchTab('ai',this)"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>AI</button>
+</div>
 </div>
 
+<!-- ===== SHEETS ===== -->
+<div class="sheet-bg" id="addSheet"><div class="sheet"><div class="sheet-bar"></div><div class="sheet-head"><span class="sheet-title">Hinzufügen</span><button class="sheet-x" onclick="closeSheet('addSheet')">✕</button></div><div class="sheet-body">
+  <div class="upload" id="dz" onclick="document.getElementById('fi').click()" ondragover="event.preventDefault();this.classList.add('ov')" ondragleave="this.classList.remove('ov')" ondrop="hDrop(event)"><div class="upload-ico"><svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg></div><div class="upload-t">Foto aufnehmen oder hochladen</div><div class="upload-d">AI erkennt Kleidung automatisch</div></div>
+  <div style="display:flex;gap:8px;margin-bottom:16px"><button class="btn btn-g" style="flex:1" onclick="openCam()">Kamera</button><button class="btn btn-g" style="flex:1" onclick="document.getElementById('fi').click()">Galerie</button><button class="btn btn-s" style="flex:1" id="scanBtn" disabled onclick="scanAll()">AI Scan</button></div>
+  <input type="file" id="fi" accept="image/*" multiple style="display:none" onchange="onFi(event)"><input type="file" id="ci" accept="image/*" capture="environment" style="display:none" onchange="onCi(event)">
+  <div id="camBox" style="display:none;margin-bottom:16px"><div style="background:#000;border-radius:12px;overflow:hidden;position:relative"><video id="cv" autoplay playsinline style="width:100%;max-height:260px;display:block"></video><div style="position:absolute;bottom:10px;left:0;right:0;text-align:center"><button class="btn btn-p" style="width:auto;padding:10px 24px" onclick="snap()">Auslösen</button></div></div><canvas id="cc" style="display:none"></canvas></div>
+  <div class="thumbs" id="thumbs"></div>
+  <div id="recBox"></div>
+  <div style="border-top:.5px solid var(--sep);padding-top:20px;margin-top:8px">
+    <div style="font-size:15px;font-weight:600;margin-bottom:14px">Manuell hinzufügen</div>
+    <div class="field"><label class="field-label">Name</label><input class="inp" id="mN" placeholder="z.B. Weißes T-Shirt"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="field"><label class="field-label">Kategorie</label><select class="inp" id="mC"><option value="tshirt">T-Shirt</option><option value="hemd">Hemd</option><option value="pullover">Pullover</option><option value="hoodie">Hoodie</option><option value="hose">Hose</option><option value="jeans">Jeans</option><option value="shorts">Shorts</option><option value="kleid">Kleid</option><option value="jacke">Jacke</option><option value="mantel">Mantel</option><option value="sneaker">Sneaker</option><option value="stiefel">Stiefel</option><option value="sandalen">Sandalen</option><option value="tasche">Tasche</option><option value="schmuck">Schmuck</option><option value="muetze">Mütze</option><option value="schal">Schal</option><option value="sonnenbrille">Sonnenbrille</option><option value="sonstiges">Sonstiges</option></select></div>
+      <div class="field"><label class="field-label">Farbe</label><input type="color" class="inp" id="mCo" value="#1A1A1A" style="height:44px;padding:4px;cursor:pointer"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+      <div class="field"><label class="field-label">Saison</label><select class="inp" id="mS"><option value="alle">Alle</option><option value="fruehling">Frühling</option><option value="sommer">Sommer</option><option value="herbst">Herbst</option><option value="winter">Winter</option></select></div>
+      <div class="field"><label class="field-label">Marke</label><input class="inp" id="mB" placeholder="Optional"></div>
+      <div class="field"><label class="field-label">Preis</label><input type="number" class="inp" id="mP" placeholder="€" step="0.01"></div>
+    </div>
+    <button class="btn btn-p" onclick="addManual()">Hinzufügen</button>
+  </div>
+</div></div></div>
+
+<div class="sheet-bg" id="slotSheet"><div class="sheet"><div class="sheet-bar"></div><div class="sheet-head"><span class="sheet-title" id="slotSheetTitle">Wählen</span><button class="sheet-x" onclick="closeSheet('slotSheet')">✕</button></div><div class="sheet-body"><div class="grid" id="slotGrid"></div></div></div></div>
+
+<div class="sheet-bg" id="daySheet"><div class="sheet"><div class="sheet-bar"></div><div class="sheet-head"><span class="sheet-title" id="daySheetTitle">Tag</span><button class="sheet-x" onclick="closeSheet('daySheet')">✕</button></div><div class="sheet-body" id="dayBody"></div></div></div>
+
+<div class="sheet-bg" id="occasionSheet"><div class="sheet"><div class="sheet-bar"></div><div class="sheet-head"><span class="sheet-title">Outfit für Anlass</span><button class="sheet-x" onclick="closeSheet('occasionSheet')">✕</button></div><div class="sheet-body"><div class="field"><input class="inp" id="occIn" placeholder="z.B. Date, Meeting, Hochzeit"></div><button class="btn btn-p" onclick="aiOcc()">Vorschlag erhalten</button><div id="aiOccRes"></div></div></div></div>
+
+<div class="sheet-bg" id="weekSheet"><div class="sheet"><div class="sheet-bar"></div><div class="sheet-head"><span class="sheet-title">Wochenplan</span><button class="sheet-x" onclick="closeSheet('weekSheet')">✕</button></div><div class="sheet-body"><div class="field"><label class="field-label">Wetter</label><input class="inp" id="wkW" placeholder="Mo 15° Regen, Di sonnig 25°"></div><div class="field"><label class="field-label">Anlässe</label><input class="inp" id="wkE" placeholder="Mi Meeting, Fr Party"></div><button class="btn btn-p" onclick="aiWeek()">Planen</button><div id="aiWkRes"></div></div></div></div>
+
+<div class="sheet-bg" id="settingsSheet"><div class="sheet"><div class="sheet-bar"></div><div class="sheet-head"><span class="sheet-title">Einstellungen</span><button class="sheet-x" onclick="closeSheet('settingsSheet')">✕</button></div><div class="sheet-body" style="padding:0">
+  <div class="section-head">AI</div>
+  <div class="group" style="margin:0 20px">
+    <div class="row"><div class="row-body"><div class="row-label">API Key</div></div><input type="password" id="kIn" placeholder="AIza..." style="width:140px;padding:6px 10px;border:1px solid var(--sep);border-radius:6px;font-size:13px;font-family:monospace;background:var(--bg);color:var(--t1);text-align:right"></div>
+    <div class="row"><div class="row-body"><div class="row-label">Modell</div></div><select id="mdl" style="padding:6px;border:1px solid var(--sep);border-radius:6px;font-size:13px;background:var(--bg);color:var(--t1)" onchange="localStorage.setItem('ai_m',this.value)"><option value="gemini-2.0-flash">Flash 2.0</option><option value="gemini-2.5-flash-preview-05-20">Flash 2.5</option><option value="gemini-2.5-pro-preview-05-06">Pro 2.5</option></select></div>
+  </div>
+  <div class="section-head">Wetter</div>
+  <div class="group" style="margin:0 20px"><div class="row"><div class="row-body"><div class="row-label">Standort</div></div><input id="cityIn" placeholder="Berlin" style="width:120px;padding:6px 10px;border:1px solid var(--sep);border-radius:6px;font-size:13px;background:var(--bg);color:var(--t1);text-align:right"></div></div>
+  <div class="section-head">Erscheinungsbild</div>
+  <div class="group" style="margin:0 20px"><div class="row" onclick="toggleDk()" style="cursor:pointer"><div class="row-body"><div class="row-label">Dark Mode</div></div><button class="toggle" id="dkToggle"></button></div></div>
+  <div class="section-head">Daten</div>
+  <div class="group" style="margin:0 20px">
+    <div class="row" style="cursor:pointer" onclick="xport()"><div class="row-body"><div class="row-label">Exportieren</div></div><div class="row-right row-chev"></div></div>
+    <div class="row" style="cursor:pointer" onclick="document.getElementById('impIn').click()"><div class="row-body"><div class="row-label">Importieren</div></div><div class="row-right row-chev"></div></div>
+    <div class="row" style="cursor:pointer" onclick="nuke()"><div class="row-body"><div class="row-label" style="color:var(--red)">Alle Daten löschen</div></div></div>
+  </div>
+  <input type="file" id="impIn" accept=".json" style="display:none" onchange="imp(event)">
+  <div style="padding:20px"><button class="btn btn-p" onclick="saveSettings()">Speichern</button></div>
+</div></div></div>
+
 <script>
-let W=[],O=[],CAL={},curO={},cM=new Date().getMonth(),cY=new Date().getFullYear(),cSl='',photos=[],rec=[],cam=null,wD=null,activeFilters={cat:'',season:'',sort:'name'};
-
-const CT={tshirt:{i:'👕',g:'oberteil',n:'T-Shirt'},hemd:{i:'👔',g:'oberteil',n:'Hemd'},pullover:{i:'🧶',g:'oberteil',n:'Pullover'},hoodie:{i:'🪝',g:'oberteil',n:'Hoodie'},hose:{i:'👖',g:'unterteil',n:'Hose'},jeans:{i:'👖',g:'unterteil',n:'Jeans'},shorts:{i:'🩳',g:'unterteil',n:'Shorts'},rock:{i:'🩱',g:'unterteil',n:'Rock'},kleid:{i:'👗',g:'kleid',n:'Kleid'},jacke:{i:'🧥',g:'jacke',n:'Jacke'},mantel:{i:'🧥',g:'jacke',n:'Mantel'},sneaker:{i:'👟',g:'schuhe',n:'Sneaker'},stiefel:{i:'👢',g:'schuhe',n:'Stiefel'},sandalen:{i:'🩴',g:'schuhe',n:'Sandalen'},tasche:{i:'👜',g:'accessoire',n:'Tasche'},schmuck:{i:'💍',g:'accessoire',n:'Schmuck'},muetze:{i:'🧢',g:'muetze',n:'Mütze'},schal:{i:'🧣',g:'accessoire',n:'Schal'},sonnenbrille:{i:'🕶️',g:'accessoire',n:'Brille'},sonstiges:{i:'•',g:'accessoire',n:'Sonstiges'}};
-const GN={oberteil:'Oberteil',unterteil:'Unterteil',kleid:'Kleid',jacke:'Jacke',schuhe:'Schuhe',accessoire:'Accessoire',muetze:'Kopf'};
+let W=[],O=[],CAL={},curO={},cM=new Date().getMonth(),cY=new Date().getFullYear(),cSl='',ph=[],rec=[],cam=null,wD=null,fCat='';
+const CT={tshirt:{i:'tshirt',g:'oberteil',n:'T-Shirt'},hemd:{i:'hemd',g:'oberteil',n:'Hemd'},pullover:{i:'pull',g:'oberteil',n:'Pullover'},hoodie:{i:'hood',g:'oberteil',n:'Hoodie'},hose:{i:'hose',g:'unterteil',n:'Hose'},jeans:{i:'jean',g:'unterteil',n:'Jeans'},shorts:{i:'short',g:'unterteil',n:'Shorts'},rock:{i:'rock',g:'unterteil',n:'Rock'},kleid:{i:'kleid',g:'kleid',n:'Kleid'},jacke:{i:'jack',g:'jacke',n:'Jacke'},mantel:{i:'mant',g:'jacke',n:'Mantel'},sneaker:{i:'snkr',g:'schuhe',n:'Sneaker'},stiefel:{i:'stfl',g:'schuhe',n:'Stiefel'},sandalen:{i:'sand',g:'schuhe',n:'Sandalen'},tasche:{i:'bag',g:'accessoire',n:'Tasche'},schmuck:{i:'ring',g:'accessoire',n:'Schmuck'},muetze:{i:'hat',g:'muetze',n:'Mütze'},schal:{i:'srf',g:'accessoire',n:'Schal'},sonnenbrille:{i:'sun',g:'accessoire',n:'Brille'},sonstiges:{i:'etc',g:'accessoire',n:'Sonstiges'}};
+const GN={oberteil:'Oberteile',unterteil:'Unterteile',kleid:'Kleider',jacke:'Jacken',schuhe:'Schuhe',accessoire:'Accessoires',muetze:'Kopf'};
 const SN={alle:'Alle',fruehling:'Frühling',sommer:'Sommer',herbst:'Herbst',winter:'Winter'};
-const SYS=`Du bist ein erfahrener Fashion-Berater. BRUTAL EHRLICH. Wenn hässlich=sag es direkt. Wenn toll=zeig echte Begeisterung. Kein leeres Lob, kein Beschönigen. Nach Kritik: konkrete Tipps. Bewertungen 1-10, streng. Deutsch, wenig Emojis, professionell.`;
+const SYS=`Du bist ein Fashion-Berater. BRUTAL EHRLICH. Wenn schlecht=sag es direkt. Wenn gut=zeig Begeisterung. Kein leeres Lob. Konstruktiv. Deutsch, professionell, wenig Emojis.`;
 
-function sv(){const ws=W.map(i=>{const c={...i};if(c.img&&c.img.length>50000){try{localStorage.setItem('i_'+c.id,c.img)}catch(e){}c.img='r:i_'+c.id;}return c;});try{localStorage.setItem('W',JSON.stringify(ws));localStorage.setItem('O',JSON.stringify(O));localStorage.setItem('C',JSON.stringify(CAL));}catch(e){localStorage.setItem('W',JSON.stringify(W.map(i=>({...i,img:null}))));localStorage.setItem('O',JSON.stringify(O));localStorage.setItem('C',JSON.stringify(CAL));}}
-function ld(){W=JSON.parse(localStorage.getItem('W')||'[]').map(i=>{if(i.img?.startsWith('r:'))i.img=localStorage.getItem(i.img.substring(2))||null;return i;});O=JSON.parse(localStorage.getItem('O')||'[]');CAL=JSON.parse(localStorage.getItem('C')||'{}');}
+function sv(){const ws=W.map(i=>{const c={...i};if(c.img&&c.img.length>50000){try{localStorage.setItem('i_'+c.id,c.img)}catch(e){}c.img='r:'+c.id}return c});try{localStorage.setItem('W',JSON.stringify(ws));localStorage.setItem('O',JSON.stringify(O));localStorage.setItem('C',JSON.stringify(CAL))}catch(e){localStorage.setItem('W',JSON.stringify(W.map(i=>({...i,img:null}))));localStorage.setItem('O',JSON.stringify(O));localStorage.setItem('C',JSON.stringify(CAL))}}
+function ld(){W=JSON.parse(localStorage.getItem('W')||'[]').map(i=>{if(typeof i.img==='string'&&i.img.startsWith('r:'))i.img=localStorage.getItem('i_'+i.img.substring(2))||null;return i});O=JSON.parse(localStorage.getItem('O')||'[]');CAL=JSON.parse(localStorage.getItem('C')||'{}')}
+function gk(){return localStorage.getItem('gk')||''}
+function gm(){return localStorage.getItem('ai_m')||'gemini-2.0-flash'}
+function gt(){return parseFloat(localStorage.getItem('ai_t')||'0.7')}
+function wTxt(){if(!W.length)return'Kleiderschrank ist leer.';return W.map(i=>{const c=CT[i.category]||{n:i.category};return`- ${i.name} (${c.n}, ${i.color}, ${SN[i.season]||''}, ${i.worn||0}x getragen${i.brand?', '+i.brand:''}${i.laundry?' [WÄSCHE]':''})`}).join('\n')}
+function oTxt(){const p=[];for(const[s,id]of Object.entries(curO)){const i=W.find(x=>x.id===id);if(i)p.push(i.name)}return p.length?p.join(', '):'Nichts ausgewählt.'}
 
-function gk(){return localStorage.getItem('gk')||'';}
-function gm(){return localStorage.getItem('ai_m')||'gemini-2.0-flash';}
-function gt(){return parseFloat(localStorage.getItem('ai_t')||'0.7');}
+async function gem(pr,elId,imgs){
+  if(!gk()){if(elId)sR(elId,'API Key fehlt — in den Einstellungen eintragen.',1);return null}
+  if(elId)sR(elId,'<div class="ai-typing">Analysiert …</div>');
+  const url=`https://generativelanguage.googleapis.com/v1beta/models/${gm()}:generateContent?key=${gk()}`;
+  const parts=[{text:pr}];if(imgs)imgs.forEach(im=>parts.push({inline_data:{mime_type:im.m,data:im.b}}));
+  try{const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({system_instruction:{parts:[{text:SYS}]},contents:[{parts}],generationConfig:{temperature:imgs?0.3:gt(),maxOutputTokens:4096}})});if(!r.ok){const e=await r.json();throw new Error(e.error?.message||r.status)}const d=await r.json();const t=d.candidates?.[0]?.content?.parts?.[0]?.text||'';if(elId)sR(elId,fm(t));return t}catch(e){if(elId)sR(elId,e.message,1);return null}}
+function sR(id,h,e){const el=document.getElementById(id);if(!el)return;el.innerHTML=`<div class="ai-msg bot" style="${e?'color:var(--red)':''">${h}</div>`}
+function fm(t){return t.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\*(.*?)\*/g,'<em>$1</em>').replace(/^###?\s?(.*$)/gm,'<h3>$1</h3>').replace(/^- (.*$)/gm,'• $1').replace(/\n/g,'<br>')}
 
-function wTxt(){if(!W.length)return'Leer.';return W.map(i=>{const c=CT[i.category]||{n:i.category};const cpw=i.price&&i.worn?`${(i.price/i.worn).toFixed(2)}€/W`:'';return`- ${i.name} (${c.n}, ${i.color}, ${SN[i.season]||''}, ${i.worn||0}x${i.brand?', '+i.brand:''}${cpw?', '+cpw:''}${i.laundry?' [WÄSCHE]':''})`}).join('\n');}
-function oTxt(){const p=[];for(const[s,id] of Object.entries(curO)){const i=W.find(x=>x.id===id);if(i)p.push(`${i.name} (${i.color})`)}return p.length?p.join(', '):'Kein Outfit.';}
+// TABS
+function switchTab(name,btn){
+  document.querySelectorAll('.view').forEach(v=>{if(!v.id.startsWith('v-detail'))v.classList.add('hidden')});
+  const v=document.getElementById('v-'+name);v.classList.remove('hidden');
+  if(name==='ai'){v.style.display='flex'}else{v.style.display=''}
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  if(btn)btn.classList.add('on');
+  if(name==='home')rHome();if(name==='closet'){rFilters();rCloset()}if(name==='cal')rCal()
+}
 
-async function gem(pr,el,imgs){
-    if(!gk()){sR(el,'API Key fehlt. Gehe zu Einstellungen.',1);return null;}
-    sR(el,'<div class="ai-loading">Analysiert <span class="ai-loading-dots"><span>.</span><span>.</span><span>.</span></span></div>');
-    const url=`https://generativelanguage.googleapis.com/v1beta/models/${gm()}:generateContent?key=${gk()}`;
-    const parts=[{text:pr}];if(imgs)imgs.forEach(im=>parts.push({inline_data:{mime_type:im.m,data:im.b}}));
-    try{const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({system_instruction:{parts:[{text:SYS}]},contents:[{parts}],generationConfig:{temperature:imgs?0.3:gt(),maxOutputTokens:4096}})});if(!r.ok){const e=await r.json();throw new Error(e.error?.message||r.status);}const d=await r.json();const t=d.candidates?.[0]?.content?.parts?.[0]?.text||'Keine Antwort.';sR(el,fm(t));return t;}catch(e){sR(el,e.message,1);return null;}}
-function sR(id,h,e){const el=document.getElementById(id);if(!el)return;el.innerHTML=`<div class="ai-response" style="${e?'color:var(--red);':''}">${h}</div>`;}
-function fm(t){return t.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\*(.*?)\*/g,'<em>$1</em>').replace(/^###?\s?(.*$)/gm,'<h3>$1</h3>').replace(/^- (.*$)/gm,'• $1').replace(/\n/g,'<br>');}
+// VIEW STACK
+function pushView(id){
+  const cur=document.querySelector('.view:not(.hidden):not(.slide-in)');
+  if(cur)cur.classList.add('slide-out');
+  const v=document.getElementById(id);
+  v.classList.remove('hidden');v.classList.add('slide-in');
+  requestAnimationFrame(()=>requestAnimationFrame(()=>v.classList.add('entering')));
+}
+function popView(){
+  const v=document.getElementById('v-detail');
+  v.classList.remove('entering');
+  setTimeout(()=>{v.classList.add('hidden');v.classList.remove('slide-in')},300);
+  const prev=document.querySelector('.view.slide-out');
+  if(prev)prev.classList.remove('slide-out');
+}
 
-function go(n,b){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.tab-item').forEach(t=>t.classList.remove('active'));document.getElementById('p-'+n).classList.add('active');if(b)b.classList.add('active');if(n==='home')rHome();if(n==='closet'){rFilters();rCloset();}if(n==='cal')rCal();}
+// SHEETS
+function openSheet(id){document.getElementById(id).classList.add('open');setTimeout(()=>{},10)}
+function closeSheet(id){const s=document.getElementById(id);s.querySelector('.sheet').style.transform='translateY(100%)';setTimeout(()=>{s.classList.remove('open');s.querySelector('.sheet').style.transform=''},350)}
+document.querySelectorAll('.sheet-bg').forEach(s=>s.addEventListener('click',e=>{if(e.target===s)closeSheet(s.id)}));
 
-function toggleDark(){document.body.classList.toggle('dark');localStorage.setItem('dk',document.body.classList.contains('dark')?'1':'0');}
-
-function openM(id){document.getElementById(id).classList.add('open');}
-function closeM(id){document.getElementById(id).classList.remove('open');}
-document.querySelectorAll('.modal-bg').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');}));
+// DARK MODE
+function toggleDk(){document.body.classList.toggle('dk');localStorage.setItem('dk',document.body.classList.contains('dk')?'1':'0');document.getElementById('dkToggle').className='toggle'+(document.body.classList.contains('dk')?' on':'')}
 
 // HOME
 function rHome(){
-    const t=W.length,v=W.reduce((s,i)=>s+(i.price||0),0),w=W.reduce((s,i)=>s+(i.worn||0),0);
-    document.getElementById('qStats').innerHTML=`<div class="qs-item"><div class="qs-val">${t}</div><div class="qs-lbl">Teile</div></div><div class="qs-item"><div class="qs-val">${O.length}</div><div class="qs-lbl">Outfits</div></div><div class="qs-item"><div class="qs-val">${v>0?v.toFixed(0)+'€':'–'}</div><div class="qs-lbl">Wert</div></div><div class="qs-item"><div class="qs-val">${Object.keys(CAL).length}</div><div class="qs-lbl">Geplant</div></div>`;
-    let alerts='';
-    const laun=W.filter(i=>i.laundry).length;
-    if(laun)alerts+=`<div class="card"><div class="card-body" style="font-size:13px;"><strong>${laun} Teil${laun>1?'e':''}</strong> in der Wäsche</div></div>`;
-    const unworn=W.filter(i=>!i.worn);
-    if(unworn.length)alerts+=`<div class="card" style="margin-top:8px;"><div class="card-body" style="font-size:13px;"><strong>${unworn.length} Teil${unworn.length>1?'e':''}</strong> noch nie getragen</div></div>`;
-    document.getElementById('homeAlerts').innerHTML=alerts;
-    fetchW();
+  document.getElementById('qst').innerHTML=`<div class="qst-i"><div class="qst-v">${W.length}</div><div class="qst-l">Teile</div></div><div class="qst-i"><div class="qst-v">${O.length}</div><div class="qst-l">Outfits</div></div><div class="qst-i"><div class="qst-v">${W.reduce((s,i)=>s+(i.price||0),0).toFixed(0)||'–'}€</div><div class="qst-l">Wert</div></div><div class="qst-i"><div class="qst-v">${Object.keys(CAL).length}</div><div class="qst-l">Geplant</div></div>`;
+  let al='';const iL=W.filter(i=>i.laundry).length;
+  if(iL)al+=`<div class="group"><div class="row"><div class="row-icon" style="background:var(--orange)">⚡</div><div class="row-body"><div class="row-label">${iL} Teil${iL>1?'e':''} in der Wäsche</div></div></div></div>`;
+  document.getElementById('homeAlerts').innerHTML=al;
+  fetchW();
 }
 
-async function fetchW(){
-    const c=localStorage.getItem('wcity');if(!c)return;
-    try{const r=await fetch(`https://wttr.in/${encodeURIComponent(c)}?format=j1`);const d=await r.json();const cur=d.current_condition[0];const t=cur.temp_C,desc=cur.lang_de?.[0]?.value||cur.weatherDesc[0].value;
-    document.getElementById('wTemp').textContent=t+'°';document.getElementById('wDesc').textContent=desc;document.getElementById('wDetail').textContent=`Gefühlt ${cur.FeelsLikeC}°`;
-    let sg=t>=25?'Leichte Kleidung':t>=15?'Layering':t>=5?'Jacke mitnehmen':'Warm anziehen';document.getElementById('wSug').textContent=sg;wD={t,desc};}catch(e){}}
+async function fetchW(){const c=localStorage.getItem('wcity');if(!c)return;try{const r=await fetch(`https://wttr.in/${encodeURIComponent(c)}?format=j1`);const d=await r.json();const cur=d.current_condition[0];document.getElementById('wxT').textContent=cur.temp_C+'°';document.getElementById('wxD').textContent=cur.lang_de?.[0]?.value||cur.weatherDesc[0].value;document.getElementById('wxDet').textContent=`Gefühlt ${cur.FeelsLikeC}°`;wD={t:cur.temp_C,d:cur.weatherDesc[0].value}}catch(e){}}
 
-async function genOOTD(){
-    if(!gk())return;const wI=wD?`Wetter: ${wD.t}°C, ${wD.desc}.`:'';
-    document.getElementById('todayTitle').textContent='Wird geladen...';
-    const r=await gem(`Outfit des Tages:\n${wTxt()}\n${wI}\nNur saubere Teile. JSON: {"name":"...","items":["Name1","Name2",...]}\nNUR JSON.`,null);
-    if(!r)return;try{const d=JSON.parse(r.match(/\{[\s\S]*\}/)[0]);document.getElementById('todayTitle').textContent=d.name;document.getElementById('todayItems').innerHTML=(d.items||[]).map(n=>`<span class="today-chip">${n}</span>`).join('');}catch(e){document.getElementById('todayTitle').textContent='Fehler';}}
-function wearOOTD(){alert('Als getragen eingetragen.');}
+async function genOOTD(){if(!gk())return;document.getElementById('todayN').textContent='Wird geladen…';const r=await gem(`Outfit des Tages aus:\n${wTxt()}\n${wD?'Wetter: '+wD.t+'°C.':''}\nNur saubere. JSON: {"name":"...","items":["Name1","Name2"]}\nNUR JSON.`,null);if(!r)return;try{const d=JSON.parse(r.match(/\{[\s\S]*\}/)[0]);document.getElementById('todayN').textContent=d.name;document.getElementById('todayP').innerHTML=(d.items||[]).map(n=>`<span class="today-pill">${n}</span>`).join('')}catch(e){document.getElementById('todayN').textContent='Fehler'}}
+function wearOOTD(){}
 
 // CLOSET
-function rFilters(){
-    const groups=[...new Set(W.map(i=>CT[i.category]?.g||'sonstiges'))];
-    document.getElementById('filterChips').innerHTML=
-        `<button class="filter-chip ${!activeFilters.cat?'active':''}" onclick="setFilter('cat','')">Alle</button>`+
-        groups.map(g=>`<button class="filter-chip ${activeFilters.cat===g?'active':''}" onclick="setFilter('cat','${g}')">${GN[g]||g}</button>`).join('');
-}
-function setFilter(k,v){activeFilters[k]=activeFilters[k]===v?'':v;rFilters();rCloset();}
-
+function rFilters(){const groups=[...new Set(W.map(i=>CT[i.category]?.g||'sonstiges'))];document.getElementById('filterChips').innerHTML=`<button class="chip ${!fCat?'on':''}" onclick="fCat='';rFilters();rCloset()">Alle</button>`+groups.map(g=>`<button class="chip ${fCat===g?'on':''}" onclick="fCat='${g}';rFilters();rCloset()">${GN[g]||g}</button>`).join('')}
 function rCloset(){
-    const g=document.getElementById('closetGrid');let its=[...W];
-    const q=document.getElementById('searchInput').value.toLowerCase();
-    if(q)its=its.filter(i=>i.name.toLowerCase().includes(q)||(i.brand||'').toLowerCase().includes(q));
-    if(activeFilters.cat)its=its.filter(i=>(CT[i.category]?.g||i.category)===activeFilters.cat);
-    its.sort((a,b)=>a.name.localeCompare(b.name));
-
-    if(!its.length){g.innerHTML='<div class="empty" style="grid-column:1/-1;"><div class="empty-icon">📦</div><div class="empty-text">Keine Kleidung gefunden</div></div>';return;}
-
-    g.innerHTML=its.map(i=>{const c=CT[i.category]||{i:'•',g:'sonstiges',n:i.category};const cpw=i.price&&i.worn?(i.price/i.worn).toFixed(2):null;
-    return`<div class="item-card ${i.laundry?'in-laundry':''}" onclick="showDetail('${i.id}')">
-        ${i.laundry?'<span class="laundry-indicator">Wäsche</span>':''}
-        <button class="fav-btn" onclick="event.stopPropagation();togFav('${i.id}')">${i.fav?'★':'☆'}</button>
-        <div class="item-img">${i.img?`<img src="${i.img}">`:`<span>${c.i}</span>`}</div>
-        <div class="item-info"><div class="item-name">${i.name}</div><div class="item-meta"><span class="item-dot" style="background:${i.color}"></span>${c.n}${i.brand?' · '+i.brand:''}</div>${cpw?`<div class="item-cpw">${cpw}€ per wear</div>`:''}</div></div>`;}).join('');
+  let its=[...W];const q=document.getElementById('sq').value.toLowerCase();
+  if(q)its=its.filter(i=>i.name.toLowerCase().includes(q)||(i.brand||'').toLowerCase().includes(q));
+  if(fCat)its=its.filter(i=>(CT[i.category]?.g||i.category)===fCat);
+  const g=document.getElementById('cGrid');
+  if(!its.length){g.innerHTML='<div class="empty" style="grid-column:1/-1"><div class="empty-ico">📦</div><div class="empty-t">Keine Kleidung gefunden</div></div>';return}
+  g.innerHTML=its.map(i=>{const c=CT[i.category]||{n:i.category};return`<div class="cell" onclick="showDetail('${i.id}')"><button class="cell-fav" onclick="event.stopPropagation();W.find(x=>x.id=='${i.id}').fav=!W.find(x=>x.id=='${i.id}').fav;sv();rCloset()">${i.fav?'★':'☆'}</button>${i.laundry?'<span class="cell-badge">Wäsche</span>':''}<div class="cell-img">${i.img?`<img src="${i.img}">`:c.n[0]}</div><div class="cell-info"><div class="cell-name">${i.name}</div><div class="cell-sub"><span class="item-dot" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${i.color};vertical-align:middle;margin-right:4px;border:1px solid var(--sep)"></span>${c.n}</div></div></div>`}).join('');
 }
-
-function togFav(id){const i=W.find(x=>x.id==id);if(i){i.fav=!i.fav;sv();rCloset();}}
 
 function showDetail(id){
-    const i=W.find(x=>x.id==id);if(!i)return;const c=CT[i.category]||{n:i.category};const cpw=i.price&&i.worn?(i.price/i.worn).toFixed(2)+'€':'–';
-    document.getElementById('detailBody').innerHTML=`
-        ${i.img?`<img src="${i.img}" style="width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:var(--radius);margin-bottom:16px;">`:''}
-        <h2 style="font-size:20px;font-weight:700;margin-bottom:4px;">${i.name}</h2>
-        <p style="font-size:13px;color:var(--text3);margin-bottom:16px;">${c.n}${i.brand?' · '+i.brand:''}</p>
-        <table class="detail-table">
-        <tr><td>Farbe</td><td><span class="item-dot" style="background:${i.color};vertical-align:middle;"></span> ${i.color}</td></tr>
-        <tr><td>Saison</td><td>${SN[i.season]||i.season}</td></tr>
-        ${i.material?`<tr><td>Material</td><td>${i.material}</td></tr>`:''}
-        ${i.price?`<tr><td>Preis</td><td>${i.price.toFixed(2)} €</td></tr>`:''}
-        <tr><td>Getragen</td><td>${i.worn||0}x</td></tr>
-        <tr><td>Cost/Wear</td><td>${cpw}</td></tr>
-        <tr><td>Status</td><td>${i.laundry?'In der Wäsche':'Verfügbar'}</td></tr>
-        </table>
-        <div class="btn-row" style="margin-top:20px;">
-            <button class="btn btn-secondary" style="flex:1" onclick="togLaun('${i.id}')">${i.laundry?'Aus Wäsche':'In Wäsche'}</button>
-            <button class="btn btn-secondary" style="flex:1" onclick="wearIt('${i.id}')">Getragen +1</button>
-            <button class="btn btn-danger btn-sm" onclick="delItem('${i.id}')">Löschen</button>
-        </div>`;
-    openM('detailModal');
+  const i=W.find(x=>x.id==id);if(!i)return;const c=CT[i.category]||{n:i.category};const cpw=i.price&&i.worn?(i.price/i.worn).toFixed(2)+'€':'–';
+  document.getElementById('detNavTitle').textContent=i.name;
+  document.getElementById('detContent').innerHTML=`
+    <div class="detail-hero">${i.img?`<img src="${i.img}">`:`${c.n[0]}`}</div>
+    <div class="detail-meta"><div class="detail-name">${i.name}</div><div class="detail-brand">${c.n}${i.brand?' · '+i.brand:''}</div></div>
+    <div class="section-head">Details</div>
+    <div class="group">
+      <div class="row"><div class="row-body"><div class="row-label">Farbe</div></div><div class="row-right"><span style="display:inline-block;width:14px;height:14px;border-radius:50%;background:${i.color};border:1px solid var(--sep)"></span></div></div>
+      <div class="row"><div class="row-body"><div class="row-label">Saison</div></div><div class="row-right">${SN[i.season]||i.season}</div></div>
+      ${i.material?`<div class="row"><div class="row-body"><div class="row-label">Material</div></div><div class="row-right">${i.material}</div></div>`:''}
+      ${i.price?`<div class="row"><div class="row-body"><div class="row-label">Preis</div></div><div class="row-right">${i.price.toFixed(2)} €</div></div>`:''}
+      <div class="row"><div class="row-body"><div class="row-label">Getragen</div></div><div class="row-right">${i.worn||0}×</div></div>
+      <div class="row"><div class="row-body"><div class="row-label">Cost per Wear</div></div><div class="row-right">${cpw}</div></div>
+      <div class="row"><div class="row-body"><div class="row-label">Status</div></div><div class="row-right">${i.laundry?'In der Wäsche':'Verfügbar'}</div></div>
+    </div>
+    <div style="padding:20px;display:flex;flex-direction:column;gap:8px">
+      <button class="btn btn-g" onclick="const x=W.find(z=>z.id=='${i.id}');x.laundry=!x.laundry;sv();popView();rCloset()">${i.laundry?'Aus der Wäsche nehmen':'In die Wäsche'}</button>
+      <button class="btn btn-g" onclick="const x=W.find(z=>z.id=='${i.id}');x.worn=(x.worn||0)+1;sv();popView();rCloset()">Als getragen markieren</button>
+      <button class="btn btn-d" onclick="if(!confirm('Löschen?'))return;W=W.filter(z=>z.id!='${i.id}');sv();popView();rCloset()">Löschen</button>
+    </div>`;
+  pushView('v-detail');
 }
 
-function togLaun(id){const i=W.find(x=>x.id==id);if(i){i.laundry=!i.laundry;sv();rCloset();closeM('detailModal');}}
-function wearIt(id){const i=W.find(x=>x.id==id);if(i){i.worn=(i.worn||0)+1;sv();rCloset();closeM('detailModal');}}
-function delItem(id){if(!confirm('Löschen?'))return;W=W.filter(x=>x.id!=id);sv();rCloset();closeM('detailModal');}
-
-function addManual(){const n=document.getElementById('mName').value.trim();if(!n)return;W.push({id:Date.now()+Math.random(),name:n,category:document.getElementById('mCat').value,color:document.getElementById('mColor').value,season:document.getElementById('mSeason').value,brand:document.getElementById('mBrand').value.trim(),price:parseFloat(document.getElementById('mPrice').value)||0,material:document.getElementById('mMat').value.trim(),worn:0,laundry:false,fav:false,img:null});sv();rCloset();document.getElementById('mName').value='';closeM('addModal');}
+function addManual(){const n=document.getElementById('mN').value.trim();if(!n)return;W.push({id:Date.now()+Math.random(),name:n,category:document.getElementById('mC').value,color:document.getElementById('mCo').value,season:document.getElementById('mS').value,brand:document.getElementById('mB').value.trim(),price:parseFloat(document.getElementById('mP').value)||0,material:'',worn:0,laundry:false,fav:false,img:null});sv();rCloset();document.getElementById('mN').value='';closeSheet('addSheet')}
 
 // PHOTOS
-function onFiles(e){Array.from(e.target.files).forEach(addPhoto);e.target.value='';}
-function onCamFile(e){if(e.target.files[0])addPhoto(e.target.files[0]);e.target.value='';}
-function handleDrop(e){e.preventDefault();e.target.classList.remove('dragover');Array.from(e.dataTransfer.files).filter(f=>f.type.startsWith('image/')).forEach(addPhoto);}
-function addPhoto(f){const r=new FileReader();r.onload=e=>{photos.push({id:Date.now()+Math.random(),url:e.target.result,b:e.target.result.split(',')[1],m:f.type,st:'pending'});rThumbs();document.getElementById('scanBtn').disabled=false;};r.readAsDataURL(f);}
-function openCam(){if(/Android|iPhone|iPad/i.test(navigator.userAgent)){document.getElementById('camIn').click();return;}navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}}).then(s=>{cam=s;document.getElementById('camVid').srcObject=s;document.getElementById('camBox').style.display='block';}).catch(()=>document.getElementById('camIn').click());}
-function snap(){const v=document.getElementById('camVid'),c=document.getElementById('camCan');c.width=v.videoWidth;c.height=v.videoHeight;c.getContext('2d').drawImage(v,0,0);c.toBlob(b=>addPhoto(new File([b],'s.jpg',{type:'image/jpeg'})),'image/jpeg',0.85);}
-function closeCam(){if(cam){cam.getTracks().forEach(t=>t.stop());cam=null;}document.getElementById('camBox').style.display='none';}
-function rmPhoto(id){photos=photos.filter(p=>p.id!==id);rThumbs();if(!photos.length)document.getElementById('scanBtn').disabled=true;}
-function rThumbs(){document.getElementById('thumbRow').innerHTML=photos.map(p=>`<div class="thumb"><img src="${p.url}"><button class="thumb-rm" onclick="event.stopPropagation();rmPhoto(${p.id})">✕</button><div class="thumb-st ${p.st}">${p.st}</div></div>`).join('');}
+function onFi(e){Array.from(e.target.files).forEach(addPh);e.target.value=''}
+function onCi(e){if(e.target.files[0])addPh(e.target.files[0]);e.target.value=''}
+function hDrop(e){e.preventDefault();e.target.classList.remove('ov');Array.from(e.dataTransfer.files).filter(f=>f.type.startsWith('image/')).forEach(addPh)}
+function addPh(f){const r=new FileReader;r.onload=e=>{ph.push({id:Date.now()+Math.random(),url:e.target.result,b:e.target.result.split(',')[1],m:f.type,st:'p'});rTh();document.getElementById('scanBtn').disabled=false};r.readAsDataURL(f)}
+function openCam(){if(/Android|iPhone|iPad/i.test(navigator.userAgent)){document.getElementById('ci').click();return}navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}}).then(s=>{cam=s;document.getElementById('cv').srcObject=s;document.getElementById('camBox').style.display='block'}).catch(()=>document.getElementById('ci').click())}
+function snap(){const v=document.getElementById('cv'),c=document.getElementById('cc');c.width=v.videoWidth;c.height=v.videoHeight;c.getContext('2d').drawImage(v,0,0);c.toBlob(b=>addPh(new File([b],'s.jpg',{type:'image/jpeg'})),'image/jpeg',0.85)}
+function closeCam(){if(cam){cam.getTracks().forEach(t=>t.stop());cam=null}document.getElementById('camBox').style.display='none'}
+function rmPh(id){ph=ph.filter(p=>p.id!==id);rTh();if(!ph.length)document.getElementById('scanBtn').disabled=true}
+function rTh(){document.getElementById('thumbs').innerHTML=ph.map(p=>`<div class="tmb"><img src="${p.url}"><button class="tmb-x" onclick="event.stopPropagation();rmPh(${p.id})">✕</button><div class="tmb-s ${{p:'p',a:'a',d:'d',e:'e'}[p.st]}"></div></div>`).join('')}
 
-async function scanPhotos(){
-    const pend=photos.filter(p=>p.st==='pending');if(!pend.length||!gk())return;rec=[];document.getElementById('scanBtn').disabled=true;
-    for(const p of pend){p.st='analyzing';rThumbs();
-        const r=await gem(`Analysiere Kleidungsfoto. Pro Stück JSON: "name"(deutsch),"category"(${Object.keys(CT).join(',')}),"color"(HEX),"season","material","brand","honest_comment"(EHRLICH). NUR JSON-Array.`,null,[{b:p.b,m:p.m}]);
-        if(r){try{JSON.parse(r.match(/\[[\s\S]*\]/)[0]).forEach(i=>rec.push({...i,id:Date.now()+Math.random(),imgUrl:p.url}));p.st='done';}catch(e){p.st='done';}}else p.st='error';rThumbs();}
-    rRec();document.getElementById('scanBtn').disabled=false;
-}
+async function scanAll(){const pend=ph.filter(p=>p.st==='p');if(!pend.length||!gk())return;rec=[];document.getElementById('scanBtn').disabled=true;
+  for(const p of pend){p.st='a';rTh();const r=await gem(`Analysiere Kleidungsfoto. Pro Stück JSON: "name","category"(${Object.keys(CT).join(',')}),"color"(HEX),"season","brand","honest_comment"(EHRLICH). NUR JSON-Array.`,null,[{b:p.b,m:p.m}]);
+  if(r){try{JSON.parse(r.match(/\[[\s\S]*\]/)[0]).forEach(i=>rec.push({...i,id:Date.now()+Math.random(),imgUrl:p.url}));p.st='d'}catch(e){p.st='d'}}else p.st='e';rTh()}
+  rRec();document.getElementById('scanBtn').disabled=false}
 
-function rRec(){const b=document.getElementById('recBox');if(!rec.length){b.innerHTML='';return;}
-    b.innerHTML=`<div style="margin-top:16px;"><div style="font-size:13px;font-weight:600;margin-bottom:10px;">${rec.length} erkannt</div><div>${rec.map(i=>`<div class="rec-card"><div class="rec-info"><div class="rec-name">${i.name}</div><div class="rec-detail">${CT[i.category]?.n||i.category}${i.brand?' · '+i.brand:''}${i.material?' · '+i.material:''}</div>${i.honest_comment?`<div class="rec-comment">"${i.honest_comment}"</div>`:''}</div><button class="btn btn-primary btn-sm" onclick="addRec(${i.id})">+</button><button class="btn btn-secondary btn-sm" onclick="rejRec(${i.id})">✕</button></div>`).join('')}</div><div class="btn-row" style="margin-top:12px;"><button class="btn btn-primary" style="flex:1" onclick="addAllRec()">Alle hinzufügen</button><button class="btn btn-secondary" style="flex:1" onclick="rec=[];rRec();">Verwerfen</button></div></div>`;}
-
-function addRec(id){const i=rec.find(x=>x.id===id);if(!i)return;W.push({id:Date.now()+Math.random(),name:i.name,category:i.category||'sonstiges',color:i.color||'#888',season:i.season||'alle',brand:i.brand||'',material:i.material||'',price:0,worn:0,laundry:false,fav:false,img:i.imgUrl||null,aiComment:i.honest_comment||''});rec=rec.filter(x=>x.id!==id);sv();rRec();rCloset();}
-function rejRec(id){rec=rec.filter(x=>x.id!==id);rRec();}
-function addAllRec(){const n=rec.length;rec.forEach(i=>{W.push({id:Date.now()+Math.random(),name:i.name,category:i.category||'sonstiges',color:i.color||'#888',season:i.season||'alle',brand:i.brand||'',material:i.material||'',price:0,worn:0,laundry:false,fav:false,img:i.imgUrl||null,aiComment:i.honest_comment||''});});rec=[];sv();rRec();rCloset();closeM('addModal');}
-
-// AI
-async function aiTextAdd(){const t=document.getElementById('aiTextIn').value.trim();if(!t)return;const r=await gem(`Extrahiere Kleidung. JSON-Array: "name","category"(${Object.keys(CT).join(',')}),"color"(HEX),"season". NUR JSON.\n"${t}"`,'aiTextRes');if(!r)return;try{const its=JSON.parse(r.match(/\[[\s\S]*\]/)[0]);its.forEach(i=>{if(i.name)W.push({id:Date.now()+Math.random(),name:i.name,category:i.category||'sonstiges',color:i.color||'#888',season:i.season||'alle',worn:0,laundry:false,fav:false});});sv();rCloset();sR('aiTextRes',`${its.length} hinzugefügt`);document.getElementById('aiTextIn').value='';}catch(e){}}
-async function aiRate(){const s=oTxt();if(s==='Kein Outfit.')return sR('aiRateRes','Wähle zuerst ein Outfit.',1);await gem(`Bewerte ehrlich:\n${s}\n1.Note 1-10\n2.Was funktioniert\n3.Was nicht\n4.Verbesserung`,'aiRateRes');}
-async function aiOccasion(){const o=document.getElementById('occasionIn').value.trim();if(!o)return;await gem(`Outfit für "${o}" aus:\n${wTxt()}\nEhrlich wenn nichts passt.`,'aiOccRes');}
-async function aiSmartOutfit(){const wI=wD?`Wetter: ${wD.t}°C.`:'';const r=await gem(`Perfektes Outfit aus:\n${wTxt()}\n${wI}\nNur saubere. JSON: {"oberteil":"Name","unterteil":"Name","schuhe":"Name"}\nNUR JSON.`,null);if(!r)return;try{const d=JSON.parse(r.match(/\{[\s\S]*\}/)[0]);curO={};Object.entries(d).forEach(([s,n])=>{const it=W.find(i=>i.name.toLowerCase()===n.toLowerCase());if(it){const g=CT[it.category]?.g||it.category;curO[g]=it.id;}});uVis();}catch(e){}}
-async function aiWeek(){const w=document.getElementById('weekW').value.trim()||'k.A.';const ev=document.getElementById('weekE').value.trim()||'keine';await gem(`Wochenplan Mo-So:\n${wTxt()}\nWetter:${w}\nAnlässe:${ev}\nNur saubere. Ehrlich.`,'aiWeekRes');}
-async function aiChat(){const q=document.getElementById('aiQ').value.trim();if(!q)return;await gem(`Kleiderschrank:\n${wTxt()}\n${O.length} Outfits.\nFrage:"${q}"`,'aiChatRes');document.getElementById('aiQ').value='';}
-function aiAsk(q){document.getElementById('aiQ').value=q;aiChat();}
+function rRec(){const b=document.getElementById('recBox');if(!rec.length){b.innerHTML='';return}
+  b.innerHTML=`<div style="margin-top:12px"><div style="font-size:14px;font-weight:600;margin-bottom:8px">${rec.length} erkannt</div>${rec.map(i=>`<div class="rec"><div class="rec-info"><div class="rec-n">${i.name}</div><div class="rec-d">${CT[i.category]?.n||i.category}${i.brand?' · '+i.brand:''}</div>${i.honest_comment?`<div class="rec-c">${i.honest_comment}</div>`:''}</div><button class="btn btn-p" style="width:auto;padding:8px 14px;font-size:12px" onclick="addRec(${i.id})">+</button></div>`).join('')}<button class="btn btn-p" style="margin-top:12px" onclick="addAllRec()">Alle hinzufügen</button></div>`}
+function addRec(id){const i=rec.find(x=>x.id===id);if(!i)return;W.push({id:Date.now()+Math.random(),name:i.name,category:i.category||'sonstiges',color:i.color||'#888',season:i.season||'alle',brand:i.brand||'',price:0,worn:0,laundry:false,fav:false,img:i.imgUrl||null});rec=rec.filter(x=>x.id!==id);sv();rRec();rCloset()}
+function addAllRec(){rec.forEach(i=>{W.push({id:Date.now()+Math.random(),name:i.name,category:i.category||'sonstiges',color:i.color||'#888',season:i.season||'alle',brand:i.brand||'',price:0,worn:0,laundry:false,fav:false,img:i.imgUrl||null})});rec=[];sv();rRec();rCloset();closeSheet('addSheet')}
 
 // OUTFIT
-function pickSlot(s){cSl=s;const its=W.filter(i=>(CT[i.category]?.g||i.category)===s&&!i.laundry);document.getElementById('slotTitle').textContent=GN[s]||s;
-    document.getElementById('slotGrid').innerHTML=its.length?its.map(i=>`<div class="item-card ${curO[s]===i.id?'sel':''}" onclick="selSlot('${i.id}')"><div class="item-img">${i.img?`<img src="${i.img}">`:`<span>${CT[i.category]?.i||'•'}</span>`}</div><div class="item-info"><div class="item-name">${i.name}</div></div></div>`).join(''):'<div class="empty"><div class="empty-text">Nichts verfügbar</div></div>';openM('slotModal');}
+function pickSlot(s){cSl=s;const its=W.filter(i=>(CT[i.category]?.g||i.category)===s&&!i.laundry);document.getElementById('slotSheetTitle').textContent=GN[s]||s;
+  document.getElementById('slotGrid').innerHTML=its.length?its.map(i=>`<div class="cell ${curO[s]===i.id?'':'.'}" onclick="selSl('${i.id}')"><div class="cell-img">${i.img?`<img src="${i.img}">`:(CT[i.category]?.n||'')[0]||'·'}</div><div class="cell-info"><div class="cell-name">${i.name}</div></div></div>`).join(''):'<div class="empty"><div class="empty-t">Nichts verfügbar</div></div>';
+  openSheet('slotSheet')}
+function selSl(id){const i=W.find(x=>x.id==id);if(!i)return;const g=CT[i.category]?.g||i.category;if(curO[g]==id)delete curO[g];else curO[g]=id;closeSheet('slotSheet');uVis()}
+function uVis(){document.querySelectorAll('.slot').forEach(el=>{const s=el.dataset.s;const id=curO[s];if(id){const i=W.find(x=>x.id==id);if(i){el.classList.add('on');el.innerHTML=`${i.img?`<img src="${i.img}">`:`<span style="font-size:16px;color:var(--t3)">${(CT[i.category]?.n||'')[0]||'·'}</span>`}<span class="slot-nm">${i.name}</span><button class="slot-x" onclick="event.stopPropagation();delete curO['${s}'];uVis()">✕</button>`}}else{el.classList.remove('on');const lb={muetze:'Kopf',oberteil:'Oberteil',jacke:'Jacke',unterteil:'Unterteil',schuhe:'Schuhe',accessoire:'Acc'};el.innerHTML=`<span class="slot-lbl">${lb[s]||s}</span>`}})}
+function saveOutfit(){const n=document.getElementById('oName').value.trim()||'Outfit '+(O.length+1);if(!Object.keys(curO).length)return;O.push({id:Date.now(),name:n,items:{...curO},at:new Date().toISOString()});Object.values(curO).forEach(id=>{const i=W.find(x=>x.id==id);if(i)i.worn=(i.worn||0)+1});sv();curO={};document.getElementById('oName').value='';uVis()}
+function randOutfit(){curO={};['oberteil','unterteil','schuhe'].forEach(g=>{const its=W.filter(i=>(CT[i.category]?.g||i.category)===g&&!i.laundry);if(its.length)curO[g]=its[Math.floor(Math.random()*its.length)].id});uVis()}
+async function aiSmartO(){const r=await gem(`Perfektes Outfit:\n${wTxt()}\n${wD?'Wetter:'+wD.t+'°C.':''}\nNur saubere. JSON:{"oberteil":"Name","unterteil":"Name","schuhe":"Name"}\nNUR JSON.`,null);if(!r)return;try{const d=JSON.parse(r.match(/\{[\s\S]*\}/)[0]);curO={};Object.entries(d).forEach(([s,n])=>{const it=W.find(i=>i.name.toLowerCase()===n.toLowerCase());if(it)curO[CT[it.category]?.g||it.category]=it.id});uVis()}catch(e){}}
+async function aiRate(){const s=oTxt();if(s==='Nichts ausgewählt.')return;await gem(`Bewerte ehrlich:\n${s}\n1.Note 1-10\n2.Was funktioniert\n3.Was nicht\n4.Verbesserung`,'aiOutfitRes')}
+async function aiOcc(){const o=document.getElementById('occIn').value.trim();if(!o)return;await gem(`Outfit für "${o}" aus:\n${wTxt()}\nEhrlich.`,'aiOccRes')}
+async function aiWeek(){const w=document.getElementById('wkW').value.trim()||'k.A.';const ev=document.getElementById('wkE').value.trim()||'keine';await gem(`Wochenplan Mo-So:\n${wTxt()}\nWetter:${w}\nAnlässe:${ev}\nEhrlich.`,'aiWkRes')}
 
-function selSlot(id){const i=W.find(x=>x.id==id);if(!i)return;const g=CT[i.category]?.g||i.category;if(curO[g]==id)delete curO[g];else curO[g]=id;closeM('slotModal');uVis();}
-
-function uVis(){document.querySelectorAll('.builder-slot').forEach(el=>{const s=el.dataset.s;const id=curO[s];if(id){const i=W.find(x=>x.id==id);if(i){el.classList.add('filled');el.innerHTML=`${i.img?`<img src="${i.img}">`:`<span style="font-size:18px;">${CT[i.category]?.i||'•'}</span>`}<span class="slot-name">${i.name}</span><button class="slot-rm" onclick="event.stopPropagation();delete curO['${s}'];uVis();">✕</button>`;}}else{el.classList.remove('filled');el.innerHTML=`<span class="slot-label">${{muetze:'Kopf',oberteil:'Oberteil',jacke:'Jacke',unterteil:'Unterteil',schuhe:'Schuhe',accessoire:'Accessoire'}[s]||s}</span>`;}});}
-
-function saveOutfit(){const n=document.getElementById('outfitName').value.trim()||'Outfit '+(O.length+1);if(!Object.keys(curO).length)return;O.push({id:Date.now(),name:n,items:{...curO},at:new Date().toISOString()});Object.values(curO).forEach(id=>{const i=W.find(x=>x.id==id);if(i)i.worn=(i.worn||0)+1;});sv();curO={};document.getElementById('outfitName').value='';uVis();}
-function randOutfit(){curO={};['oberteil','unterteil','schuhe'].forEach(g=>{const its=W.filter(i=>(CT[i.category]?.g||i.category)===g&&!i.laundry);if(its.length)curO[g]=its[Math.floor(Math.random()*its.length)].id;});uVis();}
+// AI CHAT
+async function aiSend(){const q=document.getElementById('aiInput').value.trim();if(!q)return;document.getElementById('aiInput').value='';
+  document.getElementById('aiMsgs').innerHTML+=`<div class="ai-msg user">${q}</div>`;
+  const scroll=document.getElementById('aiScroll');scroll.scrollTop=scroll.scrollHeight;
+  const r=await gem(`Kleiderschrank:\n${wTxt()}\n${O.length} Outfits.\nFrage:"${q}"`,null);
+  if(r)document.getElementById('aiMsgs').innerHTML+=`<div class="ai-msg bot">${fm(r)}</div>`;
+  scroll.scrollTop=scroll.scrollHeight}
+function aiAsk(q){document.getElementById('aiInput').value=q;aiSend()}
 
 // CALENDAR
-function rCal(){const ms=['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];const ds=['Mo','Di','Mi','Do','Fr','Sa','So'];document.getElementById('calTitle').textContent=`${ms[cM]} ${cY}`;let h=ds.map(d=>`<div class="cal-head">${d}</div>`).join('');let st=new Date(cY,cM,1).getDay();st=st===0?6:st-1;const dm=new Date(cY,cM+1,0).getDate();const pd=new Date(cY,cM,0).getDate();const td=new Date();
-    for(let i=st-1;i>=0;i--)h+=`<div class="cal-day other">${pd-i}</div>`;for(let d=1;d<=dm;d++){const ds2=`${cY}-${String(cM+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;const it=td.getDate()===d&&td.getMonth()===cM&&td.getFullYear()===cY;let c='cal-day';if(it)c+=' today';if(CAL[ds2])c+=' has-outfit';h+=`<div class="${c}" onclick="calDay('${ds2}')">${d}</div>`;}const rm=7-((st+dm)%7);if(rm<7)for(let i=1;i<=rm;i++)h+=`<div class="cal-day other">${i}</div>`;document.getElementById('calGrid').innerHTML=h;}
-function calNav(d){cM+=d;if(cM>11){cM=0;cY++;}if(cM<0){cM=11;cY--;}rCal();}
+function rCal(){const ms=['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];const ds=['Mo','Di','Mi','Do','Fr','Sa','So'];document.getElementById('calT').textContent=`${ms[cM]} ${cY}`;let h=ds.map(d=>`<div class="cal-dh">${d}</div>`).join('');let st=new Date(cY,cM,1).getDay();st=st===0?6:st-1;const dm=new Date(cY,cM+1,0).getDate();const pd=new Date(cY,cM,0).getDate();const td=new Date();
+  for(let i=st-1;i>=0;i--)h+=`<div class="cal-d ot">${pd-i}</div>`;for(let d=1;d<=dm;d++){const ds2=`${cY}-${String(cM+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;const it=td.getDate()===d&&td.getMonth()===cM&&td.getFullYear()===cY;let c='cal-d';if(it)c+=' td';if(CAL[ds2])c+=' ho';h+=`<div class="${c}" onclick="calDay('${ds2}')">${d}</div>`}const rm=7-((st+dm)%7);if(rm<7)for(let i=1;i<=rm;i++)h+=`<div class="cal-d ot">${i}</div>`;document.getElementById('calG').innerHTML=h}
+function calNav(d){cM+=d;if(cM>11){cM=0;cY++}if(cM<0){cM=11;cY--}rCal()}
 function calDay(ds){
-    document.getElementById('dayTitle').textContent=ds.split('-').reverse().join('.');
-    if(CAL[ds]){const o=O.find(x=>x.id===CAL[ds]);document.getElementById('dayBody').innerHTML=(o?`<p style="font-weight:600;margin-bottom:8px;">${o.name}</p><div>${Object.values(o.items).map(id=>{const i=W.find(x=>x.id==id);return i?`<div class="list-item" style="padding:8px 0;border:none;"><div class="list-icon">${i.img?`<img src="${i.img}">`:(CT[i.category]?.i||'•')}</div><div class="list-body"><div class="list-title">${i.name}</div></div></div>`:''}).join('')}</div>`:'Outfit nicht mehr vorhanden.')+`<button class="btn btn-danger btn-sm" style="margin-top:12px;" onclick="delete CAL['${ds}'];sv();closeM('dayModal');rCal();">Entfernen</button>`;}
-    else{document.getElementById('dayBody').innerHTML=O.length?O.map(o=>`<div class="list-item" style="cursor:pointer;" onclick="CAL['${ds}']=${o.id};sv();closeM('dayModal');rCal();"><div class="list-body"><div class="list-title">${o.name}</div><div class="list-sub">${new Date(o.at).toLocaleDateString('de-DE')}</div></div><span style="color:var(--text3);">›</span></div>`).join(''):'<div class="empty"><div class="empty-text">Erst ein Outfit erstellen</div></div>';}
-    openM('dayModal');
-}
+  document.getElementById('daySheetTitle').textContent=ds.split('-').reverse().join('.');
+  if(CAL[ds]){const o=O.find(x=>x.id===CAL[ds]);document.getElementById('dayBody').innerHTML=(o?`<p style="font-weight:600;margin-bottom:12px">${o.name}</p>${Object.values(o.items).map(id=>{const i=W.find(x=>x.id==id);return i?`<div class="row" style="border:none;padding:6px 0"><div class="row-body"><div class="row-label">${i.name}</div></div></div>`:''}).join('')}`:'Nicht mehr vorhanden.')+`<button class="btn btn-d" style="margin-top:16px" onclick="delete CAL['${ds}'];sv();closeSheet('daySheet');rCal()">Entfernen</button>`}
+  else{document.getElementById('dayBody').innerHTML=O.length?O.map(o=>`<div class="row" style="cursor:pointer" onclick="CAL['${ds}']=${o.id};sv();closeSheet('daySheet');rCal()"><div class="row-body"><div class="row-label">${o.name}</div><div class="row-sub">${new Date(o.at).toLocaleDateString('de-DE')}</div></div><div class="row-right row-chev"></div></div>`).join(''):'<div class="empty"><div class="empty-t">Erst ein Outfit erstellen</div></div>'}
+  openSheet('daySheet')}
 
 // SETTINGS
-function saveSettings(){localStorage.setItem('gk',document.getElementById('keyIn').value.trim());localStorage.setItem('wcity',document.getElementById('cityIn').value.trim());updateBadge();fetchW();closeM('settingsModal');}
-function updateBadge(){const b=document.getElementById('aiBadge');if(gk()){b.className='header-badge';b.textContent='AI';}else{b.className='header-badge off';b.textContent='AI';}}
-async function testAPI(){const el=document.getElementById('testRes');if(!gk()){el.textContent='Key fehlt';return;}el.textContent='Teste...';try{const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${gm()}:generateContent?key=${gk()}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:'OK'}]}],generationConfig:{temperature:0,maxOutputTokens:10}})});if(!r.ok)throw new Error('Fehler');el.textContent='Verbunden ✓';el.style.color='var(--green)';updateBadge();}catch(e){el.textContent='Fehler';el.style.color='var(--red)';}}
-function xport(){const d={W,O,CAL};const b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='wardrobe.json';a.click();}
-function imp(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const d=JSON.parse(ev.target.result);if(d.W)W=d.W;if(d.O)O=d.O;if(d.CAL)CAL=d.CAL;sv();init();}catch(err){}};r.readAsText(f);}
-function nuke(){if(!confirm('Alles löschen?'))return;Object.keys(localStorage).filter(k=>k.startsWith('i_')).forEach(k=>localStorage.removeItem(k));W=[];O=[];CAL={};sv();init();}
+function saveSettings(){localStorage.setItem('gk',document.getElementById('kIn').value.trim());localStorage.setItem('wcity',document.getElementById('cityIn').value.trim());updateBadge();fetchW();closeSheet('settingsSheet')}
+function updateBadge(){const b=document.getElementById('aiBadge');b.className='header-badge'+(gk()?'':' off')}
+function xport(){const d={W,O,CAL};const b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='wardrobe.json';a.click()}
+function imp(e){const f=e.target.files[0];if(!f)return;const r=new FileReader;r.onload=ev=>{try{const d=JSON.parse(ev.target.result);if(d.W)W=d.W;if(d.O)O=d.O;if(d.CAL)CAL=d.CAL;sv();init()}catch(e){}};r.readAsText(f)}
+function nuke(){if(!confirm('Alle Daten löschen?'))return;Object.keys(localStorage).filter(k=>k.startsWith('i_')).forEach(k=>localStorage.removeItem(k));W=[];O=[];CAL={};sv();init()}
 
 // INIT
 function init(){
-    ld();
-    const k=gk();if(k)document.getElementById('keyIn').value=k;
-    document.getElementById('modelSel').value=gm();
-    const t=gt();document.getElementById('tempSl').value=t;document.getElementById('tempV').textContent=t;
-    const c=localStorage.getItem('wcity')||'';document.getElementById('cityIn').value=c;
-    if(localStorage.getItem('dk')==='1')document.body.classList.add('dark');
-    updateBadge();
+  ld();
+  if(gk())document.getElementById('kIn').value=gk();
+  document.getElementById('mdl').value=gm();
+  document.getElementById('cityIn').value=localStorage.getItem('wcity')||'';
+  if(localStorage.getItem('dk')==='1'){document.body.classList.add('dk');document.getElementById('dkToggle').classList.add('on')}
+  updateBadge();
 
-    // Settings gear in header
-    document.querySelector('.header-actions').insertAdjacentHTML('beforeend',`<button class="header-btn" onclick="openM('settingsModal')"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></button>`);
-
-    if(!W.length){
-        W=[
-            {id:1,name:'White Basic Tee',category:'tshirt',color:'#FFFFFF',season:'sommer',brand:'H&M',price:9.99,worn:15,laundry:false,fav:true},
-            {id:2,name:'Slim Fit Jeans',category:'jeans',color:'#1A237E',season:'alle',brand:"Levi's",price:89.99,worn:22,laundry:false,fav:true},
-            {id:3,name:'Air Force 1',category:'sneaker',color:'#FAFAFA',season:'alle',brand:'Nike',price:119.99,worn:30,laundry:false,fav:false},
-            {id:4,name:'Roter Hoodie',category:'hoodie',color:'#E53935',season:'herbst',price:39.99,worn:8,laundry:false,fav:false},
-            {id:5,name:'Beige Chino',category:'hose',color:'#D4A574',season:'fruehling',brand:'Zara',price:35.99,worn:10,laundry:true,fav:false},
-            {id:6,name:'Schwarze Lederjacke',category:'jacke',color:'#1A1A1A',season:'herbst',price:199.99,worn:6,laundry:false,fav:true},
-            {id:7,name:'Sommerkleid Blumen',category:'kleid',color:'#FF69B4',season:'sommer',price:49.99,worn:3,laundry:false,fav:false},
-            {id:8,name:'Navy Wintermantel',category:'mantel',color:'#1A237E',season:'winter',price:179.99,worn:14,laundry:false,fav:false},
-            {id:9,name:'Stan Smith',category:'sneaker',color:'#FAFAFA',season:'alle',brand:'Adidas',price:99.99,worn:25,laundry:false,fav:true},
-            {id:10,name:'Oxford Hemd',category:'hemd',color:'#90CAF9',season:'alle',brand:'COS',price:59.99,worn:7,laundry:false,fav:false}
-        ];
-        sv();
-    }
-
-    rHome();rCloset();rCal();uVis();
+  if(!W.length){
+    W=[
+      {id:1,name:'White Basic Tee',category:'tshirt',color:'#FFFFFF',season:'sommer',brand:'H&M',price:9.99,worn:15,laundry:false,fav:true},
+      {id:2,name:'Slim Fit Jeans',category:'jeans',color:'#1A237E',season:'alle',brand:"Levi's",price:89.99,worn:22,laundry:false,fav:true},
+      {id:3,name:'Air Force 1',category:'sneaker',color:'#FAFAFA',season:'alle',brand:'Nike',price:119.99,worn:30,laundry:false,fav:false},
+      {id:4,name:'Roter Hoodie',category:'hoodie',color:'#E53935',season:'herbst',price:39.99,worn:8,laundry:false,fav:false},
+      {id:5,name:'Beige Chino',category:'hose',color:'#D4A574',season:'fruehling',brand:'Zara',price:35.99,worn:10,laundry:true,fav:false},
+      {id:6,name:'Schwarze Lederjacke',category:'jacke',color:'#1A1A1A',season:'herbst',price:199.99,worn:6,laundry:false,fav:true},
+      {id:7,name:'Sommerkleid',category:'kleid',color:'#FF69B4',season:'sommer',price:49.99,worn:3,laundry:false,fav:false},
+      {id:8,name:'Navy Wintermantel',category:'mantel',color:'#1A237E',season:'winter',price:179.99,worn:14,laundry:false,fav:false},
+      {id:9,name:'Stan Smith',category:'sneaker',color:'#FAFAFA',season:'alle',brand:'Adidas',price:99.99,worn:25,laundry:false,fav:true},
+      {id:10,name:'Oxford Hemd',category:'hemd',color:'#90CAF9',season:'alle',brand:'COS',price:59.99,worn:7,laundry:false,fav:false}
+    ];sv()
+  }
+  rHome();rFilters();rCloset();rCal();uVis()
 }
-
 init();
 </script>
 </body>
