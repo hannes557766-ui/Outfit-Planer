@@ -2,1843 +2,1267 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>👗 Outfit Planer mit KI</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Wardrobe</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        :root {
+            --bg: #FAFAFA;
+            --surface: #FFFFFF;
+            --surface2: #F5F5F5;
+            --text: #1A1A1A;
+            --text2: #6B6B6B;
+            --text3: #A0A0A0;
+            --border: #EFEFEF;
+            --accent: #1A1A1A;
+            --accent-soft: #F0F0F0;
+            --blue: #3478F6;
+            --green: #34C759;
+            --red: #FF3B30;
+            --orange: #FF9500;
+            --purple: #AF52DE;
+            --radius: 12px;
+            --radius-sm: 8px;
+            --radius-xs: 6px;
+            --nav-height: 52px;
+            --header-height: 48px;
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
+        }
+
+        body.dark {
+            --bg: #000000;
+            --surface: #1C1C1E;
+            --surface2: #2C2C2E;
+            --text: #F2F2F7;
+            --text2: #8E8E93;
+            --text3: #636366;
+            --border: #38383A;
+            --accent: #FFFFFF;
+            --accent-soft: #2C2C2E;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
             min-height: 100vh;
-            padding: 20px;
+            min-height: 100dvh;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
         }
 
-        .container { max-width: 1200px; margin: 0 auto; }
-
-        h1 {
-            text-align: center; color: white; font-size: 2.5em;
-            margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        /* ========== HEADER ========== */
+        .header {
+            position: sticky; top: 0; z-index: 50;
+            height: var(--header-height);
+            background: var(--bg);
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 20px;
+            border-bottom: 1px solid var(--border);
         }
 
-        .subtitle {
-            text-align: center; color: rgba(255,255,255,0.8);
-            margin-bottom: 30px; font-size: 1.1em;
+        .header-title {
+            font-size: 17px; font-weight: 700; letter-spacing: -0.3px;
         }
 
-        .tabs {
-            display: flex; justify-content: center; gap: 8px;
-            margin-bottom: 30px; flex-wrap: wrap;
+        .header-actions { display: flex; gap: 16px; align-items: center; }
+
+        .header-btn {
+            background: none; border: none; cursor: pointer;
+            color: var(--text); font-size: 18px; padding: 4px;
+            display: flex; align-items: center; justify-content: center;
         }
 
-        .tab-btn {
-            padding: 12px 20px; border: none; border-radius: 25px;
-            background: rgba(255,255,255,0.2); color: white;
-            font-size: 0.95em; cursor: pointer; transition: all 0.3s;
-            backdrop-filter: blur(10px);
+        .header-badge {
+            font-size: 11px; font-weight: 600; color: var(--green);
+            display: flex; align-items: center; gap: 4px;
         }
 
-        .tab-btn:hover { background: rgba(255,255,255,0.4); transform: translateY(-2px); }
-
-        .tab-btn.active {
-            background: white; color: #764ba2; font-weight: bold;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        .header-badge::before {
+            content: ''; width: 6px; height: 6px; border-radius: 50%;
+            background: var(--green);
         }
 
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
+        .header-badge.off { color: var(--text3); }
+        .header-badge.off::before { background: var(--text3); }
 
-        .section-box {
-            background: white; border-radius: 20px; padding: 30px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2); margin-bottom: 20px;
+        /* ========== BOTTOM NAV ========== */
+        .tab-bar {
+            position: fixed; bottom: 0; left: 0; right: 0; z-index: 50;
+            height: calc(var(--nav-height) + var(--safe-bottom));
+            padding-bottom: var(--safe-bottom);
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+            display: flex; justify-content: space-around; align-items: center;
+        }
+
+        .tab-item {
+            display: flex; flex-direction: column; align-items: center; gap: 2px;
+            padding: 6px 0; border: none; background: none; cursor: pointer;
+            color: var(--text3); font-size: 10px; font-weight: 500;
+            font-family: inherit; min-width: 56px; transition: color 0.15s;
+        }
+
+        .tab-item svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+        .tab-item.active { color: var(--accent); }
+        .tab-item.active svg { stroke-width: 2.2; }
+
+        /* ========== PAGES ========== */
+        .page {
+            display: none;
+            padding: 0 0 calc(var(--nav-height) + var(--safe-bottom) + 16px) 0;
+            min-height: calc(100vh - var(--header-height));
+            min-height: calc(100dvh - var(--header-height));
+        }
+        .page.active { display: block; }
+
+        /* ========== SECTION ========== */
+        .section { padding: 20px; }
+        .section + .section { padding-top: 0; }
+
+        .section-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 16px;
         }
 
         .section-title {
-            font-size: 1.4em; color: #333; margin-bottom: 20px;
-            display: flex; align-items: center; gap: 10px;
+            font-size: 20px; font-weight: 700; letter-spacing: -0.5px;
         }
 
-        .add-item-form {
-            display: grid; grid-template-columns: 1fr 1fr 1fr auto auto;
-            gap: 15px; align-items: end; margin-bottom: 20px;
-            padding: 20px; background: #f8f9fa; border-radius: 15px;
+        .section-subtitle {
+            font-size: 13px; color: var(--text2); margin-top: 4px;
+            line-height: 1.5;
         }
 
-        .form-group { display: flex; flex-direction: column; gap: 5px; }
-
-        .form-group label { font-size: 0.85em; color: #666; font-weight: 600; }
-
-        .form-group input, .form-group select, .form-group textarea {
-            padding: 10px 15px; border: 2px solid #e0e0e0; border-radius: 10px;
-            font-size: 1em; transition: border-color 0.3s; font-family: inherit;
+        .section-link {
+            font-size: 13px; font-weight: 600; color: var(--blue);
+            background: none; border: none; cursor: pointer; font-family: inherit;
         }
 
-        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
-            outline: none; border-color: #764ba2;
-        }
-
-        .btn {
-            padding: 10px 20px; border: none; border-radius: 10px;
-            font-size: 1em; cursor: pointer; transition: all 0.3s;
-            font-weight: 600; font-family: inherit;
-        }
-
-        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
-        .btn-add {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white; padding: 12px 25px;
-        }
-
-        .btn-add:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(118,75,162,0.4);
-        }
-
-        .btn-delete {
-            background: #ff4757; color: white; padding: 6px 12px;
-            font-size: 0.85em; border-radius: 8px;
-        }
-
-        .btn-delete:hover { background: #ff6b81; }
-
-        .btn-save-outfit {
-            background: linear-gradient(135deg, #2ed573, #26de81);
-            color: white; width: 100%; padding: 15px;
-            font-size: 1.1em; margin-top: 15px; border-radius: 12px;
-        }
-
-        .btn-save-outfit:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(46,213,115,0.4);
-        }
-
-        .btn-suggest {
-            background: linear-gradient(135deg, #ffa502, #ff6348);
-            color: white; width: 100%; padding: 12px;
-            margin-top: 10px; border-radius: 12px;
-        }
-
-        .btn-suggest:hover:not(:disabled) { transform: translateY(-2px); }
-
-        .btn-ai {
-            background: linear-gradient(135deg, #a855f7, #6366f1);
-            color: white; display: inline-flex; align-items: center;
-            gap: 8px; position: relative; overflow: hidden;
-        }
-
-        .btn-ai::before {
-            content: ''; position: absolute; top: -50%; left: -50%;
-            width: 200%; height: 200%;
-            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
-            animation: aiShimmer 3s infinite;
-        }
-
-        @keyframes aiShimmer {
-            0% { transform: translateX(-100%) rotate(45deg); }
-            100% { transform: translateX(100%) rotate(45deg); }
-        }
-
-        .btn-ai:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(168,85,247,0.4);
-        }
-
-        .btn-cancel { background: #ddd; color: #666; }
-
-        .filter-bar {
-            display: flex; gap: 10px; margin-bottom: 20px;
-            flex-wrap: wrap; align-items: center;
-        }
-
-        .filter-bar select, .filter-bar input {
-            padding: 8px 15px; border: 2px solid #e0e0e0;
-            border-radius: 10px; font-size: 0.95em;
-        }
-
-        .clothes-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 15px;
-        }
-
-        .clothing-card {
-            background: white; border: 2px solid #f0f0f0;
-            border-radius: 15px; padding: 15px; text-align: center;
-            transition: all 0.3s; cursor: pointer; position: relative;
+        /* ========== CARDS ========== */
+        .card {
+            background: var(--surface);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
             overflow: hidden;
         }
 
-        .clothing-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-            border-color: #764ba2;
+        .card-body { padding: 16px; }
+
+        .card + .card { margin-top: 12px; }
+
+        /* ========== TODAY CARD ========== */
+        .today-card {
+            background: var(--accent);
+            color: var(--bg);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin: 20px;
         }
 
-        .clothing-card.selected {
-            border-color: #667eea; background: #f0f0ff;
-            box-shadow: 0 0 0 3px rgba(102,126,234,0.3);
+        .today-label {
+            font-size: 11px; font-weight: 600; text-transform: uppercase;
+            letter-spacing: 1px; opacity: 0.6; margin-bottom: 8px;
         }
 
-        .clothing-icon { font-size: 3em; margin-bottom: 10px; }
-        .clothing-name { font-weight: 600; color: #333; margin-bottom: 5px; }
+        .today-outfit { font-size: 18px; font-weight: 700; margin-bottom: 12px; letter-spacing: -0.3px; }
 
-        .clothing-color-dot {
-            width: 20px; height: 20px; border-radius: 50%;
-            display: inline-block; border: 2px solid #ddd;
+        .today-items {
+            display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px;
         }
 
-        .clothing-image {
-            width: 100%; height: 140px; object-fit: cover;
-            border-radius: 10px; margin-bottom: 10px;
-            background: #f0f0f0;
+        .today-chip {
+            padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 500;
+            background: rgba(255,255,255,0.15);
         }
 
-        .card-actions {
-            display: flex; justify-content: center; gap: 5px; margin-top: 10px;
+        body.dark .today-chip { background: rgba(0,0,0,0.2); }
+
+        .today-actions { display: flex; gap: 8px; }
+
+        .today-btn {
+            padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: 600;
+            border: 1px solid rgba(255,255,255,0.25); background: transparent;
+            color: inherit; cursor: pointer; font-family: inherit;
         }
 
-        .planner-layout {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+        .today-btn:first-child { background: var(--bg); color: var(--accent); border-color: transparent; }
+        body.dark .today-btn:first-child { background: var(--surface); }
+
+        /* ========== WEATHER ========== */
+        .weather-bar {
+            display: flex; align-items: center; gap: 12px;
+            padding: 14px 16px;
+            background: var(--surface2);
+            border-radius: var(--radius);
+            margin: 0 20px 16px;
         }
 
-        .outfit-slots { display: flex; flex-direction: column; gap: 12px; }
+        .weather-temp { font-size: 28px; font-weight: 700; letter-spacing: -1px; }
+        .weather-info { flex: 1; }
+        .weather-desc { font-size: 13px; font-weight: 500; }
+        .weather-detail { font-size: 11px; color: var(--text3); margin-top: 2px; }
+        .weather-sug { font-size: 11px; color: var(--text2); text-align: right; max-width: 120px; }
 
-        .outfit-slot {
-            border: 2px dashed #ddd; border-radius: 15px; padding: 15px;
-            display: flex; align-items: center; gap: 15px;
-            min-height: 60px; transition: all 0.3s; cursor: pointer;
+        /* ========== QUICK STATS ========== */
+        .quick-stats {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px;
+            background: var(--border); border-radius: var(--radius); overflow: hidden;
+            margin: 0 20px 16px;
         }
 
-        .outfit-slot.filled {
-            border-style: solid; border-color: #667eea; background: #f8f9ff;
+        .qs-item {
+            background: var(--surface); padding: 14px 8px; text-align: center;
         }
 
-        .slot-label { font-weight: 600; color: #999; min-width: 100px; font-size: 0.9em; }
-        .slot-content { flex: 1; display: flex; align-items: center; gap: 10px; }
-        .slot-content .clothing-name { margin: 0; }
+        .qs-val { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
+        .qs-lbl { font-size: 10px; color: var(--text3); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 500; }
 
-        .remove-slot-btn {
-            background: none; border: none; color: #ff4757;
-            font-size: 1.2em; cursor: pointer;
+        /* ========== GRID ========== */
+        .items-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+            gap: 2px;
         }
 
-        .outfit-name-input {
-            width: 100%; padding: 12px 15px; border: 2px solid #e0e0e0;
-            border-radius: 10px; font-size: 1em; margin-bottom: 15px;
+        .item-card {
+            background: var(--surface);
+            cursor: pointer;
+            position: relative;
+            transition: opacity 0.15s;
         }
 
-        .outfit-name-input:focus { outline: none; border-color: #764ba2; }
+        .item-card:active { opacity: 0.7; }
+        .item-card.in-laundry { opacity: 0.4; }
 
-        .calendar-header {
-            display: flex; justify-content: space-between;
-            align-items: center; margin-bottom: 20px;
+        .item-card .fav-btn {
+            position: absolute; top: 8px; right: 8px; z-index: 2;
+            background: none; border: none; cursor: pointer; font-size: 14px;
+            width: 28px; height: 28px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(0,0,0,0.3); color: white;
         }
 
-        .calendar-nav {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white; border: none; width: 40px; height: 40px;
-            border-radius: 50%; font-size: 1.2em; cursor: pointer;
+        .item-card .laundry-indicator {
+            position: absolute; top: 8px; left: 8px; z-index: 2;
+            padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 600;
+            background: var(--orange); color: white; letter-spacing: 0.3px;
         }
 
-        .calendar-nav:hover { transform: scale(1.1); }
-
-        .calendar-grid {
-            display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px;
+        .item-img {
+            width: 100%; aspect-ratio: 3/4; background: var(--surface2);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 40px; overflow: hidden;
         }
 
-        .calendar-day-header {
-            text-align: center; font-weight: 600; color: #999;
-            padding: 10px 0; font-size: 0.85em;
+        .item-img img { width: 100%; height: 100%; object-fit: cover; }
+
+        .item-info { padding: 10px 12px 12px; }
+
+        .item-name {
+            font-size: 13px; font-weight: 600;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
 
-        .calendar-day {
-            aspect-ratio: 1; display: flex; flex-direction: column;
-            align-items: center; justify-content: center; border-radius: 10px;
-            cursor: pointer; transition: all 0.2s; font-size: 0.9em;
-            position: relative; border: 2px solid transparent;
+        .item-meta {
+            font-size: 11px; color: var(--text3); margin-top: 2px;
+            display: flex; align-items: center; gap: 6px;
         }
 
-        .calendar-day:hover { background: #f0f0ff; }
-        .calendar-day.today { background: linear-gradient(135deg, #667eea, #764ba2); color: white; font-weight: bold; }
-        .calendar-day.has-outfit { border-color: #2ed573; }
-        .calendar-day.has-outfit::after { content: '👗'; font-size: 0.7em; position: absolute; bottom: 2px; }
-        .calendar-day.other-month { color: #ccc; }
-
-        .saved-outfits-grid {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 15px; margin-top: 15px;
+        .item-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            border: 1px solid var(--border); flex-shrink: 0;
         }
 
-        .saved-outfit-card {
-            border: 2px solid #f0f0f0; border-radius: 15px;
-            padding: 15px; transition: all 0.3s;
+        .item-cpw {
+            font-size: 10px; color: var(--blue); font-weight: 600; margin-top: 4px;
         }
 
-        .saved-outfit-card:hover { box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
-        .outfit-date { font-weight: 600; color: #764ba2; margin-bottom: 10px; }
-        .outfit-items-list { list-style: none; padding: 0; }
+        /* ========== SEARCH & FILTERS ========== */
+        .search-section { padding: 12px 20px; }
 
-        .outfit-items-list li {
-            padding: 5px 0; border-bottom: 1px solid #f0f0f0;
+        .search-input {
+            width: 100%; padding: 10px 14px 10px 36px;
+            border: none; border-radius: var(--radius-sm);
+            background: var(--surface2);
+            font-size: 15px; font-family: inherit;
+            color: var(--text);
+            -webkit-appearance: none;
+        }
+
+        .search-input:focus { outline: none; }
+        .search-input::placeholder { color: var(--text3); }
+
+        .search-wrap {
+            position: relative;
+        }
+
+        .search-wrap svg {
+            position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+            width: 16px; height: 16px; stroke: var(--text3); fill: none; stroke-width: 2;
+        }
+
+        .filter-scroll {
+            display: flex; gap: 8px; overflow-x: auto; padding: 0 20px 12px;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+
+        .filter-scroll::-webkit-scrollbar { display: none; }
+
+        .filter-chip {
+            padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 500;
+            white-space: nowrap; border: 1px solid var(--border);
+            background: var(--surface); color: var(--text2); cursor: pointer;
+            font-family: inherit; transition: all 0.15s;
+            flex-shrink: 0;
+        }
+
+        .filter-chip.active {
+            background: var(--accent); color: var(--bg);
+            border-color: var(--accent);
+        }
+
+        /* ========== BUTTONS ========== */
+        .btn {
+            display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+            padding: 12px 20px; border-radius: var(--radius-sm);
+            font-size: 14px; font-weight: 600; font-family: inherit;
+            border: none; cursor: pointer; transition: opacity 0.15s;
+            -webkit-appearance: none;
+        }
+
+        .btn:active { opacity: 0.7; }
+        .btn:disabled { opacity: 0.3; pointer-events: none; }
+
+        .btn-primary { background: var(--accent); color: var(--bg); }
+        .btn-secondary { background: var(--surface2); color: var(--text); }
+        .btn-outline { background: transparent; color: var(--accent); border: 1px solid var(--border); }
+        .btn-danger { background: var(--red); color: white; }
+        .btn-blue { background: var(--blue); color: white; }
+        .btn-full { width: 100%; }
+        .btn-sm { padding: 8px 14px; font-size: 12px; }
+
+        .btn-row { display: flex; gap: 8px; }
+
+        .btn-icon {
+            width: 36px; height: 36px; padding: 0;
+            border-radius: 50%; font-size: 16px;
+        }
+
+        /* ========== FORM ========== */
+        .form-group { margin-bottom: 16px; }
+
+        .form-label {
+            font-size: 12px; font-weight: 600; color: var(--text2);
+            margin-bottom: 6px; display: block; text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-input, .form-select {
+            width: 100%; padding: 12px 14px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 15px; font-family: inherit;
+            background: var(--surface); color: var(--text);
+            -webkit-appearance: none;
+        }
+
+        .form-input:focus, .form-select:focus {
+            outline: none; border-color: var(--accent);
+        }
+
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .form-row.c3 { grid-template-columns: 1fr 1fr 1fr; }
+
+        /* ========== PHOTO UPLOAD ========== */
+        .upload-area {
+            border: 2px dashed var(--border);
+            border-radius: var(--radius);
+            padding: 32px;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+
+        .upload-area:hover, .upload-area.dragover {
+            border-color: var(--accent);
+        }
+
+        .upload-icon {
+            width: 48px; height: 48px; margin: 0 auto 12px;
+            background: var(--surface2); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        .upload-icon svg { width: 24px; height: 24px; stroke: var(--text2); fill: none; stroke-width: 1.8; }
+
+        .upload-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+        .upload-desc { font-size: 12px; color: var(--text3); }
+
+        .thumb-row { display: flex; gap: 8px; overflow-x: auto; padding: 12px 0; }
+
+        .thumb {
+            width: 72px; height: 72px; border-radius: var(--radius-sm);
+            overflow: hidden; flex-shrink: 0; position: relative;
+            border: 1px solid var(--border);
+        }
+
+        .thumb img { width: 100%; height: 100%; object-fit: cover; }
+
+        .thumb-rm {
+            position: absolute; top: 4px; right: 4px;
+            width: 18px; height: 18px; border-radius: 50%;
+            background: rgba(0,0,0,0.5); color: white;
+            border: none; cursor: pointer; font-size: 10px;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        .thumb-st {
+            position: absolute; bottom: 0; left: 0; right: 0;
+            padding: 2px; text-align: center; font-size: 8px;
+            font-weight: 700; color: white; text-transform: uppercase; letter-spacing: 0.5px;
+        }
+
+        .thumb-st.pending { background: var(--orange); }
+        .thumb-st.analyzing { background: var(--blue); }
+        .thumb-st.done { background: var(--green); }
+        .thumb-st.error { background: var(--red); }
+
+        /* ========== OUTFIT BUILDER ========== */
+        .builder-stack {
+            display: flex; flex-direction: column; align-items: center;
+            gap: 4px; padding: 24px 16px;
+            background: var(--surface2);
+            border-radius: var(--radius);
+        }
+
+        .builder-slot {
+            width: 140px; border: 1.5px dashed var(--border);
+            border-radius: var(--radius-sm);
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; background: var(--surface);
+            overflow: hidden; position: relative; transition: all 0.15s;
+        }
+
+        .builder-slot.h-sm { height: 48px; width: 100px; }
+        .builder-slot.h-md { height: 72px; }
+        .builder-slot.h-lg { height: 90px; width: 150px; }
+
+        .builder-slot.filled { border-style: solid; border-color: var(--accent); }
+
+        .builder-slot img { width: 100%; height: 100%; object-fit: cover; }
+
+        .builder-slot .slot-label {
+            font-size: 11px; color: var(--text3); font-weight: 500;
+        }
+
+        .builder-slot .slot-name {
+            position: absolute; bottom: 0; left: 0; right: 0;
+            padding: 3px 6px; font-size: 9px; font-weight: 600;
+            background: var(--surface); border-top: 1px solid var(--border);
+            text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+
+        .builder-slot .slot-rm {
+            position: absolute; top: 2px; right: 2px;
+            width: 16px; height: 16px; border-radius: 50%;
+            background: var(--red); color: white; border: none; cursor: pointer;
+            font-size: 8px; display: none; align-items: center; justify-content: center;
+        }
+
+        .builder-slot:hover .slot-rm { display: flex; }
+
+        /* ========== AI PANEL ========== */
+        .ai-panel {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+        }
+
+        .ai-panel-header {
+            padding: 14px 16px;
             display: flex; align-items: center; gap: 8px;
+            border-bottom: 1px solid var(--border);
+            font-size: 13px; font-weight: 600;
         }
 
-        .outfit-items-list li:last-child { border-bottom: none; }
-
-        .stats-grid {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 15px; margin-top: 15px;
+        .ai-dot {
+            width: 6px; height: 6px; border-radius: 50%; background: var(--purple);
         }
 
-        .stat-card {
-            background: white; border-radius: 15px; padding: 20px;
-            text-align: center; box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        .ai-panel-body { padding: 16px; }
+
+        .ai-input-row { display: flex; gap: 8px; }
+
+        .ai-input {
+            flex: 1; padding: 10px 14px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 14px; font-family: inherit;
+            background: var(--surface); color: var(--text);
         }
 
-        .stat-number {
-            font-size: 2.5em; font-weight: bold;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .stat-label { color: #999; font-size: 0.9em; margin-top: 5px; }
-
-        .tag {
-            display: inline-block; padding: 3px 10px; border-radius: 20px;
-            font-size: 0.75em; font-weight: 600; color: white; margin: 2px;
-        }
-
-        .tag-oberteil { background: #667eea; }
-        .tag-unterteil { background: #2ed573; }
-        .tag-schuhe { background: #ffa502; }
-        .tag-accessoire { background: #ff6348; }
-        .tag-jacke { background: #1e90ff; }
-        .tag-kleid { background: #ff69b4; }
-
-        .empty-state { text-align: center; color: #999; padding: 40px; }
-        .empty-state span { font-size: 3em; display: block; margin-bottom: 15px; }
-
-        .ai-box {
-            background: linear-gradient(135deg, #f5f3ff, #ede9fe);
-            border: 2px solid #c4b5fd; border-radius: 15px;
-            padding: 20px; margin-top: 20px;
-        }
-
-        .ai-box .section-title { color: #7c3aed; }
+        .ai-input:focus { outline: none; border-color: var(--accent); }
 
         .ai-response {
-            background: white; border-radius: 12px; padding: 20px;
-            margin-top: 15px; border: 1px solid #e0e0e0;
-            white-space: pre-wrap; line-height: 1.7; color: #333;
-            font-size: 0.95em; max-height: 500px; overflow-y: auto;
+            margin-top: 12px; padding: 16px;
+            background: var(--surface2); border-radius: var(--radius-sm);
+            font-size: 13px; line-height: 1.7; color: var(--text);
+            max-height: 360px; overflow-y: auto;
         }
 
-        .ai-response strong { color: #7c3aed; }
+        .ai-response strong { font-weight: 700; }
+        .ai-response h3 { font-size: 14px; font-weight: 700; margin: 14px 0 6px; }
+
+        .ai-chips {
+            display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px;
+        }
+
+        .ai-chip {
+            padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: 500;
+            border: 1px solid var(--border); background: var(--surface);
+            color: var(--text2); cursor: pointer; font-family: inherit;
+        }
+
+        .ai-chip:active { background: var(--surface2); }
 
         .ai-loading {
-            display: flex; align-items: center; gap: 10px;
-            padding: 15px; color: #7c3aed; font-weight: 600;
+            display: flex; align-items: center; gap: 8px; padding: 16px 0;
+            font-size: 13px; color: var(--text2);
         }
 
-        .ai-loading .dots::after { content: ''; animation: dots 1.5s infinite; }
+        @keyframes pulse { 0%,100%{opacity:0.3} 50%{opacity:1} }
+        .ai-loading-dots span { animation: pulse 1.4s infinite; }
+        .ai-loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .ai-loading-dots span:nth-child(3) { animation-delay: 0.4s; }
 
-        @keyframes dots {
-            0% { content: ''; } 25% { content: '.'; }
-            50% { content: '..'; } 75% { content: '...'; }
+        /* ========== CALENDAR ========== */
+        .cal-nav {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 20px; margin-bottom: 16px;
         }
 
-        .ai-status {
-            display: inline-flex; align-items: center; gap: 6px;
-            padding: 4px 12px; border-radius: 20px; font-size: 0.8em;
-            font-weight: 600; margin-left: 10px;
+        .cal-nav h2 { font-size: 17px; font-weight: 700; }
+
+        .cal-arrow {
+            width: 32px; height: 32px; border-radius: 50%;
+            background: var(--surface2); border: none; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px; color: var(--text);
         }
 
-        .ai-status.connected { background: #dcfce7; color: #16a34a; }
-        .ai-status.disconnected { background: #fef2f2; color: #dc2626; }
-
-        .ai-chat-input { display: flex; gap: 10px; margin-top: 15px; }
-
-        .ai-chat-input input {
-            flex: 1; padding: 12px 15px; border: 2px solid #c4b5fd;
-            border-radius: 12px; font-size: 1em;
+        .cal-grid {
+            display: grid; grid-template-columns: repeat(7,1fr); gap: 2px;
+            padding: 0 20px;
         }
 
-        .ai-chat-input input:focus { outline: none; border-color: #7c3aed; }
-
-        .settings-grid { display: grid; gap: 20px; max-width: 600px; }
-
-        .setting-item {
-            background: #f8f9fa; padding: 20px; border-radius: 15px;
+        .cal-head {
+            text-align: center; font-size: 11px; font-weight: 600;
+            color: var(--text3); padding: 8px 0;
         }
 
-        .setting-item h3 {
-            margin-bottom: 10px; color: #333;
-            display: flex; align-items: center; gap: 8px;
+        .cal-day {
+            aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+            font-size: 13px; border-radius: 50%; cursor: pointer;
+            position: relative; font-weight: 500;
         }
 
-        .setting-item p { color: #666; font-size: 0.9em; margin-bottom: 12px; }
+        .cal-day:hover { background: var(--surface2); }
+        .cal-day.today { background: var(--accent); color: var(--bg); font-weight: 700; }
 
-        .api-key-input { display: flex; gap: 10px; }
-
-        .api-key-input input {
-            flex: 1; padding: 10px 15px; border: 2px solid #e0e0e0;
-            border-radius: 10px; font-size: 1em; font-family: monospace;
+        .cal-day.has-outfit::after {
+            content: ''; width: 4px; height: 4px; border-radius: 50%;
+            background: var(--blue); position: absolute; bottom: 4px;
         }
 
-        .api-key-input input:focus { outline: none; border-color: #764ba2; }
+        .cal-day.today.has-outfit::after { background: var(--bg); }
+        .cal-day.other { color: var(--text3); opacity: 0.4; }
 
-        /* ============ FOTO UPLOAD ============ */
-        .photo-upload-area {
-            border: 3px dashed #c4b5fd;
-            border-radius: 20px;
-            padding: 30px;
-            text-align: center;
-            transition: all 0.3s;
-            cursor: pointer;
-            background: linear-gradient(135deg, #faf5ff, #f3e8ff);
-            margin-bottom: 15px;
+        /* ========== LIST ITEMS ========== */
+        .list-item {
+            display: flex; align-items: center; gap: 14px;
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--border);
         }
 
-        .photo-upload-area:hover, .photo-upload-area.dragover {
-            border-color: #7c3aed;
-            background: linear-gradient(135deg, #f3e8ff, #ede9fe);
-            transform: scale(1.01);
+        .list-item:last-child { border-bottom: none; }
+        .list-item:active { background: var(--surface2); }
+
+        .list-icon {
+            width: 44px; height: 44px; border-radius: var(--radius-sm);
+            background: var(--surface2); display: flex; align-items: center;
+            justify-content: center; font-size: 20px; flex-shrink: 0;
+            overflow: hidden;
         }
 
-        .photo-upload-area .upload-icon { font-size: 3em; margin-bottom: 10px; }
-        .photo-upload-area h3 { color: #7c3aed; margin-bottom: 8px; }
-        .photo-upload-area p { color: #888; font-size: 0.9em; }
+        .list-icon img { width: 100%; height: 100%; object-fit: cover; }
 
-        .photo-actions {
-            display: flex; gap: 10px; justify-content: center;
-            flex-wrap: wrap; margin-top: 15px;
+        .list-body { flex: 1; min-width: 0; }
+        .list-title { font-size: 14px; font-weight: 600; }
+        .list-sub { font-size: 12px; color: var(--text3); margin-top: 1px; }
+        .list-right { font-size: 12px; color: var(--text3); flex-shrink: 0; }
+
+        /* ========== MODAL ========== */
+        .modal-bg {
+            display: none; position: fixed; inset: 0; z-index: 100;
+            background: rgba(0,0,0,0.4); align-items: flex-end; justify-content: center;
         }
 
-        .btn-camera {
-            background: linear-gradient(135deg, #06b6d4, #0891b2);
-            color: white;
+        .modal-bg.open { display: flex; }
+
+        .modal-sheet {
+            background: var(--surface); border-radius: 16px 16px 0 0;
+            width: 100%; max-width: 500px; max-height: 85vh;
+            overflow-y: auto; padding-bottom: var(--safe-bottom);
         }
 
-        .btn-gallery {
-            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
-            color: white;
+        .modal-handle {
+            width: 36px; height: 4px; border-radius: 2px;
+            background: var(--border); margin: 8px auto 0;
         }
 
-        .preview-grid {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 15px; margin-top: 20px;
+        .modal-header {
+            padding: 16px 20px; display: flex; align-items: center; justify-content: space-between;
+            border-bottom: 1px solid var(--border); position: sticky; top: 0;
+            background: var(--surface); z-index: 1;
         }
 
-        .preview-card {
-            border-radius: 15px; overflow: hidden;
-            border: 2px solid #e0e0e0; position: relative;
-            background: #f8f8f8;
+        .modal-title { font-size: 16px; font-weight: 700; }
+
+        .modal-close {
+            width: 28px; height: 28px; border-radius: 50%;
+            background: var(--surface2); border: none; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px; color: var(--text2);
         }
 
-        .preview-card img {
-            width: 100%; height: 150px; object-fit: cover;
+        .modal-body { padding: 20px; }
+
+        /* ========== SETTINGS ========== */
+        .setting-group { margin-bottom: 24px; }
+
+        .setting-group-title {
+            font-size: 11px; font-weight: 600; color: var(--text3);
+            text-transform: uppercase; letter-spacing: 0.8px;
+            padding: 0 20px; margin-bottom: 8px;
         }
 
-        .preview-card .preview-status {
-            padding: 8px; text-align: center; font-size: 0.8em;
-            font-weight: 600;
+        .setting-card {
+            background: var(--surface);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            margin: 0 20px;
+            overflow: hidden;
         }
 
-        .preview-card .preview-status.analyzing {
-            background: #fef3c7; color: #d97706;
+        .setting-row {
+            display: flex; align-items: center; padding: 14px 16px;
+            border-bottom: 1px solid var(--border); gap: 12px;
         }
 
-        .preview-card .preview-status.done {
-            background: #dcfce7; color: #16a34a;
+        .setting-row:last-child { border-bottom: none; }
+
+        .setting-label { flex: 1; font-size: 14px; }
+
+        .setting-value {
+            font-size: 13px; color: var(--text3); display: flex;
+            align-items: center; gap: 4px;
         }
 
-        .preview-card .preview-status.error {
-            background: #fef2f2; color: #dc2626;
+        .toggle {
+            width: 44px; height: 24px; border-radius: 12px;
+            background: var(--border); border: none; cursor: pointer;
+            position: relative; transition: background 0.2s;
         }
 
-        .preview-card .remove-preview {
-            position: absolute; top: 5px; right: 5px;
-            background: rgba(255,71,87,0.9); color: white;
-            border: none; width: 25px; height: 25px; border-radius: 50%;
-            cursor: pointer; font-size: 0.8em;
+        .toggle::after {
+            content: ''; width: 20px; height: 20px; border-radius: 50%;
+            background: white; position: absolute; top: 2px; left: 2px;
+            transition: transform 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.2);
         }
 
-        .recognized-items {
-            margin-top: 20px; padding: 20px; background: #f0fdf4;
-            border-radius: 15px; border: 2px solid #86efac;
+        .toggle.on { background: var(--green); }
+        .toggle.on::after { transform: translateX(20px); }
+
+        /* ========== EMPTY ========== */
+        .empty {
+            text-align: center; padding: 48px 20px; color: var(--text3);
         }
 
-        .recognized-item {
-            display: flex; align-items: center; gap: 12px;
-            padding: 10px; background: white; border-radius: 10px;
-            margin-bottom: 8px; border: 1px solid #e0e0e0;
+        .empty-icon { font-size: 48px; margin-bottom: 12px; opacity: 0.5; }
+        .empty-text { font-size: 14px; }
+
+        /* ========== RESPONSIVE ========== */
+        @media (min-width: 768px) {
+            .items-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
+            .form-row { grid-template-columns: 1fr 1fr; }
         }
 
-        .recognized-item img {
-            width: 50px; height: 50px; border-radius: 8px;
+        @media (max-width: 380px) {
+            .quick-stats { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        /* ========== RECOGNIZED ========== */
+        .rec-card {
+            display: flex; gap: 12px; padding: 12px;
+            border: 1px solid var(--border); border-radius: var(--radius-sm);
+            margin-bottom: 8px; align-items: center;
+        }
+
+        .rec-card img {
+            width: 48px; height: 48px; border-radius: var(--radius-xs);
             object-fit: cover;
         }
 
-        .recognized-item-info { flex: 1; }
-        .recognized-item-info .name { font-weight: 600; color: #333; }
-        .recognized-item-info .details { font-size: 0.85em; color: #666; }
+        .rec-info { flex: 1; }
+        .rec-name { font-size: 13px; font-weight: 600; }
+        .rec-detail { font-size: 11px; color: var(--text3); }
+        .rec-comment { font-size: 11px; color: var(--purple); font-style: italic; margin-top: 2px; }
 
-        .recognized-item .btn-add-recognized {
-            background: #2ed573; color: white; padding: 6px 14px;
-            border: none; border-radius: 8px; cursor: pointer;
-            font-weight: 600; font-size: 0.85em;
+        /* ========== DETAIL TABLE ========== */
+        .detail-table { width: 100%; }
+        .detail-table td { padding: 8px 0; font-size: 13px; vertical-align: top; }
+        .detail-table td:first-child { color: var(--text3); width: 100px; }
+
+        /* Sustainability */
+        .sus-meter {
+            height: 6px; background: var(--surface2); border-radius: 3px;
+            overflow: hidden; margin: 8px 0;
         }
+        .sus-fill { height: 100%; border-radius: 3px; transition: width 0.5s; }
 
-        .recognized-item .btn-add-recognized:hover { background: #26de81; }
-
-        .recognized-item .btn-reject {
-            background: #ff4757; color: white; padding: 6px 10px;
-            border: none; border-radius: 8px; cursor: pointer;
-            font-size: 0.85em;
-        }
-
-        /* Modal */
-        .modal-overlay {
-            display: none; position: fixed; top: 0; left: 0;
-            width: 100%; height: 100%; background: rgba(0,0,0,0.5);
-            z-index: 1000; justify-content: center; align-items: center;
-        }
-
-        .modal-overlay.active { display: flex; }
-
-        .modal {
-            background: white; border-radius: 20px; padding: 30px;
-            max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto;
-        }
-
-        .modal h2 { margin-bottom: 15px; color: #333; }
-
-        .modal-actions {
-            display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end;
-        }
-
-        .weather-input-row {
-            display: flex; gap: 10px; margin-bottom: 15px; align-items: end;
-        }
-
-        .weather-input-row .form-group { flex: 1; }
-
-        @media (max-width: 768px) {
-            .add-item-form { grid-template-columns: 1fr; }
-            .planner-layout { grid-template-columns: 1fr; }
-            h1 { font-size: 1.8em; }
-            .tabs { gap: 5px; }
-            .tab-btn { padding: 8px 12px; font-size: 0.85em; }
-            .ai-chat-input { flex-direction: column; }
-            .photo-actions { flex-direction: column; }
-            .weather-input-row { flex-direction: column; }
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .animate-in { animation: fadeIn 0.4s ease-out; }
+        /* Divider */
+        .divider { height: 1px; background: var(--border); margin: 0 20px; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h1>👗 Outfit Planer
-        <span class="ai-status disconnected" id="aiStatus">● KI Offline</span>
-    </h1>
-    <p class="subtitle">Plane deine Outfits mit Gemini KI – ehrlich, direkt und hilfreich ✨</p>
+<!-- HEADER -->
+<div class="header">
+    <span class="header-title">Wardrobe</span>
+    <div class="header-actions">
+        <span class="header-badge off" id="aiBadge">AI</span>
+        <button class="header-btn" onclick="toggleDark()">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 12.79A9 9 0 1111.21 3a7 7 0 009.79 9.79z"/></svg>
+        </button>
+    </div>
+</div>
 
-    <div class="tabs">
-        <button class="tab-btn active" onclick="switchTab('wardrobe',this)">🗄️ Kleiderschrank</button>
-        <button class="tab-btn" onclick="switchTab('photo',this)">📸 Foto-Scan</button>
-        <button class="tab-btn" onclick="switchTab('planner',this)">👔 Outfit erstellen</button>
-        <button class="tab-btn" onclick="switchTab('calendar',this)">📅 Kalender</button>
-        <button class="tab-btn" onclick="switchTab('outfits',this)">💾 Outfits</button>
-        <button class="tab-btn" onclick="switchTab('ai',this)">🤖 KI-Berater</button>
-        <button class="tab-btn" onclick="switchTab('stats',this)">📊 Statistiken</button>
-        <button class="tab-btn" onclick="switchTab('settings',this)">⚙️ Einstellungen</button>
+<!-- ===== HOME ===== -->
+<div class="page active" id="p-home">
+    <div class="weather-bar" id="weatherBar">
+        <span class="weather-temp" id="wTemp">--°</span>
+        <div class="weather-info">
+            <div class="weather-desc" id="wDesc">Wetter laden</div>
+            <div class="weather-detail" id="wDetail"></div>
+        </div>
+        <div class="weather-sug" id="wSug"></div>
     </div>
 
-    <!-- =============== KLEIDERSCHRANK =============== -->
-    <div class="tab-content active" id="tab-wardrobe">
-        <div class="section-box animate-in">
-            <div class="section-title">🗄️ Kleiderschrank</div>
-
-            <div class="add-item-form">
-                <div class="form-group">
-                    <label>Name</label>
-                    <input type="text" id="itemName" placeholder="z.B. Blaues T-Shirt">
-                </div>
-                <div class="form-group">
-                    <label>Kategorie</label>
-                    <select id="itemCategory">
-                        <option value="oberteil">👕 Oberteil</option>
-                        <option value="unterteil">👖 Unterteil</option>
-                        <option value="kleid">👗 Kleid</option>
-                        <option value="jacke">🧥 Jacke</option>
-                        <option value="schuhe">👟 Schuhe</option>
-                        <option value="accessoire">🎒 Accessoire</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Saison</label>
-                    <select id="itemSeason">
-                        <option value="alle">🌍 Alle</option>
-                        <option value="fruehling">🌸 Frühling</option>
-                        <option value="sommer">☀️ Sommer</option>
-                        <option value="herbst">🍂 Herbst</option>
-                        <option value="winter">❄️ Winter</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Farbe</label>
-                    <input type="color" id="itemColor" value="#667eea" style="width:45px;height:45px;border:none;border-radius:50%;cursor:pointer;">
-                </div>
-                <button class="btn btn-add" onclick="addClothingItem()">+ Hinzufügen</button>
-            </div>
-
-            <div class="ai-box">
-                <div class="section-title">🤖 KI: Kleidung per Text beschreiben</div>
-                <p style="color:#666;font-size:0.9em;margin-bottom:10px;">Beschreibe Kleidungsstücke und die KI erkennt alles automatisch.</p>
-                <div class="ai-chat-input">
-                    <input type="text" id="aiAddClothesInput" placeholder='"Rotes Sommerkleid, weiße Sneaker, blaue Jeans"'>
-                    <button class="btn btn-ai" onclick="aiAddClothes()">🤖 Erkennen</button>
-                </div>
-                <div id="aiAddClothesResponse"></div>
-            </div>
-
-            <div class="filter-bar" style="margin-top:20px;">
-                <span style="font-weight:600;color:#666;">Filter:</span>
-                <select id="filterCategory" onchange="renderWardrobe()">
-                    <option value="alle">Alle Kategorien</option>
-                    <option value="oberteil">👕 Oberteile</option>
-                    <option value="unterteil">👖 Unterteile</option>
-                    <option value="kleid">👗 Kleider</option>
-                    <option value="jacke">🧥 Jacken</option>
-                    <option value="schuhe">👟 Schuhe</option>
-                    <option value="accessoire">🎒 Accessoires</option>
-                </select>
-                <select id="filterSeason" onchange="renderWardrobe()">
-                    <option value="alle">Alle Saisons</option>
-                    <option value="fruehling">🌸 Frühling</option>
-                    <option value="sommer">☀️ Sommer</option>
-                    <option value="herbst">🍂 Herbst</option>
-                    <option value="winter">❄️ Winter</option>
-                </select>
-                <input type="text" id="filterSearch" placeholder="🔍 Suchen..." oninput="renderWardrobe()">
-            </div>
-
-            <div class="clothes-grid" id="clothesGrid"></div>
+    <div class="today-card" id="todayCard">
+        <div class="today-label">Outfit des Tages</div>
+        <div class="today-outfit" id="todayTitle">Tippe für einen Vorschlag</div>
+        <div class="today-items" id="todayItems"></div>
+        <div class="today-actions">
+            <button class="today-btn" onclick="genOOTD()">Neuer Vorschlag</button>
+            <button class="today-btn" onclick="wearOOTD()">Trage ich</button>
         </div>
     </div>
 
-    <!-- =============== FOTO-SCAN =============== -->
-    <div class="tab-content" id="tab-photo">
-        <div class="section-box animate-in">
-            <div class="section-title">📸 Kleidung per Foto erkennen</div>
-            <p style="color:#666;margin-bottom:20px;">Fotografiere deine Kleidung oder wähle Bilder aus der Galerie. Die KI erkennt automatisch was auf dem Bild ist und fügt es deinem Kleiderschrank hinzu.</p>
+    <div class="quick-stats" id="qStats"></div>
 
-            <div class="photo-upload-area" id="photoDropZone"
-                 onclick="document.getElementById('photoGalleryInput').click()"
-                 ondragover="event.preventDefault();this.classList.add('dragover')"
-                 ondragleave="this.classList.remove('dragover')"
-                 ondrop="handleDrop(event)">
-                <div class="upload-icon">📸</div>
-                <h3>Fotos hierher ziehen oder klicken</h3>
-                <p>JPG, PNG, WEBP · Mehrere Bilder möglich</p>
-            </div>
+    <div class="section" id="homeAlerts"></div>
+</div>
 
-            <div class="photo-actions">
-                <button class="btn btn-camera" onclick="openCamera()">📷 Kamera öffnen</button>
-                <button class="btn btn-gallery" onclick="document.getElementById('photoGalleryInput').click()">🖼️ Aus Galerie wählen</button>
-                <button class="btn btn-ai" onclick="analyzeAllPhotos()" id="analyzeBtn" disabled>🤖 Alle Fotos analysieren</button>
-            </div>
+<!-- ===== CLOSET ===== -->
+<div class="page" id="p-closet">
+    <div class="search-section">
+        <div class="search-wrap">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+            <input type="text" class="search-input" id="searchInput" placeholder="Suchen" oninput="renderCloset()">
+        </div>
+    </div>
 
-            <input type="file" id="photoGalleryInput" accept="image/*" multiple style="display:none" onchange="handleGallerySelect(event)">
-            <input type="file" id="photoCameraInput" accept="image/*" capture="environment" style="display:none" onchange="handleCameraCapture(event)">
+    <div class="filter-scroll" id="filterChips"></div>
+    <div class="items-grid" id="closetGrid"></div>
 
-            <!-- Video für Kamera -->
-            <div id="cameraContainer" style="display:none; margin-top:20px;">
-                <div style="background:#000;border-radius:15px;overflow:hidden;position:relative;">
-                    <video id="cameraVideo" autoplay playsinline style="width:100%;max-height:400px;display:block;"></video>
-                    <div style="position:absolute;bottom:15px;left:0;right:0;text-align:center;">
-                        <button class="btn" style="background:white;color:#333;margin:0 5px;" onclick="capturePhoto()">📸 Auslösen</button>
-                        <button class="btn btn-delete" style="margin:0 5px;" onclick="closeCamera()">✕ Schließen</button>
+    <div class="section" style="padding-top:16px;">
+        <button class="btn btn-primary btn-full" onclick="openM('addModal')">Kleidung hinzufügen</button>
+    </div>
+</div>
+
+<!-- ===== OUTFIT ===== -->
+<div class="page" id="p-outfit">
+    <div class="section">
+        <div class="form-group">
+            <input class="form-input" id="outfitName" placeholder="Outfit benennen">
+        </div>
+
+        <div class="builder-stack" id="builderStack">
+            <div class="builder-slot h-sm" data-s="muetze" onclick="pickSlot('muetze')"><span class="slot-label">Kopf</span></div>
+            <div class="builder-slot h-lg" data-s="oberteil" onclick="pickSlot('oberteil')"><span class="slot-label">Oberteil</span></div>
+            <div class="builder-slot h-md" data-s="jacke" onclick="pickSlot('jacke')"><span class="slot-label">Jacke</span></div>
+            <div class="builder-slot h-lg" data-s="unterteil" onclick="pickSlot('unterteil')"><span class="slot-label">Unterteil</span></div>
+            <div class="builder-slot h-sm" data-s="schuhe" onclick="pickSlot('schuhe')"><span class="slot-label">Schuhe</span></div>
+            <div class="builder-slot h-sm" data-s="accessoire" onclick="pickSlot('accessoire')"><span class="slot-label">Accessoire</span></div>
+        </div>
+
+        <div class="btn-row" style="margin-top:16px;">
+            <button class="btn btn-primary btn-full" onclick="saveOutfit()">Speichern</button>
+        </div>
+        <div class="btn-row" style="margin-top:8px;">
+            <button class="btn btn-secondary" style="flex:1" onclick="randOutfit()">Zufällig</button>
+            <button class="btn btn-secondary" style="flex:1" onclick="aiSmartOutfit()">AI Vorschlag</button>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="ai-panel">
+            <div class="ai-panel-header"><span class="ai-dot"></span> AI Feedback</div>
+            <div class="ai-panel-body">
+                <button class="btn btn-outline btn-full btn-sm" onclick="aiRate()">Outfit bewerten lassen</button>
+                <div id="aiRateRes"></div>
+                <div style="margin-top:12px;">
+                    <div class="ai-input-row">
+                        <input class="ai-input" id="occasionIn" placeholder="Anlass eingeben">
+                        <button class="btn btn-primary btn-sm" onclick="aiOccasion()">Fragen</button>
                     </div>
-                </div>
-                <canvas id="cameraCanvas" style="display:none;"></canvas>
-            </div>
-
-            <div class="preview-grid" id="photoPreviewGrid"></div>
-
-            <div id="recognizedItemsContainer" style="display:none;">
-                <div class="recognized-items">
-                    <div class="section-title">✅ Erkannte Kleidungsstücke</div>
-                    <p style="color:#666;font-size:0.9em;margin-bottom:15px;">Prüfe die Ergebnisse und füge hinzu was stimmt.</p>
-                    <div id="recognizedItemsList"></div>
-                    <div style="margin-top:15px;display:flex;gap:10px;">
-                        <button class="btn btn-add" onclick="addAllRecognized()">✅ Alle hinzufügen</button>
-                        <button class="btn btn-cancel" onclick="clearRecognized()">🗑️ Alle verwerfen</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- =============== OUTFIT ERSTELLEN =============== -->
-    <div class="tab-content" id="tab-planner">
-        <div class="planner-layout animate-in">
-            <div class="section-box">
-                <div class="section-title">👔 Outfit zusammenstellen</div>
-                <input type="text" class="outfit-name-input" id="outfitName" placeholder="Outfit-Name...">
-                <div class="outfit-slots">
-                    <div class="outfit-slot" onclick="openSlotPicker('oberteil')"><span class="slot-label">👕 Oberteil</span><div class="slot-content" id="slot-oberteil"><span style="color:#ccc">Auswählen...</span></div></div>
-                    <div class="outfit-slot" onclick="openSlotPicker('unterteil')"><span class="slot-label">👖 Unterteil</span><div class="slot-content" id="slot-unterteil"><span style="color:#ccc">Auswählen...</span></div></div>
-                    <div class="outfit-slot" onclick="openSlotPicker('kleid')"><span class="slot-label">👗 Kleid</span><div class="slot-content" id="slot-kleid"><span style="color:#ccc">Auswählen...</span></div></div>
-                    <div class="outfit-slot" onclick="openSlotPicker('jacke')"><span class="slot-label">🧥 Jacke</span><div class="slot-content" id="slot-jacke"><span style="color:#ccc">Auswählen...</span></div></div>
-                    <div class="outfit-slot" onclick="openSlotPicker('schuhe')"><span class="slot-label">👟 Schuhe</span><div class="slot-content" id="slot-schuhe"><span style="color:#ccc">Auswählen...</span></div></div>
-                    <div class="outfit-slot" onclick="openSlotPicker('accessoire')"><span class="slot-label">🎒 Accessoire</span><div class="slot-content" id="slot-accessoire"><span style="color:#ccc">Auswählen...</span></div></div>
-                </div>
-
-                <button class="btn btn-save-outfit" onclick="saveOutfit()">💾 Outfit speichern</button>
-                <button class="btn btn-suggest" onclick="suggestRandomOutfit()">🎲 Zufälliges Outfit</button>
-
-                <div class="ai-box">
-                    <div class="section-title">🤖 KI: Outfit bewerten</div>
-                    <button class="btn btn-ai" onclick="aiRateOutfit()" style="width:100%;">🤖 Ehrliches Feedback von der KI</button>
-                    <div id="aiRateResponse"></div>
-                </div>
-
-                <div class="ai-box">
-                    <div class="section-title">🤖 KI: Outfit für Anlass</div>
-                    <div class="ai-chat-input">
-                        <input type="text" id="aiOccasionInput" placeholder='"Vorstellungsgespräch", "Date", "Hochzeit"'>
-                        <button class="btn btn-ai" onclick="aiSuggestForOccasion()">🤖 Vorschlagen</button>
-                    </div>
-                    <div id="aiOccasionResponse"></div>
-                </div>
-            </div>
-
-            <div class="section-box">
-                <div class="section-title">🗄️ Verfügbare Kleidung</div>
-                <div class="filter-bar">
-                    <select id="plannerFilter" onchange="renderPlannerItems()">
-                        <option value="alle">Alle</option>
-                        <option value="oberteil">👕 Oberteile</option>
-                        <option value="unterteil">👖 Unterteile</option>
-                        <option value="kleid">👗 Kleider</option>
-                        <option value="jacke">🧥 Jacken</option>
-                        <option value="schuhe">👟 Schuhe</option>
-                        <option value="accessoire">🎒 Accessoires</option>
-                    </select>
-                </div>
-                <div class="clothes-grid" id="plannerGrid"></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- =============== KALENDER =============== -->
-    <div class="tab-content" id="tab-calendar">
-        <div class="section-box animate-in">
-            <div class="section-title">📅 Outfit Kalender</div>
-            <div class="ai-box" style="margin-bottom:20px;">
-                <div class="section-title">🤖 KI: Wochenplan</div>
-                <div class="weather-input-row">
-                    <div class="form-group"><label>Wetter</label><input type="text" id="aiWeatherInput" placeholder='"Mo Regen, Di sonnig 25°C..."'></div>
-                    <div class="form-group"><label>Anlässe</label><input type="text" id="aiWeekEventsInput" placeholder='"Mi Meeting, Fr Party"'></div>
-                    <button class="btn btn-ai" onclick="aiWeekPlan()">🤖 Planen</button>
-                </div>
-                <div id="aiWeekPlanResponse"></div>
-            </div>
-            <div class="calendar-header">
-                <button class="calendar-nav" onclick="changeMonth(-1)">◀</button>
-                <h2 id="calendarTitle"></h2>
-                <button class="calendar-nav" onclick="changeMonth(1)">▶</button>
-            </div>
-            <div class="calendar-grid" id="calendarGrid"></div>
-        </div>
-    </div>
-
-    <!-- =============== OUTFITS =============== -->
-    <div class="tab-content" id="tab-outfits">
-        <div class="section-box animate-in">
-            <div class="section-title">💾 Gespeicherte Outfits</div>
-            <div class="saved-outfits-grid" id="savedOutfitsGrid"></div>
-        </div>
-    </div>
-
-    <!-- =============== KI-BERATER =============== -->
-    <div class="tab-content" id="tab-ai">
-        <div class="section-box animate-in">
-            <div class="section-title">🤖 KI Fashion-Berater – Ehrlich & Direkt</div>
-            <p style="color:#666;margin-bottom:5px;">Die KI kennt deinen Kleiderschrank und gibt dir <strong>ehrliches, ungeschöntes</strong> Feedback. Wenn etwas nicht passt, sagt sie es dir direkt.</p>
-            <p style="color:#999;margin-bottom:20px;font-size:0.85em;">💡 Die KI lobt was gut ist, kritisiert aber auch offen was nicht funktioniert.</p>
-
-            <div class="ai-chat-input">
-                <input type="text" id="aiFreeInput" placeholder="Frage stellen..." onkeypress="if(event.key==='Enter')aiFreeChat()">
-                <button class="btn btn-ai" onclick="aiFreeChat()">🤖 Fragen</button>
-            </div>
-
-            <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:15px;">
-                <button class="btn btn-ai" style="font-size:0.85em;" onclick="aiQuick('Welche Farben in meinem Kleiderschrank passen zusammen und welche beißen sich? Sei ehrlich.')">🎨 Farbcheck</button>
-                <button class="btn btn-ai" style="font-size:0.85em;" onclick="aiQuick('Was fehlt in meinem Kleiderschrank? Was sollte ich dringend kaufen und was ist überflüssig? Sei kritisch und ehrlich.')">🛍️ Kaufberatung</button>
-                <button class="btn btn-ai" style="font-size:0.85em;" onclick="aiQuick('Erstelle 3 Outfit-Ideen und bewerte sie ehrlich. Sag auch wenn eine Kombi nicht ideal ist.')">💡 3 Outfit-Ideen</button>
-                <button class="btn btn-ai" style="font-size:0.85em;" onclick="aiQuick('Analysiere meinen Stil knallhart ehrlich. Was ist gut, was ist schlecht, was muss sich ändern?')">✨ Stil-Roast</button>
-                <button class="btn btn-ai" style="font-size:0.85em;" onclick="aiQuick('Welche meiner Kleidungsstücke sind Fehlkäufe und warum? Sei brutal ehrlich.')">🗑️ Fehlkauf-Check</button>
-                <button class="btn btn-ai" style="font-size:0.85em;" onclick="aiQuick('Bewerte jedes einzelne Kleidungsstück in meinem Schrank von 1-10. Sei streng aber fair.')">📝 Einzelbewertung</button>
-            </div>
-
-            <div id="aiFreeResponse"></div>
-        </div>
-    </div>
-
-    <!-- =============== STATISTIKEN =============== -->
-    <div class="tab-content" id="tab-stats">
-        <div class="section-box animate-in">
-            <div class="section-title">📊 Statistiken</div>
-            <div class="stats-grid" id="statsGrid"></div>
-            <div class="ai-box" style="margin-top:20px;">
-                <div class="section-title">🤖 KI: Garderobe-Analyse</div>
-                <button class="btn btn-ai" onclick="aiWardrobeAnalysis()" style="width:100%;">🤖 Ehrliche Komplett-Analyse</button>
-                <div id="aiAnalysisResponse"></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- =============== EINSTELLUNGEN =============== -->
-    <div class="tab-content" id="tab-settings">
-        <div class="section-box animate-in">
-            <div class="section-title">⚙️ Einstellungen</div>
-            <div class="settings-grid">
-                <div class="setting-item">
-                    <h3>🔑 Gemini API Key</h3>
-                    <p>Hol dir einen kostenlosen Key: <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:#764ba2;">aistudio.google.com</a></p>
-                    <div class="api-key-input">
-                        <input type="password" id="apiKeyInput" placeholder="AIza...">
-                        <button class="btn btn-add" onclick="saveApiKey()">💾</button>
-                        <button class="btn" style="background:#eee;" onclick="toggleKeyVis()">👁️</button>
-                    </div>
-                    <div id="apiKeyStatus" style="margin-top:10px;font-size:0.9em;"></div>
-                </div>
-                <div class="setting-item">
-                    <h3>🤖 KI-Modell</h3>
-                    <p>Für Bilderkennung wird ein Vision-fähiges Modell benötigt.</p>
-                    <select id="aiModelSelect" onchange="saveAiModel()" style="padding:10px 15px;border:2px solid #e0e0e0;border-radius:10px;width:100%;font-size:1em;">
-                        <option value="gemini-2.0-flash">Gemini 2.0 Flash (Empfohlen)</option>
-                        <option value="gemini-2.5-flash-preview-05-20">Gemini 2.5 Flash Preview</option>
-                        <option value="gemini-2.5-pro-preview-05-06">Gemini 2.5 Pro (Beste Qualität)</option>
-                        <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
-                    </select>
-                </div>
-                <div class="setting-item">
-                    <h3>🌡️ KI Kreativität</h3>
-                    <input type="range" id="aiTempSlider" min="0" max="1" step="0.1" value="0.7" onchange="saveAiTemp()" style="width:100%;">
-                    <span id="aiTempValue" style="color:#764ba2;font-weight:600;">0.7</span>
-                </div>
-                <div class="setting-item">
-                    <h3>🧪 API Test</h3>
-                    <button class="btn btn-ai" onclick="testApi()">🤖 Verbindung testen</button>
-                    <div id="apiTestResult" style="margin-top:10px;"></div>
-                </div>
-                <div class="setting-item">
-                    <h3>🗑️ Daten</h3>
-                    <div style="display:flex;gap:10px;flex-wrap:wrap;">
-                        <button class="btn btn-add" onclick="exportData()">📤 Export</button>
-                        <button class="btn btn-delete" onclick="importData()">📥 Import</button>
-                        <button class="btn btn-delete" onclick="clearAll()">🗑️ Alles löschen</button>
-                    </div>
-                    <input type="file" id="importFile" accept=".json" style="display:none" onchange="handleImport(event)">
+                    <div id="aiOccRes"></div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Modals -->
-<div class="modal-overlay" id="slotPickerModal">
-    <div class="modal">
-        <h2 id="modalTitle">Kleidungsstück wählen</h2>
-        <div class="clothes-grid" id="modalGrid"></div>
-        <div class="modal-actions"><button class="btn btn-cancel" onclick="closeModal('slotPickerModal')">Abbrechen</button></div>
+<!-- ===== CALENDAR ===== -->
+<div class="page" id="p-cal">
+    <div class="section" style="padding-bottom:0;">
+        <div class="ai-panel" style="margin-bottom:16px;">
+            <div class="ai-panel-header"><span class="ai-dot"></span> Wochenplan erstellen</div>
+            <div class="ai-panel-body">
+                <div class="form-row">
+                    <div class="form-group"><label class="form-label">Wetter</label><input class="form-input" id="weekW" placeholder="Mo 15° Regen..."></div>
+                    <div class="form-group"><label class="form-label">Anlässe</label><input class="form-input" id="weekE" placeholder="Mi Meeting"></div>
+                </div>
+                <button class="btn btn-primary btn-full btn-sm" onclick="aiWeek()">Woche planen</button>
+                <div id="aiWeekRes"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="cal-nav">
+        <button class="cal-arrow" onclick="calNav(-1)">‹</button>
+        <h2 id="calTitle"></h2>
+        <button class="cal-arrow" onclick="calNav(1)">›</button>
+    </div>
+    <div class="cal-grid" id="calGrid"></div>
+</div>
+
+<!-- ===== AI ===== -->
+<div class="page" id="p-ai">
+    <div class="section">
+        <div class="section-title">AI Berater</div>
+        <div class="section-subtitle">Ehrlich, direkt und ungeschönt.</div>
+
+        <div class="ai-panel" style="margin-top:16px;">
+            <div class="ai-panel-body">
+                <div class="ai-input-row">
+                    <input class="ai-input" id="aiQ" placeholder="Frage stellen..." onkeypress="if(event.key==='Enter')aiChat()">
+                    <button class="btn btn-primary btn-sm" onclick="aiChat()">Senden</button>
+                </div>
+
+                <div class="ai-chips">
+                    <button class="ai-chip" onclick="aiAsk('Farbcheck: Was passt, was beißt sich?')">Farben</button>
+                    <button class="ai-chip" onclick="aiAsk('Was fehlt? Was ist überflüssig?')">Kaufberatung</button>
+                    <button class="ai-chip" onclick="aiAsk('3 Outfit-Ideen, ehrlich bewertet')">Ideen</button>
+                    <button class="ai-chip" onclick="aiAsk('Stil-Analyse: Wer bin ich modisch?')">Stil</button>
+                    <button class="ai-chip" onclick="aiAsk('Fehlkäufe identifizieren')">Fehlkäufe</button>
+                    <button class="ai-chip" onclick="aiAsk('Cost-per-Wear: Was lohnt sich?')">CPW</button>
+                    <button class="ai-chip" onclick="aiAsk('Capsule Wardrobe Vorschlag')">Capsule</button>
+                    <button class="ai-chip" onclick="aiAsk('Nachhaltigkeits-Analyse')">Nachhaltigkeit</button>
+                    <button class="ai-chip" onclick="aiAsk('Aktuelle Trends für mich')">Trends</button>
+                    <button class="ai-chip" onclick="aiAsk('Pflege-Tipps für meine Kleidung')">Pflege</button>
+                </div>
+
+                <div id="aiChatRes"></div>
+            </div>
+        </div>
     </div>
 </div>
 
-<div class="modal-overlay" id="dayOutfitModal">
-    <div class="modal">
-        <h2 id="dayModalTitle">Outfit</h2>
-        <div id="dayModalContent"></div>
-        <div class="modal-actions">
-            <button class="btn btn-delete" id="removeDayBtn" onclick="removeDayOutfit()" style="display:none;">🗑️</button>
-            <button class="btn btn-cancel" onclick="closeModal('dayOutfitModal')">Schließen</button>
+<!-- ===== MODALS ===== -->
+<div class="modal-bg" id="addModal">
+    <div class="modal-sheet">
+        <div class="modal-handle"></div>
+        <div class="modal-header">
+            <span class="modal-title">Hinzufügen</span>
+            <button class="modal-close" onclick="closeM('addModal')">✕</button>
+        </div>
+        <div class="modal-body">
+            <div class="upload-area" id="dropZone" onclick="document.getElementById('fileIn').click()" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="handleDrop(event)">
+                <div class="upload-icon"><svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg></div>
+                <div class="upload-title">Foto aufnehmen oder hochladen</div>
+                <div class="upload-desc">AI erkennt Kleidung automatisch</div>
+            </div>
+            <div class="btn-row" style="margin-bottom:16px;">
+                <button class="btn btn-secondary" style="flex:1" onclick="openCam()">Kamera</button>
+                <button class="btn btn-secondary" style="flex:1" onclick="document.getElementById('fileIn').click()">Galerie</button>
+                <button class="btn btn-primary" style="flex:1" onclick="scanPhotos()" id="scanBtn" disabled>AI Scan</button>
+            </div>
+            <input type="file" id="fileIn" accept="image/*" multiple style="display:none" onchange="onFiles(event)">
+            <input type="file" id="camIn" accept="image/*" capture="environment" style="display:none" onchange="onCamFile(event)">
+            <div id="camBox" style="display:none;margin-bottom:16px;">
+                <div style="background:#000;border-radius:12px;overflow:hidden;position:relative;">
+                    <video id="camVid" autoplay playsinline style="width:100%;max-height:280px;display:block;"></video>
+                    <div style="position:absolute;bottom:10px;left:0;right:0;text-align:center;">
+                        <button class="btn btn-primary btn-sm" onclick="snap()">Auslösen</button>
+                        <button class="btn btn-secondary btn-sm" onclick="closeCam()">Schließen</button>
+                    </div>
+                </div>
+                <canvas id="camCan" style="display:none;"></canvas>
+            </div>
+            <div class="thumb-row" id="thumbRow"></div>
+            <div id="recBox"></div>
+
+            <div style="border-top:1px solid var(--border);padding-top:20px;margin-top:16px;">
+                <div style="font-size:13px;font-weight:600;margin-bottom:12px;">Manuell hinzufügen</div>
+                <div class="form-row">
+                    <div class="form-group"><label class="form-label">Name</label><input class="form-input" id="mName" placeholder="Weißes T-Shirt"></div>
+                    <div class="form-group"><label class="form-label">Kategorie</label><select class="form-select" id="mCat"><option value="tshirt">T-Shirt</option><option value="hemd">Hemd/Bluse</option><option value="pullover">Pullover</option><option value="hoodie">Hoodie</option><option value="hose">Hose</option><option value="jeans">Jeans</option><option value="shorts">Shorts</option><option value="rock">Rock</option><option value="kleid">Kleid</option><option value="jacke">Jacke</option><option value="mantel">Mantel</option><option value="sneaker">Sneaker</option><option value="stiefel">Stiefel</option><option value="sandalen">Sandalen</option><option value="tasche">Tasche</option><option value="schmuck">Schmuck</option><option value="muetze">Mütze</option><option value="schal">Schal</option><option value="sonnenbrille">Sonnenbrille</option><option value="sonstiges">Sonstiges</option></select></div>
+                </div>
+                <div class="form-row c3">
+                    <div class="form-group"><label class="form-label">Farbe</label><input type="color" class="form-input" id="mColor" value="#1A1A1A" style="height:44px;padding:4px;cursor:pointer;"></div>
+                    <div class="form-group"><label class="form-label">Saison</label><select class="form-select" id="mSeason"><option value="alle">Alle</option><option value="fruehling">Frühling</option><option value="sommer">Sommer</option><option value="herbst">Herbst</option><option value="winter">Winter</option></select></div>
+                    <div class="form-group"><label class="form-label">Preis</label><input type="number" class="form-input" id="mPrice" placeholder="€" step="0.01"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label class="form-label">Marke</label><input class="form-input" id="mBrand" placeholder="Optional"></div>
+                    <div class="form-group"><label class="form-label">Material</label><input class="form-input" id="mMat" placeholder="Optional"></div>
+                </div>
+                <button class="btn btn-primary btn-full" onclick="addManual()">Hinzufügen</button>
+            </div>
+
+            <div style="border-top:1px solid var(--border);padding-top:20px;margin-top:20px;">
+                <div class="ai-panel">
+                    <div class="ai-panel-header"><span class="ai-dot"></span> Per Text beschreiben</div>
+                    <div class="ai-panel-body">
+                        <div class="ai-input-row">
+                            <input class="ai-input" id="aiTextIn" placeholder="Rotes Kleid, weiße Sneaker...">
+                            <button class="btn btn-primary btn-sm" onclick="aiTextAdd()">Erkennen</button>
+                        </div>
+                        <div id="aiTextRes"></div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
+</div>
+
+<div class="modal-bg" id="slotModal">
+    <div class="modal-sheet">
+        <div class="modal-handle"></div>
+        <div class="modal-header"><span class="modal-title" id="slotTitle">Wählen</span><button class="modal-close" onclick="closeM('slotModal')">✕</button></div>
+        <div class="modal-body"><div class="items-grid" id="slotGrid"></div></div>
+    </div>
+</div>
+
+<div class="modal-bg" id="detailModal">
+    <div class="modal-sheet">
+        <div class="modal-handle"></div>
+        <div class="modal-header"><span class="modal-title">Details</span><button class="modal-close" onclick="closeM('detailModal')">✕</button></div>
+        <div class="modal-body" id="detailBody"></div>
+    </div>
+</div>
+
+<div class="modal-bg" id="dayModal">
+    <div class="modal-sheet">
+        <div class="modal-handle"></div>
+        <div class="modal-header"><span class="modal-title" id="dayTitle">Tag</span><button class="modal-close" onclick="closeM('dayModal')">✕</button></div>
+        <div class="modal-body" id="dayBody"></div>
+    </div>
+</div>
+
+<div class="modal-bg" id="settingsModal">
+    <div class="modal-sheet">
+        <div class="modal-handle"></div>
+        <div class="modal-header"><span class="modal-title">Einstellungen</span><button class="modal-close" onclick="closeM('settingsModal')">✕</button></div>
+        <div class="modal-body" style="padding:20px 0;">
+            <div class="setting-group">
+                <div class="setting-group-title">AI Konfiguration</div>
+                <div class="setting-card">
+                    <div class="setting-row"><span class="setting-label">API Key</span><input type="password" id="keyIn" placeholder="AIza..." style="width:140px;padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-size:12px;font-family:monospace;background:var(--surface);color:var(--text);text-align:right;"></div>
+                    <div class="setting-row"><span class="setting-label">Modell</span><select id="modelSel" style="padding:6px;border:1px solid var(--border);border-radius:6px;font-size:12px;background:var(--surface);color:var(--text);" onchange="localStorage.setItem('ai_m',this.value)"><option value="gemini-2.0-flash">Flash 2.0</option><option value="gemini-2.5-flash-preview-05-20">Flash 2.5</option><option value="gemini-2.5-pro-preview-05-06">Pro 2.5</option></select></div>
+                    <div class="setting-row"><span class="setting-label">Kreativität</span><div style="display:flex;align-items:center;gap:8px;"><input type="range" id="tempSl" min="0" max="1" step="0.1" value="0.7" onchange="localStorage.setItem('ai_t',this.value);document.getElementById('tempV').textContent=this.value" style="width:80px;"><span id="tempV" style="font-size:12px;color:var(--text3);width:24px;">0.7</span></div></div>
+                </div>
+            </div>
+            <div class="setting-group">
+                <div class="setting-group-title">Wetter</div>
+                <div class="setting-card">
+                    <div class="setting-row"><span class="setting-label">Standort</span><input id="cityIn" placeholder="Berlin" style="width:120px;padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-size:12px;background:var(--surface);color:var(--text);text-align:right;"></div>
+                </div>
+            </div>
+            <div class="setting-group">
+                <div class="setting-group-title">Daten</div>
+                <div class="setting-card">
+                    <div class="setting-row" style="cursor:pointer;" onclick="xport()"><span class="setting-label">Exportieren</span><span class="setting-value">›</span></div>
+                    <div class="setting-row" style="cursor:pointer;" onclick="document.getElementById('impIn').click()"><span class="setting-label">Importieren</span><span class="setting-value">›</span></div>
+                    <div class="setting-row" style="cursor:pointer;" onclick="nuke()"><span class="setting-label" style="color:var(--red);">Alles löschen</span><span class="setting-value">›</span></div>
+                </div>
+                <input type="file" id="impIn" accept=".json" style="display:none" onchange="imp(event)">
+            </div>
+            <div style="padding:0 20px;">
+                <button class="btn btn-primary btn-full" onclick="saveSettings()">Speichern</button>
+                <button class="btn btn-outline btn-full" style="margin-top:8px;" onclick="testAPI()">Verbindung testen</button>
+                <div id="testRes" style="margin-top:8px;font-size:12px;text-align:center;color:var(--text3);"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- TAB BAR -->
+<div class="tab-bar">
+    <button class="tab-item active" onclick="go('home',this)">
+        <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Home
+    </button>
+    <button class="tab-item" onclick="go('closet',this)">
+        <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="18" rx="2"/><line x1="12" y1="3" x2="12" y2="21"/><path d="M9 10h-1"/><path d="M16 10h-1"/></svg>
+        Schrank
+    </button>
+    <button class="tab-item" onclick="go('outfit',this)">
+        <svg viewBox="0 0 24 24"><path d="M20.38 3.46L16 2 12 5.5 8 2 3.62 3.46a2 2 0 00-1.34 2.23l.58 3.47a1 1 0 00.99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 002-2V10h2.15a1 1 0 00.99-.84l.58-3.47a2 2 0 00-1.34-2.23z"/></svg>
+        Outfit
+    </button>
+    <button class="tab-item" onclick="go('cal',this)">
+        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Kalender
+    </button>
+    <button class="tab-item" onclick="go('ai',this)">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+        AI
+    </button>
 </div>
 
 <script>
-// ========================================================
-// DATA
-// ========================================================
-let wardrobe = JSON.parse(localStorage.getItem('wardrobe')) || [];
-let outfits = JSON.parse(localStorage.getItem('outfits')) || [];
-let calendarOutfits = JSON.parse(localStorage.getItem('calendarOutfits')) || {};
-let currentOutfit = {};
-let currentMonth = new Date().getMonth();
-let currentYear = new Date().getFullYear();
-let currentSlot = '';
-let photoQueue = []; // {file, dataUrl, status}
-let recognizedItems = []; // erkannte Kleidungsstücke
-let cameraStream = null;
+let W=[],O=[],CAL={},curO={},cM=new Date().getMonth(),cY=new Date().getFullYear(),cSl='',photos=[],rec=[],cam=null,wD=null,activeFilters={cat:'',season:'',sort:'name'};
 
-const CI = {oberteil:'👕',unterteil:'👖',kleid:'👗',jacke:'🧥',schuhe:'👟',accessoire:'🎒'};
-const CN = {oberteil:'Oberteil',unterteil:'Unterteil',kleid:'Kleid',jacke:'Jacke',schuhe:'Schuhe',accessoire:'Accessoire'};
-const SN = {alle:'🌍 Alle',fruehling:'🌸 Frühling',sommer:'☀️ Sommer',herbst:'🍂 Herbst',winter:'❄️ Winter'};
+const CT={tshirt:{i:'👕',g:'oberteil',n:'T-Shirt'},hemd:{i:'👔',g:'oberteil',n:'Hemd'},pullover:{i:'🧶',g:'oberteil',n:'Pullover'},hoodie:{i:'🪝',g:'oberteil',n:'Hoodie'},hose:{i:'👖',g:'unterteil',n:'Hose'},jeans:{i:'👖',g:'unterteil',n:'Jeans'},shorts:{i:'🩳',g:'unterteil',n:'Shorts'},rock:{i:'🩱',g:'unterteil',n:'Rock'},kleid:{i:'👗',g:'kleid',n:'Kleid'},jacke:{i:'🧥',g:'jacke',n:'Jacke'},mantel:{i:'🧥',g:'jacke',n:'Mantel'},sneaker:{i:'👟',g:'schuhe',n:'Sneaker'},stiefel:{i:'👢',g:'schuhe',n:'Stiefel'},sandalen:{i:'🩴',g:'schuhe',n:'Sandalen'},tasche:{i:'👜',g:'accessoire',n:'Tasche'},schmuck:{i:'💍',g:'accessoire',n:'Schmuck'},muetze:{i:'🧢',g:'muetze',n:'Mütze'},schal:{i:'🧣',g:'accessoire',n:'Schal'},sonnenbrille:{i:'🕶️',g:'accessoire',n:'Brille'},sonstiges:{i:'•',g:'accessoire',n:'Sonstiges'}};
+const GN={oberteil:'Oberteil',unterteil:'Unterteil',kleid:'Kleid',jacke:'Jacke',schuhe:'Schuhe',accessoire:'Accessoire',muetze:'Kopf'};
+const SN={alle:'Alle',fruehling:'Frühling',sommer:'Sommer',herbst:'Herbst',winter:'Winter'};
+const SYS=`Du bist ein erfahrener Fashion-Berater. BRUTAL EHRLICH. Wenn hässlich=sag es direkt. Wenn toll=zeig echte Begeisterung. Kein leeres Lob, kein Beschönigen. Nach Kritik: konkrete Tipps. Bewertungen 1-10, streng. Deutsch, wenig Emojis, professionell.`;
 
-// ========================================================
-// SYSTEM PROMPT - Ehrliche KI Persönlichkeit
-// ========================================================
-const SYSTEM_PROMPT = `Du bist ein erfahrener Fashion-Berater mit 20 Jahren Erfahrung. Deine Kernprinzipien:
+function sv(){const ws=W.map(i=>{const c={...i};if(c.img&&c.img.length>50000){try{localStorage.setItem('i_'+c.id,c.img)}catch(e){}c.img='r:i_'+c.id;}return c;});try{localStorage.setItem('W',JSON.stringify(ws));localStorage.setItem('O',JSON.stringify(O));localStorage.setItem('C',JSON.stringify(CAL));}catch(e){localStorage.setItem('W',JSON.stringify(W.map(i=>({...i,img:null}))));localStorage.setItem('O',JSON.stringify(O));localStorage.setItem('C',JSON.stringify(CAL));}}
+function ld(){W=JSON.parse(localStorage.getItem('W')||'[]').map(i=>{if(i.img?.startsWith('r:'))i.img=localStorage.getItem(i.img.substring(2))||null;return i;});O=JSON.parse(localStorage.getItem('O')||'[]');CAL=JSON.parse(localStorage.getItem('C')||'{}');}
 
-🔥 EHRLICHKEIT: Du bist IMMER brutal ehrlich. Wenn ein Outfit schlecht aussieht, sagst du das klar und direkt. Kein Rumgeeiere, kein "ist ganz nett". Wenn etwas hässlich ist, sag es.
+function gk(){return localStorage.getItem('gk')||'';}
+function gm(){return localStorage.getItem('ai_m')||'gemini-2.0-flash';}
+function gt(){return parseFloat(localStorage.getItem('ai_t')||'0.7');}
 
-👏 LOBE was gut ist: Wenn etwas wirklich gut kombiniert ist, zeige echte Begeisterung. Aber nur wenn es verdient ist – leeres Lob gibt es nicht.
+function wTxt(){if(!W.length)return'Leer.';return W.map(i=>{const c=CT[i.category]||{n:i.category};const cpw=i.price&&i.worn?`${(i.price/i.worn).toFixed(2)}€/W`:'';return`- ${i.name} (${c.n}, ${i.color}, ${SN[i.season]||''}, ${i.worn||0}x${i.brand?', '+i.brand:''}${cpw?', '+cpw:''}${i.laundry?' [WÄSCHE]':''})`}).join('\n');}
+function oTxt(){const p=[];for(const[s,id] of Object.entries(curO)){const i=W.find(x=>x.id===id);if(i)p.push(`${i.name} (${i.color})`)}return p.length?p.join(', '):'Kein Outfit.';}
 
-❌ KRITISIERE was schlecht ist: Wenn Farben sich beißen, der Stil inkonsistent ist, oder etwas altbacken wirkt – sag es offen. Der Benutzer will die Wahrheit, nicht Schmeicheleien.
+async function gem(pr,el,imgs){
+    if(!gk()){sR(el,'API Key fehlt. Gehe zu Einstellungen.',1);return null;}
+    sR(el,'<div class="ai-loading">Analysiert <span class="ai-loading-dots"><span>.</span><span>.</span><span>.</span></span></div>');
+    const url=`https://generativelanguage.googleapis.com/v1beta/models/${gm()}:generateContent?key=${gk()}`;
+    const parts=[{text:pr}];if(imgs)imgs.forEach(im=>parts.push({inline_data:{mime_type:im.m,data:im.b}}));
+    try{const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({system_instruction:{parts:[{text:SYS}]},contents:[{parts}],generationConfig:{temperature:imgs?0.3:gt(),maxOutputTokens:4096}})});if(!r.ok){const e=await r.json();throw new Error(e.error?.message||r.status);}const d=await r.json();const t=d.candidates?.[0]?.content?.parts?.[0]?.text||'Keine Antwort.';sR(el,fm(t));return t;}catch(e){sR(el,e.message,1);return null;}}
+function sR(id,h,e){const el=document.getElementById(id);if(!el)return;el.innerHTML=`<div class="ai-response" style="${e?'color:var(--red);':''}">${h}</div>`;}
+function fm(t){return t.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\*(.*?)\*/g,'<em>$1</em>').replace(/^###?\s?(.*$)/gm,'<h3>$1</h3>').replace(/^- (.*$)/gm,'• $1').replace(/\n/g,'<br>');}
 
-💡 SEI KONSTRUKTIV: Nach jeder Kritik gibst du konkrete Verbesserungsvorschläge.
+function go(n,b){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.tab-item').forEach(t=>t.classList.remove('active'));document.getElementById('p-'+n).classList.add('active');if(b)b.classList.add('active');if(n==='home')rHome();if(n==='closet'){rFilters();rCloset();}if(n==='cal')rCal();}
 
-🎯 SEI KONKRET: Keine vagen Aussagen. Nenne konkrete Kleidungsstücke, Farben, Kombinationen.
+function toggleDark(){document.body.classList.toggle('dark');localStorage.setItem('dk',document.body.classList.contains('dark')?'1':'0');}
 
-📊 BEWERTE KLAR: Nutze klare Bewertungen (1-10), Kategorien (top/okay/schlecht), direkte Sprache.
+function openM(id){document.getElementById(id).classList.add('open');}
+function closeM(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.modal-bg').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');}));
 
-Du antwortest auf Deutsch und nutzt Emojis sparsam aber gezielt. Du bist wie ein ehrlicher bester Freund – der dir sagt wenn du scheiße aussiehst, aber auch feiert wenn du gut aussiehst.`;
-
-// ========================================================
-// GEMINI API
-// ========================================================
-function getApiKey() { return localStorage.getItem('gemini_api_key') || ''; }
-function getAiModel() { return localStorage.getItem('ai_model') || 'gemini-2.0-flash'; }
-function getAiTemp() { return parseFloat(localStorage.getItem('ai_temp') || '0.7'); }
-
-function saveApiKey() {
-    const key = document.getElementById('apiKeyInput').value.trim();
-    localStorage.setItem('gemini_api_key', key);
-    updateAiStatus();
-    document.getElementById('apiKeyStatus').innerHTML = key
-        ? '<span style="color:green;">✅ Gespeichert!</span>'
-        : '<span style="color:red;">❌ Entfernt</span>';
+// HOME
+function rHome(){
+    const t=W.length,v=W.reduce((s,i)=>s+(i.price||0),0),w=W.reduce((s,i)=>s+(i.worn||0),0);
+    document.getElementById('qStats').innerHTML=`<div class="qs-item"><div class="qs-val">${t}</div><div class="qs-lbl">Teile</div></div><div class="qs-item"><div class="qs-val">${O.length}</div><div class="qs-lbl">Outfits</div></div><div class="qs-item"><div class="qs-val">${v>0?v.toFixed(0)+'€':'–'}</div><div class="qs-lbl">Wert</div></div><div class="qs-item"><div class="qs-val">${Object.keys(CAL).length}</div><div class="qs-lbl">Geplant</div></div>`;
+    let alerts='';
+    const laun=W.filter(i=>i.laundry).length;
+    if(laun)alerts+=`<div class="card"><div class="card-body" style="font-size:13px;"><strong>${laun} Teil${laun>1?'e':''}</strong> in der Wäsche</div></div>`;
+    const unworn=W.filter(i=>!i.worn);
+    if(unworn.length)alerts+=`<div class="card" style="margin-top:8px;"><div class="card-body" style="font-size:13px;"><strong>${unworn.length} Teil${unworn.length>1?'e':''}</strong> noch nie getragen</div></div>`;
+    document.getElementById('homeAlerts').innerHTML=alerts;
+    fetchW();
 }
 
-function saveAiModel() { localStorage.setItem('ai_model', document.getElementById('aiModelSelect').value); }
+async function fetchW(){
+    const c=localStorage.getItem('wcity');if(!c)return;
+    try{const r=await fetch(`https://wttr.in/${encodeURIComponent(c)}?format=j1`);const d=await r.json();const cur=d.current_condition[0];const t=cur.temp_C,desc=cur.lang_de?.[0]?.value||cur.weatherDesc[0].value;
+    document.getElementById('wTemp').textContent=t+'°';document.getElementById('wDesc').textContent=desc;document.getElementById('wDetail').textContent=`Gefühlt ${cur.FeelsLikeC}°`;
+    let sg=t>=25?'Leichte Kleidung':t>=15?'Layering':t>=5?'Jacke mitnehmen':'Warm anziehen';document.getElementById('wSug').textContent=sg;wD={t,desc};}catch(e){}}
 
-function saveAiTemp() {
-    const v = document.getElementById('aiTempSlider').value;
-    localStorage.setItem('ai_temp', v);
-    document.getElementById('aiTempValue').textContent = v;
+async function genOOTD(){
+    if(!gk())return;const wI=wD?`Wetter: ${wD.t}°C, ${wD.desc}.`:'';
+    document.getElementById('todayTitle').textContent='Wird geladen...';
+    const r=await gem(`Outfit des Tages:\n${wTxt()}\n${wI}\nNur saubere Teile. JSON: {"name":"...","items":["Name1","Name2",...]}\nNUR JSON.`,null);
+    if(!r)return;try{const d=JSON.parse(r.match(/\{[\s\S]*\}/)[0]);document.getElementById('todayTitle').textContent=d.name;document.getElementById('todayItems').innerHTML=(d.items||[]).map(n=>`<span class="today-chip">${n}</span>`).join('');}catch(e){document.getElementById('todayTitle').textContent='Fehler';}}
+function wearOOTD(){alert('Als getragen eingetragen.');}
+
+// CLOSET
+function rFilters(){
+    const groups=[...new Set(W.map(i=>CT[i.category]?.g||'sonstiges'))];
+    document.getElementById('filterChips').innerHTML=
+        `<button class="filter-chip ${!activeFilters.cat?'active':''}" onclick="setFilter('cat','')">Alle</button>`+
+        groups.map(g=>`<button class="filter-chip ${activeFilters.cat===g?'active':''}" onclick="setFilter('cat','${g}')">${GN[g]||g}</button>`).join('');
+}
+function setFilter(k,v){activeFilters[k]=activeFilters[k]===v?'':v;rFilters();rCloset();}
+
+function rCloset(){
+    const g=document.getElementById('closetGrid');let its=[...W];
+    const q=document.getElementById('searchInput').value.toLowerCase();
+    if(q)its=its.filter(i=>i.name.toLowerCase().includes(q)||(i.brand||'').toLowerCase().includes(q));
+    if(activeFilters.cat)its=its.filter(i=>(CT[i.category]?.g||i.category)===activeFilters.cat);
+    its.sort((a,b)=>a.name.localeCompare(b.name));
+
+    if(!its.length){g.innerHTML='<div class="empty" style="grid-column:1/-1;"><div class="empty-icon">📦</div><div class="empty-text">Keine Kleidung gefunden</div></div>';return;}
+
+    g.innerHTML=its.map(i=>{const c=CT[i.category]||{i:'•',g:'sonstiges',n:i.category};const cpw=i.price&&i.worn?(i.price/i.worn).toFixed(2):null;
+    return`<div class="item-card ${i.laundry?'in-laundry':''}" onclick="showDetail('${i.id}')">
+        ${i.laundry?'<span class="laundry-indicator">Wäsche</span>':''}
+        <button class="fav-btn" onclick="event.stopPropagation();togFav('${i.id}')">${i.fav?'★':'☆'}</button>
+        <div class="item-img">${i.img?`<img src="${i.img}">`:`<span>${c.i}</span>`}</div>
+        <div class="item-info"><div class="item-name">${i.name}</div><div class="item-meta"><span class="item-dot" style="background:${i.color}"></span>${c.n}${i.brand?' · '+i.brand:''}</div>${cpw?`<div class="item-cpw">${cpw}€ per wear</div>`:''}</div></div>`;}).join('');
 }
 
-function toggleKeyVis() {
-    const i = document.getElementById('apiKeyInput');
-    i.type = i.type === 'password' ? 'text' : 'password';
+function togFav(id){const i=W.find(x=>x.id==id);if(i){i.fav=!i.fav;sv();rCloset();}}
+
+function showDetail(id){
+    const i=W.find(x=>x.id==id);if(!i)return;const c=CT[i.category]||{n:i.category};const cpw=i.price&&i.worn?(i.price/i.worn).toFixed(2)+'€':'–';
+    document.getElementById('detailBody').innerHTML=`
+        ${i.img?`<img src="${i.img}" style="width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:var(--radius);margin-bottom:16px;">`:''}
+        <h2 style="font-size:20px;font-weight:700;margin-bottom:4px;">${i.name}</h2>
+        <p style="font-size:13px;color:var(--text3);margin-bottom:16px;">${c.n}${i.brand?' · '+i.brand:''}</p>
+        <table class="detail-table">
+        <tr><td>Farbe</td><td><span class="item-dot" style="background:${i.color};vertical-align:middle;"></span> ${i.color}</td></tr>
+        <tr><td>Saison</td><td>${SN[i.season]||i.season}</td></tr>
+        ${i.material?`<tr><td>Material</td><td>${i.material}</td></tr>`:''}
+        ${i.price?`<tr><td>Preis</td><td>${i.price.toFixed(2)} €</td></tr>`:''}
+        <tr><td>Getragen</td><td>${i.worn||0}x</td></tr>
+        <tr><td>Cost/Wear</td><td>${cpw}</td></tr>
+        <tr><td>Status</td><td>${i.laundry?'In der Wäsche':'Verfügbar'}</td></tr>
+        </table>
+        <div class="btn-row" style="margin-top:20px;">
+            <button class="btn btn-secondary" style="flex:1" onclick="togLaun('${i.id}')">${i.laundry?'Aus Wäsche':'In Wäsche'}</button>
+            <button class="btn btn-secondary" style="flex:1" onclick="wearIt('${i.id}')">Getragen +1</button>
+            <button class="btn btn-danger btn-sm" onclick="delItem('${i.id}')">Löschen</button>
+        </div>`;
+    openM('detailModal');
 }
 
-function updateAiStatus() {
-    const el = document.getElementById('aiStatus');
-    if (getApiKey()) { el.className = 'ai-status connected'; el.textContent = '● KI Online'; }
-    else { el.className = 'ai-status disconnected'; el.textContent = '● KI Offline'; }
+function togLaun(id){const i=W.find(x=>x.id==id);if(i){i.laundry=!i.laundry;sv();rCloset();closeM('detailModal');}}
+function wearIt(id){const i=W.find(x=>x.id==id);if(i){i.worn=(i.worn||0)+1;sv();rCloset();closeM('detailModal');}}
+function delItem(id){if(!confirm('Löschen?'))return;W=W.filter(x=>x.id!=id);sv();rCloset();closeM('detailModal');}
+
+function addManual(){const n=document.getElementById('mName').value.trim();if(!n)return;W.push({id:Date.now()+Math.random(),name:n,category:document.getElementById('mCat').value,color:document.getElementById('mColor').value,season:document.getElementById('mSeason').value,brand:document.getElementById('mBrand').value.trim(),price:parseFloat(document.getElementById('mPrice').value)||0,material:document.getElementById('mMat').value.trim(),worn:0,laundry:false,fav:false,img:null});sv();rCloset();document.getElementById('mName').value='';closeM('addModal');}
+
+// PHOTOS
+function onFiles(e){Array.from(e.target.files).forEach(addPhoto);e.target.value='';}
+function onCamFile(e){if(e.target.files[0])addPhoto(e.target.files[0]);e.target.value='';}
+function handleDrop(e){e.preventDefault();e.target.classList.remove('dragover');Array.from(e.dataTransfer.files).filter(f=>f.type.startsWith('image/')).forEach(addPhoto);}
+function addPhoto(f){const r=new FileReader();r.onload=e=>{photos.push({id:Date.now()+Math.random(),url:e.target.result,b:e.target.result.split(',')[1],m:f.type,st:'pending'});rThumbs();document.getElementById('scanBtn').disabled=false;};r.readAsDataURL(f);}
+function openCam(){if(/Android|iPhone|iPad/i.test(navigator.userAgent)){document.getElementById('camIn').click();return;}navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}}).then(s=>{cam=s;document.getElementById('camVid').srcObject=s;document.getElementById('camBox').style.display='block';}).catch(()=>document.getElementById('camIn').click());}
+function snap(){const v=document.getElementById('camVid'),c=document.getElementById('camCan');c.width=v.videoWidth;c.height=v.videoHeight;c.getContext('2d').drawImage(v,0,0);c.toBlob(b=>addPhoto(new File([b],'s.jpg',{type:'image/jpeg'})),'image/jpeg',0.85);}
+function closeCam(){if(cam){cam.getTracks().forEach(t=>t.stop());cam=null;}document.getElementById('camBox').style.display='none';}
+function rmPhoto(id){photos=photos.filter(p=>p.id!==id);rThumbs();if(!photos.length)document.getElementById('scanBtn').disabled=true;}
+function rThumbs(){document.getElementById('thumbRow').innerHTML=photos.map(p=>`<div class="thumb"><img src="${p.url}"><button class="thumb-rm" onclick="event.stopPropagation();rmPhoto(${p.id})">✕</button><div class="thumb-st ${p.st}">${p.st}</div></div>`).join('');}
+
+async function scanPhotos(){
+    const pend=photos.filter(p=>p.st==='pending');if(!pend.length||!gk())return;rec=[];document.getElementById('scanBtn').disabled=true;
+    for(const p of pend){p.st='analyzing';rThumbs();
+        const r=await gem(`Analysiere Kleidungsfoto. Pro Stück JSON: "name"(deutsch),"category"(${Object.keys(CT).join(',')}),"color"(HEX),"season","material","brand","honest_comment"(EHRLICH). NUR JSON-Array.`,null,[{b:p.b,m:p.m}]);
+        if(r){try{JSON.parse(r.match(/\[[\s\S]*\]/)[0]).forEach(i=>rec.push({...i,id:Date.now()+Math.random(),imgUrl:p.url}));p.st='done';}catch(e){p.st='done';}}else p.st='error';rThumbs();}
+    rRec();document.getElementById('scanBtn').disabled=false;
 }
 
-function wardrobeSummary() {
-    if (!wardrobe.length) return 'Der Kleiderschrank ist leer.';
-    return wardrobe.map(i =>
-        `- ${i.name} (${CN[i.category]}, Farbe: ${i.color}, Saison: ${SN[i.season]}, ${i.timesWorn}x getragen${i.imageData ? ', hat Foto' : ''})`
-    ).join('\n');
+function rRec(){const b=document.getElementById('recBox');if(!rec.length){b.innerHTML='';return;}
+    b.innerHTML=`<div style="margin-top:16px;"><div style="font-size:13px;font-weight:600;margin-bottom:10px;">${rec.length} erkannt</div><div>${rec.map(i=>`<div class="rec-card"><div class="rec-info"><div class="rec-name">${i.name}</div><div class="rec-detail">${CT[i.category]?.n||i.category}${i.brand?' · '+i.brand:''}${i.material?' · '+i.material:''}</div>${i.honest_comment?`<div class="rec-comment">"${i.honest_comment}"</div>`:''}</div><button class="btn btn-primary btn-sm" onclick="addRec(${i.id})">+</button><button class="btn btn-secondary btn-sm" onclick="rejRec(${i.id})">✕</button></div>`).join('')}</div><div class="btn-row" style="margin-top:12px;"><button class="btn btn-primary" style="flex:1" onclick="addAllRec()">Alle hinzufügen</button><button class="btn btn-secondary" style="flex:1" onclick="rec=[];rRec();">Verwerfen</button></div></div>`;}
+
+function addRec(id){const i=rec.find(x=>x.id===id);if(!i)return;W.push({id:Date.now()+Math.random(),name:i.name,category:i.category||'sonstiges',color:i.color||'#888',season:i.season||'alle',brand:i.brand||'',material:i.material||'',price:0,worn:0,laundry:false,fav:false,img:i.imgUrl||null,aiComment:i.honest_comment||''});rec=rec.filter(x=>x.id!==id);sv();rRec();rCloset();}
+function rejRec(id){rec=rec.filter(x=>x.id!==id);rRec();}
+function addAllRec(){const n=rec.length;rec.forEach(i=>{W.push({id:Date.now()+Math.random(),name:i.name,category:i.category||'sonstiges',color:i.color||'#888',season:i.season||'alle',brand:i.brand||'',material:i.material||'',price:0,worn:0,laundry:false,fav:false,img:i.imgUrl||null,aiComment:i.honest_comment||''});});rec=[];sv();rRec();rCloset();closeM('addModal');}
+
+// AI
+async function aiTextAdd(){const t=document.getElementById('aiTextIn').value.trim();if(!t)return;const r=await gem(`Extrahiere Kleidung. JSON-Array: "name","category"(${Object.keys(CT).join(',')}),"color"(HEX),"season". NUR JSON.\n"${t}"`,'aiTextRes');if(!r)return;try{const its=JSON.parse(r.match(/\[[\s\S]*\]/)[0]);its.forEach(i=>{if(i.name)W.push({id:Date.now()+Math.random(),name:i.name,category:i.category||'sonstiges',color:i.color||'#888',season:i.season||'alle',worn:0,laundry:false,fav:false});});sv();rCloset();sR('aiTextRes',`${its.length} hinzugefügt`);document.getElementById('aiTextIn').value='';}catch(e){}}
+async function aiRate(){const s=oTxt();if(s==='Kein Outfit.')return sR('aiRateRes','Wähle zuerst ein Outfit.',1);await gem(`Bewerte ehrlich:\n${s}\n1.Note 1-10\n2.Was funktioniert\n3.Was nicht\n4.Verbesserung`,'aiRateRes');}
+async function aiOccasion(){const o=document.getElementById('occasionIn').value.trim();if(!o)return;await gem(`Outfit für "${o}" aus:\n${wTxt()}\nEhrlich wenn nichts passt.`,'aiOccRes');}
+async function aiSmartOutfit(){const wI=wD?`Wetter: ${wD.t}°C.`:'';const r=await gem(`Perfektes Outfit aus:\n${wTxt()}\n${wI}\nNur saubere. JSON: {"oberteil":"Name","unterteil":"Name","schuhe":"Name"}\nNUR JSON.`,null);if(!r)return;try{const d=JSON.parse(r.match(/\{[\s\S]*\}/)[0]);curO={};Object.entries(d).forEach(([s,n])=>{const it=W.find(i=>i.name.toLowerCase()===n.toLowerCase());if(it){const g=CT[it.category]?.g||it.category;curO[g]=it.id;}});uVis();}catch(e){}}
+async function aiWeek(){const w=document.getElementById('weekW').value.trim()||'k.A.';const ev=document.getElementById('weekE').value.trim()||'keine';await gem(`Wochenplan Mo-So:\n${wTxt()}\nWetter:${w}\nAnlässe:${ev}\nNur saubere. Ehrlich.`,'aiWeekRes');}
+async function aiChat(){const q=document.getElementById('aiQ').value.trim();if(!q)return;await gem(`Kleiderschrank:\n${wTxt()}\n${O.length} Outfits.\nFrage:"${q}"`,'aiChatRes');document.getElementById('aiQ').value='';}
+function aiAsk(q){document.getElementById('aiQ').value=q;aiChat();}
+
+// OUTFIT
+function pickSlot(s){cSl=s;const its=W.filter(i=>(CT[i.category]?.g||i.category)===s&&!i.laundry);document.getElementById('slotTitle').textContent=GN[s]||s;
+    document.getElementById('slotGrid').innerHTML=its.length?its.map(i=>`<div class="item-card ${curO[s]===i.id?'sel':''}" onclick="selSlot('${i.id}')"><div class="item-img">${i.img?`<img src="${i.img}">`:`<span>${CT[i.category]?.i||'•'}</span>`}</div><div class="item-info"><div class="item-name">${i.name}</div></div></div>`).join(''):'<div class="empty"><div class="empty-text">Nichts verfügbar</div></div>';openM('slotModal');}
+
+function selSlot(id){const i=W.find(x=>x.id==id);if(!i)return;const g=CT[i.category]?.g||i.category;if(curO[g]==id)delete curO[g];else curO[g]=id;closeM('slotModal');uVis();}
+
+function uVis(){document.querySelectorAll('.builder-slot').forEach(el=>{const s=el.dataset.s;const id=curO[s];if(id){const i=W.find(x=>x.id==id);if(i){el.classList.add('filled');el.innerHTML=`${i.img?`<img src="${i.img}">`:`<span style="font-size:18px;">${CT[i.category]?.i||'•'}</span>`}<span class="slot-name">${i.name}</span><button class="slot-rm" onclick="event.stopPropagation();delete curO['${s}'];uVis();">✕</button>`;}}else{el.classList.remove('filled');el.innerHTML=`<span class="slot-label">${{muetze:'Kopf',oberteil:'Oberteil',jacke:'Jacke',unterteil:'Unterteil',schuhe:'Schuhe',accessoire:'Accessoire'}[s]||s}</span>`;}});}
+
+function saveOutfit(){const n=document.getElementById('outfitName').value.trim()||'Outfit '+(O.length+1);if(!Object.keys(curO).length)return;O.push({id:Date.now(),name:n,items:{...curO},at:new Date().toISOString()});Object.values(curO).forEach(id=>{const i=W.find(x=>x.id==id);if(i)i.worn=(i.worn||0)+1;});sv();curO={};document.getElementById('outfitName').value='';uVis();}
+function randOutfit(){curO={};['oberteil','unterteil','schuhe'].forEach(g=>{const its=W.filter(i=>(CT[i.category]?.g||i.category)===g&&!i.laundry);if(its.length)curO[g]=its[Math.floor(Math.random()*its.length)].id;});uVis();}
+
+// CALENDAR
+function rCal(){const ms=['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];const ds=['Mo','Di','Mi','Do','Fr','Sa','So'];document.getElementById('calTitle').textContent=`${ms[cM]} ${cY}`;let h=ds.map(d=>`<div class="cal-head">${d}</div>`).join('');let st=new Date(cY,cM,1).getDay();st=st===0?6:st-1;const dm=new Date(cY,cM+1,0).getDate();const pd=new Date(cY,cM,0).getDate();const td=new Date();
+    for(let i=st-1;i>=0;i--)h+=`<div class="cal-day other">${pd-i}</div>`;for(let d=1;d<=dm;d++){const ds2=`${cY}-${String(cM+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;const it=td.getDate()===d&&td.getMonth()===cM&&td.getFullYear()===cY;let c='cal-day';if(it)c+=' today';if(CAL[ds2])c+=' has-outfit';h+=`<div class="${c}" onclick="calDay('${ds2}')">${d}</div>`;}const rm=7-((st+dm)%7);if(rm<7)for(let i=1;i<=rm;i++)h+=`<div class="cal-day other">${i}</div>`;document.getElementById('calGrid').innerHTML=h;}
+function calNav(d){cM+=d;if(cM>11){cM=0;cY++;}if(cM<0){cM=11;cY--;}rCal();}
+function calDay(ds){
+    document.getElementById('dayTitle').textContent=ds.split('-').reverse().join('.');
+    if(CAL[ds]){const o=O.find(x=>x.id===CAL[ds]);document.getElementById('dayBody').innerHTML=(o?`<p style="font-weight:600;margin-bottom:8px;">${o.name}</p><div>${Object.values(o.items).map(id=>{const i=W.find(x=>x.id==id);return i?`<div class="list-item" style="padding:8px 0;border:none;"><div class="list-icon">${i.img?`<img src="${i.img}">`:(CT[i.category]?.i||'•')}</div><div class="list-body"><div class="list-title">${i.name}</div></div></div>`:''}).join('')}</div>`:'Outfit nicht mehr vorhanden.')+`<button class="btn btn-danger btn-sm" style="margin-top:12px;" onclick="delete CAL['${ds}'];sv();closeM('dayModal');rCal();">Entfernen</button>`;}
+    else{document.getElementById('dayBody').innerHTML=O.length?O.map(o=>`<div class="list-item" style="cursor:pointer;" onclick="CAL['${ds}']=${o.id};sv();closeM('dayModal');rCal();"><div class="list-body"><div class="list-title">${o.name}</div><div class="list-sub">${new Date(o.at).toLocaleDateString('de-DE')}</div></div><span style="color:var(--text3);">›</span></div>`).join(''):'<div class="empty"><div class="empty-text">Erst ein Outfit erstellen</div></div>';}
+    openM('dayModal');
 }
 
-function currentOutfitSummary() {
-    const p = [];
-    for (const [c, id] of Object.entries(currentOutfit)) {
-        const i = wardrobe.find(x => x.id === id);
-        if (i) p.push(`${CI[c]} ${i.name} (Farbe: ${i.color})`);
-    }
-    return p.length ? p.join('\n') : 'Kein Outfit ausgewählt.';
-}
+// SETTINGS
+function saveSettings(){localStorage.setItem('gk',document.getElementById('keyIn').value.trim());localStorage.setItem('wcity',document.getElementById('cityIn').value.trim());updateBadge();fetchW();closeM('settingsModal');}
+function updateBadge(){const b=document.getElementById('aiBadge');if(gk()){b.className='header-badge';b.textContent='AI';}else{b.className='header-badge off';b.textContent='AI';}}
+async function testAPI(){const el=document.getElementById('testRes');if(!gk()){el.textContent='Key fehlt';return;}el.textContent='Teste...';try{const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${gm()}:generateContent?key=${gk()}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:'OK'}]}],generationConfig:{temperature:0,maxOutputTokens:10}})});if(!r.ok)throw new Error('Fehler');el.textContent='Verbunden ✓';el.style.color='var(--green)';updateBadge();}catch(e){el.textContent='Fehler';el.style.color='var(--red)';}}
+function xport(){const d={W,O,CAL};const b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='wardrobe.json';a.click();}
+function imp(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const d=JSON.parse(ev.target.result);if(d.W)W=d.W;if(d.O)O=d.O;if(d.CAL)CAL=d.CAL;sv();init();}catch(err){}};r.readAsText(f);}
+function nuke(){if(!confirm('Alles löschen?'))return;Object.keys(localStorage).filter(k=>k.startsWith('i_')).forEach(k=>localStorage.removeItem(k));W=[];O=[];CAL={};sv();init();}
 
-// Text-only API call
-async function callGemini(prompt, responseElId) {
-    const apiKey = getApiKey();
-    if (!apiKey) { showAi(responseElId, '❌ Trage zuerst deinen Gemini API Key in den Einstellungen ein!', true); return null; }
-
-    showAi(responseElId, '<div class="ai-loading">🤖 <span>KI denkt nach<span class="dots"></span></span></div>', false);
-
-    const model = getAiModel();
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-
-    try {
-        const res = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
-                contents: [{ parts: [{ text: prompt }] }],
-                generationConfig: { temperature: getAiTemp(), maxOutputTokens: 4096 }
-            })
-        });
-
-        if (!res.ok) { const e = await res.json(); throw new Error(e.error?.message || `HTTP ${res.status}`); }
-
-        const data = await res.json();
-        const text = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Keine Antwort.';
-        showAi(responseElId, formatAi(text));
-        return text;
-    } catch (e) { showAi(responseElId, `❌ Fehler: ${e.message}`, true); return null; }
-}
-
-// Vision API call (with image)
-async function callGeminiVision(prompt, imageBase64, mimeType, responseElId) {
-    const apiKey = getApiKey();
-    if (!apiKey) { showAi(responseElId, '❌ API Key fehlt!', true); return null; }
-
-    if (responseElId) showAi(responseElId, '<div class="ai-loading">🤖 <span>KI analysiert Bild<span class="dots"></span></span></div>', false);
-
-    const model = getAiModel();
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-
-    try {
-        const res = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
-                contents: [{
-                    parts: [
-                        { text: prompt },
-                        { inline_data: { mime_type: mimeType, data: imageBase64 } }
-                    ]
-                }],
-                generationConfig: { temperature: 0.3, maxOutputTokens: 4096 }
-            })
-        });
-
-        if (!res.ok) { const e = await res.json(); throw new Error(e.error?.message || `HTTP ${res.status}`); }
-
-        const data = await res.json();
-        const text = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Keine Antwort.';
-        if (responseElId) showAi(responseElId, formatAi(text));
-        return text;
-    } catch (e) {
-        if (responseElId) showAi(responseElId, `❌ Fehler: ${e.message}`, true);
-        return null;
-    }
-}
-
-function showAi(id, html, err = false) {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.innerHTML = `<div class="ai-response" style="${err ? 'border-color:#ff4757;color:#ff4757;' : ''}">${html}</div>`;
-}
-
-function formatAi(t) {
-    return t.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-        .replace(/\*(.*?)\*/g, '<em>$1</em>')
-        .replace(/^### (.*$)/gm, '<h3>$1</h3>')
-        .replace(/^## (.*$)/gm, '<h3>$1</h3>')
-        .replace(/^# (.*$)/gm, '<h3>$1</h3>')
-        .replace(/^- (.*$)/gm, '• $1')
-        .replace(/\n/g, '<br>');
-}
-
-// ========================================================
-// FOTO-SCAN: Kamera & Galerie
-// ========================================================
-function handleGallerySelect(e) {
-    const files = Array.from(e.target.files);
-    files.forEach(f => addPhotoToQueue(f));
-    e.target.value = '';
-}
-
-function handleDrop(e) {
-    e.preventDefault();
-    e.target.classList.remove('dragover');
-    const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
-    files.forEach(f => addPhotoToQueue(f));
-}
-
-function handleCameraCapture(e) {
-    const file = e.target.files[0];
-    if (file) addPhotoToQueue(file);
-    e.target.value = '';
-}
-
-function addPhotoToQueue(file) {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        photoQueue.push({
-            id: Date.now() + Math.random(),
-            file: file,
-            dataUrl: e.target.result,
-            base64: e.target.result.split(',')[1],
-            mimeType: file.type,
-            status: 'pending' // pending, analyzing, done, error
-        });
-        renderPhotoPreview();
-        document.getElementById('analyzeBtn').disabled = false;
-    };
-    reader.readAsDataURL(file);
-}
-
-function openCamera() {
-    // Mobile: use file input with capture
-    if (/Android|iPhone|iPad/i.test(navigator.userAgent)) {
-        document.getElementById('photoCameraInput').click();
-        return;
-    }
-
-    // Desktop: use getUserMedia
-    const container = document.getElementById('cameraContainer');
-    const video = document.getElementById('cameraVideo');
-
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-        .then(stream => {
-            cameraStream = stream;
-            video.srcObject = stream;
-            container.style.display = 'block';
-        })
-        .catch(err => {
-            alert('Kamera nicht verfügbar: ' + err.message + '\nVerwende stattdessen die Dateiauswahl.');
-            document.getElementById('photoCameraInput').click();
-        });
-}
-
-function capturePhoto() {
-    const video = document.getElementById('cameraVideo');
-    const canvas = document.getElementById('cameraCanvas');
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    canvas.getContext('2d').drawImage(video, 0, 0);
-
-    canvas.toBlob(blob => {
-        const file = new File([blob], 'camera_' + Date.now() + '.jpg', { type: 'image/jpeg' });
-        addPhotoToQueue(file);
-    }, 'image/jpeg', 0.85);
-}
-
-function closeCamera() {
-    if (cameraStream) {
-        cameraStream.getTracks().forEach(t => t.stop());
-        cameraStream = null;
-    }
-    document.getElementById('cameraContainer').style.display = 'none';
-}
-
-function removePhoto(id) {
-    photoQueue = photoQueue.filter(p => p.id !== id);
-    renderPhotoPreview();
-    if (!photoQueue.length) document.getElementById('analyzeBtn').disabled = true;
-}
-
-function renderPhotoPreview() {
-    const grid = document.getElementById('photoPreviewGrid');
-    grid.innerHTML = photoQueue.map(p => `
-        <div class="preview-card">
-            <button class="remove-preview" onclick="removePhoto(${p.id})">✕</button>
-            <img src="${p.dataUrl}" alt="Foto">
-            <div class="preview-status ${p.status === 'pending' ? '' : p.status}">
-                ${p.status === 'pending' ? '⏳ Wartet...' :
-                  p.status === 'analyzing' ? '🔍 Analysiere...' :
-                  p.status === 'done' ? '✅ Erkannt!' :
-                  '❌ Fehler'}
-            </div>
-        </div>
-    `).join('');
-}
-
-// ========================================================
-// FOTO ANALYSE MIT GEMINI VISION
-// ========================================================
-async function analyzeAllPhotos() {
-    const pending = photoQueue.filter(p => p.status === 'pending');
-    if (!pending.length) return alert('Keine neuen Fotos zum Analysieren.');
-
-    if (!getApiKey()) return alert('Bitte zuerst API Key eintragen!');
-
-    recognizedItems = [];
-    document.getElementById('analyzeBtn').disabled = true;
-
-    for (const photo of pending) {
-        photo.status = 'analyzing';
-        renderPhotoPreview();
-
-        const prompt = `Analysiere dieses Foto von Kleidung. Identifiziere JEDES Kleidungsstück das du siehst.
-
-Für jedes erkannte Kleidungsstück erstelle ein JSON-Objekt mit:
-- "name": Beschreibender Name auf Deutsch (z.B. "Dunkelblauer Wollpullover", "Weiße Leinenhose")
-- "category": GENAU eine von: oberteil, unterteil, kleid, jacke, schuhe, accessoire
-- "color": HEX-Farbcode der Hauptfarbe (z.B. "#1a237e" für dunkelblau)
-- "season": GENAU eine von: alle, fruehling, sommer, herbst, winter
-- "material": Geschätztes Material (z.B. "Baumwolle", "Polyester", "Leder")
-- "style": Stil-Einordnung (z.B. "casual", "elegant", "sportlich")
-- "condition": Geschätzter Zustand 1-10
-- "honest_comment": Deine EHRLICHE Meinung zu dem Stück. Wenn es abgenutzt, altmodisch oder hässlich aussieht, sag es. Wenn es ein tolles Teil ist, lob es.
-
-Sei bei der Erkennung so PRÄZISE wie möglich. Erkenne Marken wenn sichtbar. Beschreibe Muster, Details, Schnitt.
-
-Sei EHRLICH in deinem Kommentar – wenn das Teil aussieht wie aus 2005, sag es.
-
-Antworte NUR mit einem JSON-Array. Keine andere Erklärung.
-
-Falls kein Kleidungsstück erkannt wird, antworte mit: []`;
-
-        try {
-            const result = await callGeminiVision(prompt, photo.base64, photo.mimeType, null);
-
-            if (result) {
-                const jsonMatch = result.match(/\[[\s\S]*\]/);
-                if (jsonMatch) {
-                    const items = JSON.parse(jsonMatch[0]);
-                    items.forEach(item => {
-                        recognizedItems.push({
-                            ...item,
-                            id: Date.now() + Math.random(),
-                            photoId: photo.id,
-                            imageData: photo.dataUrl
-                        });
-                    });
-                    photo.status = 'done';
-                } else {
-                    photo.status = items.length === 0 ? 'done' : 'error';
-                }
-            } else {
-                photo.status = 'error';
-            }
-        } catch (e) {
-            photo.status = 'error';
-        }
-
-        renderPhotoPreview();
-    }
-
-    renderRecognizedItems();
-    document.getElementById('analyzeBtn').disabled = false;
-}
-
-function renderRecognizedItems() {
-    const container = document.getElementById('recognizedItemsContainer');
-    const list = document.getElementById('recognizedItemsList');
-
-    if (!recognizedItems.length) {
-        container.style.display = 'none';
-        return;
-    }
-
-    container.style.display = 'block';
-
-    list.innerHTML = recognizedItems.map(item => `
-        <div class="recognized-item" id="rec-${item.id}">
-            ${item.imageData ? `<img src="${item.imageData}" alt="${item.name}">` : ''}
-            <div class="recognized-item-info">
-                <div class="name">${CI[item.category] || '👕'} ${item.name}</div>
-                <div class="details">
-                    <span class="tag tag-${item.category}">${CN[item.category] || item.category}</span>
-                    <span class="clothing-color-dot" style="background:${item.color};width:14px;height:14px;vertical-align:middle;display:inline-block;border-radius:50%;border:1px solid #ddd;"></span>
-                    ${SN[item.season] || item.season}
-                    ${item.material ? ' · ' + item.material : ''}
-                    ${item.style ? ' · ' + item.style : ''}
-                </div>
-                ${item.honest_comment ? `<div style="margin-top:5px;font-size:0.85em;color:#555;font-style:italic;">"${item.honest_comment}"</div>` : ''}
-            </div>
-            <button class="btn-add-recognized" onclick="addRecognizedItem(${item.id})">✅ Hinzufügen</button>
-            <button class="btn-reject" onclick="rejectRecognized(${item.id})">✕</button>
-        </div>
-    `).join('');
-}
-
-function addRecognizedItem(id) {
-    const item = recognizedItems.find(i => i.id === id);
-    if (!item) return;
-
-    wardrobe.push({
-        id: Date.now() + Math.random(),
-        name: item.name,
-        category: item.category || 'oberteil',
-        color: item.color || '#667eea',
-        season: item.season || 'alle',
-        timesWorn: 0,
-        material: item.material || '',
-        style: item.style || '',
-        imageData: item.imageData || null,
-        aiComment: item.honest_comment || ''
-    });
-
-    recognizedItems = recognizedItems.filter(i => i.id !== id);
-    saveData();
-    renderRecognizedItems();
-    renderWardrobe();
-    renderPlannerItems();
-}
-
-function rejectRecognized(id) {
-    recognizedItems = recognizedItems.filter(i => i.id !== id);
-    renderRecognizedItems();
-}
-
-function addAllRecognized() {
-    recognizedItems.forEach(item => {
-        wardrobe.push({
-            id: Date.now() + Math.random(),
-            name: item.name,
-            category: item.category || 'oberteil',
-            color: item.color || '#667eea',
-            season: item.season || 'alle',
-            timesWorn: 0,
-            material: item.material || '',
-            style: item.style || '',
-            imageData: item.imageData || null,
-            aiComment: item.honest_comment || ''
-        });
-    });
-
-    const count = recognizedItems.length;
-    recognizedItems = [];
-    saveData();
-    renderRecognizedItems();
-    renderWardrobe();
-    renderPlannerItems();
-    alert(`✅ ${count} Kleidungsstück${count !== 1 ? 'e' : ''} hinzugefügt!`);
-}
-
-function clearRecognized() {
-    recognizedItems = [];
-    renderRecognizedItems();
-}
-
-// ========================================================
-// KI FUNKTIONEN
-// ========================================================
-async function aiAddClothes() {
-    const input = document.getElementById('aiAddClothesInput').value.trim();
-    if (!input) return alert('Beschreibe deine Kleidung!');
-
-    const prompt = `Der Benutzer beschreibt Kleidungsstücke. Extrahiere eine Liste.
-
-Für jedes Stück gib JSON mit: "name", "category" (oberteil/unterteil/kleid/jacke/schuhe/accessoire), "color" (HEX), "season" (alle/fruehling/sommer/herbst/winter)
-
-Antworte NUR mit JSON-Array.
-
-Eingabe: "${input}"`;
-
-    const result = await callGemini(prompt, 'aiAddClothesResponse');
-    if (!result) return;
-
-    try {
-        const m = result.match(/\[[\s\S]*\]/);
-        if (!m) throw new Error('Kein JSON');
-        const items = JSON.parse(m[0]);
-        let added = 0;
-        items.forEach(i => {
-            if (i.name && i.category) {
-                wardrobe.push({ id: Date.now()+Math.random(), name:i.name, category:i.category, color:i.color||'#667eea', season:i.season||'alle', timesWorn:0 });
-                added++;
-            }
-        });
-        saveData(); renderWardrobe(); renderPlannerItems();
-        showAi('aiAddClothesResponse', `✅ <strong>${added} Stück${added!==1?'e':''} hinzugefügt!</strong><br><br>` +
-            items.map(i=>`${CI[i.category]||'👕'} ${i.name} <span class="clothing-color-dot" style="background:${i.color};width:14px;height:14px;display:inline-block;border-radius:50;vertical-align:middle;border:1px solid #ddd;"></span>`).join('<br>'));
-        document.getElementById('aiAddClothesInput').value = '';
-    } catch(e) { showAi('aiAddClothesResponse', formatAi(result)); }
-}
-
-async function aiRateOutfit() {
-    const s = currentOutfitSummary();
-    if (s === 'Kein Outfit ausgewählt.') return showAi('aiRateResponse', '❌ Wähle zuerst ein Outfit!', true);
-
-    const prompt = `Bewerte dieses Outfit KNALLHART EHRLICH:
-
-${s}
-
-Gib eine Bewertung mit:
-1. Gesamtnote 1-10 (sei STRENG, eine 10 gibt es fast nie)
-2. Farbharmonie - passen die Farben wirklich zusammen?
-3. Was funktioniert gut (nur wenn wirklich was gut ist)
-4. Was NICHT funktioniert (sei schonungslos)
-5. Konkrete Verbesserungsvorschläge
-6. Für welche Anlässe ist das okay, für welche eine Katastrophe?
-
-Wenn das Outfit großartig ist, feiere es. Wenn es schlecht ist, sag es direkt. Kein "ist ganz okay" – nimm kein Blatt vor den Mund.`;
-
-    await callGemini(prompt, 'aiRateResponse');
-}
-
-async function aiSuggestForOccasion() {
-    const occ = document.getElementById('aiOccasionInput').value.trim();
-    if (!occ) return alert('Gib einen Anlass ein!');
-
-    const prompt = `Outfit für: "${occ}"
-
-Kleiderschrank:
-${wardrobeSummary()}
-
-Schlage das BESTE Outfit aus vorhandenen Teilen vor. Sei ehrlich – wenn nichts Passendes da ist, sag es klar. Wenn die verfügbare Kleidung für den Anlass ungeeignet ist, sag das direkt und was fehlt.`;
-
-    await callGemini(prompt, 'aiOccasionResponse');
-}
-
-async function aiWeekPlan() {
-    const w = document.getElementById('aiWeatherInput').value.trim() || 'keine Angabe';
-    const ev = document.getElementById('aiWeekEventsInput').value.trim() || 'keine';
-
-    const prompt = `Erstelle einen Wochenplan Mo-So mit Outfits.
-
-Kleidung:
-${wardrobeSummary()}
-
-Wetter: ${w}
-Anlässe: ${ev}
-
-Für jeden Tag ein Outfit aus VORHANDENEN Teilen. Sei ehrlich wenn der Kleiderschrank zu klein für Abwechslung ist. Markiere Tage wo es schwierig wird.`;
-
-    await callGemini(prompt, 'aiWeekPlanResponse');
-}
-
-async function aiFreeChat() {
-    const input = document.getElementById('aiFreeInput').value.trim();
-    if (!input) return;
-
-    const prompt = `Kleiderschrank des Benutzers:
-${wardrobeSummary()}
-
-${outfits.length} gespeicherte Outfits, ${Object.keys(calendarOutfits).length} geplante Tage.
-
-Frage: "${input}"
-
-Antworte ehrlich, direkt, konstruktiv. Lobe was gut ist, kritisiere was schlecht ist.`;
-
-    await callGemini(prompt, 'aiFreeResponse');
-    document.getElementById('aiFreeInput').value = '';
-}
-
-function aiQuick(q) { document.getElementById('aiFreeInput').value = q; aiFreeChat(); }
-
-async function aiWardrobeAnalysis() {
-    const prompt = `Analysiere diesen Kleiderschrank KOMPLETT und EHRLICH:
-
-${wardrobeSummary()}
-
-Erstelle eine schonungslose Analyse:
-1. 📊 Übersicht & erster Eindruck (ehrlich!)
-2. 🎨 Farbpalette: Was harmoniert, was beißt sich?
-3. 👗 Stil-Diagnose: Ist da ein roter Faden oder ein Chaos?
-4. ⚠️ Probleme & Lücken: Was fehlt dringend?
-5. 🗑️ Ausmisten: Was sollte raus und warum?
-6. 🛍️ Top 5 Anschaffungen die WIRKLICH fehlen
-7. 🔄 Kombi-Potenzial: Wie viele gute Outfits sind realistisch möglich?
-8. 💡 3 knallharte Styling-Tipps
-9. 📈 Gesamtnote für den Kleiderschrank (1-10, streng!)
-
-Sei ehrlich. Wenn der Schrank chaotisch ist, sag es. Wenn er gut sortiert ist, lob es.`;
-
-    await callGemini(prompt, 'aiAnalysisResponse');
-}
-
-async function testApi() {
-    const el = document.getElementById('apiTestResult');
-    if (!getApiKey()) { el.innerHTML = '<span style="color:red;">❌ Kein Key!</span>'; return; }
-    el.innerHTML = '<span style="color:#764ba2;">⏳ Teste...</span>';
-
-    try {
-        const model = getAiModel();
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${getApiKey()}`;
-        const res = await fetch(url, {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                contents: [{ parts: [{ text: 'Sage genau: "Connection OK ✅ Bilderkennung bereit 📸"' }] }],
-                generationConfig: { temperature: 0, maxOutputTokens: 50 }
-            })
-        });
-        if (!res.ok) throw new Error((await res.json()).error?.message);
-        const d = await res.json();
-        el.innerHTML = `<span style="color:green;">✅ Verbindung OK! Modell: ${model}</span><br><small>${d.candidates?.[0]?.content?.parts?.[0]?.text||''}</small>`;
-        updateAiStatus();
-    } catch(e) { el.innerHTML = `<span style="color:red;">❌ ${e.message}</span>`; }
-}
-
-// ========================================================
-// TABS
-// ========================================================
-function switchTab(name, btn) {
-    document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
-    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-    document.getElementById('tab-'+name).classList.add('active');
-    if(btn) btn.classList.add('active');
-    if(name==='wardrobe') renderWardrobe();
-    if(name==='planner') renderPlannerItems();
-    if(name==='calendar') renderCalendar();
-    if(name==='outfits') renderSavedOutfits();
-    if(name==='stats') renderStats();
-}
-
-// ========================================================
-// KLEIDERSCHRANK
-// ========================================================
-function addClothingItem() {
-    const n = document.getElementById('itemName').value.trim();
-    if(!n) return alert('Name eingeben!');
-    wardrobe.push({ id:Date.now(), name:n, category:document.getElementById('itemCategory').value,
-        color:document.getElementById('itemColor').value, season:document.getElementById('itemSeason').value, timesWorn:0 });
-    saveData(); renderWardrobe(); renderPlannerItems();
-    document.getElementById('itemName').value = '';
-}
-
-function deleteClothingItem(id) {
-    if(!confirm('Löschen?')) return;
-    wardrobe = wardrobe.filter(i=>i.id!==id);
-    saveData(); renderWardrobe(); renderPlannerItems(); renderStats();
-}
-
-function renderWardrobe() {
-    const grid = document.getElementById('clothesGrid');
-    const cat = document.getElementById('filterCategory').value;
-    const ssn = document.getElementById('filterSeason').value;
-    const srch = document.getElementById('filterSearch').value.toLowerCase();
-
-    let items = wardrobe.filter(i => {
-        if(cat!=='alle' && i.category!==cat) return false;
-        if(ssn!=='alle' && i.season!==ssn && i.season!=='alle') return false;
-        if(srch && !i.name.toLowerCase().includes(srch)) return false;
-        return true;
-    });
-
-    if(!items.length) {
-        grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><span>🗄️</span><p>Keine Kleidung gefunden.</p></div>';
-        return;
-    }
-
-    grid.innerHTML = items.map(i => `
-        <div class="clothing-card">
-            ${i.imageData ? `<img class="clothing-image" src="${i.imageData}" alt="${i.name}">` :
-              `<div class="clothing-icon">${CI[i.category]}</div>`}
-            <div class="clothing-name">${i.name}</div>
-            <span class="tag tag-${i.category}">${CN[i.category]}</span>
-            <div style="margin:8px 0"><span class="clothing-color-dot" style="background:${i.color}"></span></div>
-            <div style="font-size:0.8em;color:#999">${SN[i.season]} · ${i.timesWorn}x getragen</div>
-            ${i.material ? `<div style="font-size:0.75em;color:#aaa">${i.material}${i.style?' · '+i.style:''}</div>` : ''}
-            ${i.aiComment ? `<div style="font-size:0.75em;color:#7c3aed;font-style:italic;margin-top:4px;">"${i.aiComment.substring(0,60)}${i.aiComment.length>60?'...':''}"</div>` : ''}
-            <div class="card-actions"><button class="btn btn-delete" onclick="deleteClothingItem(${JSON.stringify(i.id).replace(/"/g,'&quot;')})">🗑️</button></div>
-        </div>
-    `).join('');
-}
-
-// ========================================================
-// OUTFIT PLANER
-// ========================================================
-function renderPlannerItems() {
-    const grid = document.getElementById('plannerGrid');
-    const f = document.getElementById('plannerFilter').value;
-    let items = f==='alle' ? wardrobe : wardrobe.filter(i=>i.category===f);
-
-    grid.innerHTML = items.map(i => `
-        <div class="clothing-card ${isInOutfit(i.id)?'selected':''}" onclick="toggleItem(${JSON.stringify(i.id).replace(/"/g,'&quot;')})">
-            ${i.imageData ? `<img class="clothing-image" src="${i.imageData}" alt="${i.name}">` :
-              `<div class="clothing-icon">${CI[i.category]}</div>`}
-            <div class="clothing-name">${i.name}</div>
-            <span class="tag tag-${i.category}">${CN[i.category]}</span>
-        </div>
-    `).join('');
-}
-
-function isInOutfit(id) { return Object.values(currentOutfit).some(v=>v===id); }
-
-function toggleItem(id) {
-    const i = wardrobe.find(x=>x.id===id);
-    if(!i) return;
-    if(currentOutfit[i.category]===id) delete currentOutfit[i.category];
-    else currentOutfit[i.category] = id;
-    updateSlots(); renderPlannerItems();
-}
-
-function openSlotPicker(slot) {
-    currentSlot = slot;
-    document.getElementById('modalTitle').textContent = `${CI[slot]} ${CN[slot]} wählen`;
-    const items = wardrobe.filter(i=>i.category===slot);
-    document.getElementById('modalGrid').innerHTML = items.length ? items.map(i=>`
-        <div class="clothing-card ${currentOutfit[slot]===i.id?'selected':''}" onclick="selectSlot(${JSON.stringify(i.id).replace(/"/g,'&quot;')})">
-            ${i.imageData ? `<img class="clothing-image" src="${i.imageData}">` : `<div class="clothing-icon">${CI[i.category]}</div>`}
-            <div class="clothing-name">${i.name}</div>
-        </div>
-    `).join('') : '<div class="empty-state" style="grid-column:1/-1"><span>😢</span><p>Keine vorhanden</p></div>';
-    document.getElementById('slotPickerModal').classList.add('active');
-}
-
-function selectSlot(id) {
-    if(currentOutfit[currentSlot]===id) delete currentOutfit[currentSlot];
-    else currentOutfit[currentSlot] = id;
-    closeModal('slotPickerModal'); updateSlots(); renderPlannerItems();
-}
-
-function updateSlots() {
-    ['oberteil','unterteil','kleid','jacke','schuhe','accessoire'].forEach(s=>{
-        const el = document.getElementById('slot-'+s);
-        const c = el.closest('.outfit-slot');
-        if(currentOutfit[s]) {
-            const i = wardrobe.find(x=>x.id===currentOutfit[s]);
-            if(i) {
-                el.innerHTML = `<span class="clothing-color-dot" style="background:${i.color}"></span>
-                    <span class="clothing-name">${i.name}</span>
-                    <button class="remove-slot-btn" onclick="event.stopPropagation();removeSlot('${s}')">✕</button>`;
-                c.classList.add('filled');
-            }
-        } else {
-            el.innerHTML = '<span style="color:#ccc">Auswählen...</span>';
-            c.classList.remove('filled');
-        }
-    });
-}
-
-function removeSlot(s) { delete currentOutfit[s]; updateSlots(); renderPlannerItems(); }
-
-function saveOutfit() {
-    const n = document.getElementById('outfitName').value.trim() || 'Outfit '+(outfits.length+1);
-    if(!Object.keys(currentOutfit).length) return alert('Wähle mindestens ein Teil!');
-    outfits.push({id:Date.now(),name:n,items:{...currentOutfit},createdAt:new Date().toISOString()});
-    Object.values(currentOutfit).forEach(id=>{const i=wardrobe.find(x=>x.id===id);if(i)i.timesWorn++;});
-    saveData(); alert('Outfit "'+n+'" gespeichert! ✨');
-    currentOutfit = {}; document.getElementById('outfitName').value = '';
-    updateSlots(); renderPlannerItems();
-}
-
-function suggestRandomOutfit() {
-    currentOutfit = {};
-    ['oberteil','unterteil','schuhe'].forEach(c=>{const i=wardrobe.filter(x=>x.category===c);if(i.length)currentOutfit[c]=i[Math.floor(Math.random()*i.length)].id;});
-    ['jacke','accessoire'].forEach(c=>{if(Math.random()>0.5){const i=wardrobe.filter(x=>x.category===c);if(i.length)currentOutfit[c]=i[Math.floor(Math.random()*i.length)].id;}});
-    document.getElementById('outfitName').value = 'Zufalls-Outfit';
-    updateSlots(); renderPlannerItems();
-}
-
-// ========================================================
-// KALENDER
-// ========================================================
-function renderCalendar() {
-    const grid = document.getElementById('calendarGrid');
-    const title = document.getElementById('calendarTitle');
-    const ms = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
-    const ds = ['Mo','Di','Mi','Do','Fr','Sa','So'];
-
-    title.textContent = `${ms[currentMonth]} ${currentYear}`;
-    let html = ds.map(d=>`<div class="calendar-day-header">${d}</div>`).join('');
-
-    let start = new Date(currentYear,currentMonth,1).getDay();
-    start = start===0?6:start-1;
-    const dim = new Date(currentYear,currentMonth+1,0).getDate();
-    const pdim = new Date(currentYear,currentMonth,0).getDate();
-    const today = new Date();
-
-    for(let i=start-1;i>=0;i--) html += `<div class="calendar-day other-month">${pdim-i}</div>`;
-    for(let d=1;d<=dim;d++) {
-        const ds2 = `${currentYear}-${String(currentMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-        const isT = today.getDate()===d && today.getMonth()===currentMonth && today.getFullYear()===currentYear;
-        let cls = 'calendar-day'; if(isT) cls+=' today'; if(calendarOutfits[ds2]) cls+=' has-outfit';
-        html += `<div class="${cls}" onclick="selectDay('${ds2}')">${d}</div>`;
-    }
-    const rem = 7-((start+dim)%7); if(rem<7) for(let i=1;i<=rem;i++) html+=`<div class="calendar-day other-month">${i}</div>`;
-    grid.innerHTML = html;
-}
-
-function changeMonth(d) { currentMonth+=d; if(currentMonth>11){currentMonth=0;currentYear++;} if(currentMonth<0){currentMonth=11;currentYear--;} renderCalendar(); }
-
-function selectDay(ds) {
-    if(calendarOutfits[ds]) {
-        const o = outfits.find(x=>x.id===calendarOutfits[ds]);
-        document.getElementById('dayModalTitle').textContent = `Outfit: ${formatDate(ds)}`;
-        document.getElementById('removeDayBtn').style.display='inline-block';
-        document.getElementById('removeDayBtn').setAttribute('data-date',ds);
-        document.getElementById('dayModalContent').innerHTML = o ? `
-            <div class="saved-outfit-card"><div class="outfit-date">${o.name}</div>
-            <ul class="outfit-items-list">${Object.entries(o.items).map(([c,id])=>{const i=wardrobe.find(x=>x.id===id);return i?`<li>${CI[c]} ${i.name}</li>`:''}).join('')}</ul></div>`
-            : '<p style="color:#999">Nicht mehr vorhanden.</p>';
-        document.getElementById('dayOutfitModal').classList.add('active');
-    } else {
-        if(!outfits.length) return alert('Erstelle zuerst ein Outfit!');
-        document.getElementById('dayModalTitle').textContent = `Outfit für ${formatDate(ds)}`;
-        document.getElementById('removeDayBtn').style.display='none';
-        document.getElementById('dayModalContent').innerHTML = outfits.map(o=>`
-            <div class="saved-outfit-card" style="cursor:pointer;margin-bottom:10px;" onclick="assignOutfit('${ds}',${o.id})">
-                <div class="outfit-date">${o.name}</div>
-                <ul class="outfit-items-list">${Object.entries(o.items).map(([c,id])=>{const i=wardrobe.find(x=>x.id===id);return i?`<li>${CI[c]} ${i.name}</li>`:''}).join('')}</ul>
-            </div>`).join('');
-        document.getElementById('dayOutfitModal').classList.add('active');
-    }
-}
-
-function assignOutfit(ds,id) { calendarOutfits[ds]=id; saveData(); closeModal('dayOutfitModal'); renderCalendar(); }
-function removeDayOutfit() { delete calendarOutfits[document.getElementById('removeDayBtn').getAttribute('data-date')]; saveData(); closeModal('dayOutfitModal'); renderCalendar(); }
-function formatDate(ds) { const[y,m,d]=ds.split('-'); return `${d}.${m}.${y}`; }
-
-// ========================================================
-// OUTFITS
-// ========================================================
-function renderSavedOutfits() {
-    const grid = document.getElementById('savedOutfitsGrid');
-    if(!outfits.length) { grid.innerHTML='<div class="empty-state" style="grid-column:1/-1"><span>👔</span><p>Noch keine Outfits.</p></div>'; return; }
-    grid.innerHTML = outfits.map(o=>`
-        <div class="saved-outfit-card animate-in">
-            <div style="display:flex;justify-content:space-between;align-items:center;">
-                <div class="outfit-date">${o.name}</div>
-                <button class="btn btn-delete" onclick="deleteOutfit(${o.id})">🗑️</button>
-            </div>
-            <div style="font-size:0.8em;color:#999;margin-bottom:10px;">${new Date(o.createdAt).toLocaleDateString('de-DE')}</div>
-            <ul class="outfit-items-list">${Object.entries(o.items).map(([c,id])=>{const i=wardrobe.find(x=>x.id===id);return i?`<li>${CI[c]} ${i.name} <span class="clothing-color-dot" style="background:${i.color};width:14px;height:14px;margin-left:auto;border:1px solid #ddd;"></span></li>`:`<li style="color:#ccc">❌ Gelöscht</li>`;}).join('')}</ul>
-            <button class="btn btn-suggest" style="margin-top:10px;font-size:0.85em;" onclick="loadOutfit(${o.id})">📋 Laden</button>
-        </div>`).join('');
-}
-
-function deleteOutfit(id) {
-    if(!confirm('Löschen?')) return;
-    outfits=outfits.filter(o=>o.id!==id);
-    Object.keys(calendarOutfits).forEach(d=>{if(calendarOutfits[d]===id) delete calendarOutfits[d];});
-    saveData(); renderSavedOutfits(); renderCalendar();
-}
-
-function loadOutfit(id) {
-    const o=outfits.find(x=>x.id===id); if(!o) return;
-    currentOutfit={...o.items}; document.getElementById('outfitName').value=o.name;
-    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
-    document.getElementById('tab-planner').classList.add('active');
-    document.querySelectorAll('.tab-btn')[2].classList.add('active');
-    updateSlots(); renderPlannerItems();
-}
-
-// ========================================================
-// STATS
-// ========================================================
-function renderStats() {
-    const grid = document.getElementById('statsGrid');
-    const mw = wardrobe.length?wardrobe.reduce((a,b)=>a.timesWorn>b.timesWorn?a:b):null;
-    const lw = wardrobe.length?wardrobe.reduce((a,b)=>a.timesWorn<b.timesWorn?a:b):null;
-    const cc = {}; wardrobe.forEach(i=>cc[i.category]=(cc[i.category]||0)+1);
-    const withImg = wardrobe.filter(i=>i.imageData).length;
-
-    grid.innerHTML = `
-        <div class="stat-card"><div class="stat-number">${wardrobe.length}</div><div class="stat-label">🗄️ Kleidungsstücke</div></div>
-        <div class="stat-card"><div class="stat-number">${withImg}</div><div class="stat-label">📸 Mit Foto</div></div>
-        <div class="stat-card"><div class="stat-number">${outfits.length}</div><div class="stat-label">👔 Outfits</div></div>
-        <div class="stat-card"><div class="stat-number">${Object.keys(calendarOutfits).length}</div><div class="stat-label">📅 Geplant</div></div>
-        <div class="stat-card"><div class="stat-number">${wardrobe.reduce((s,i)=>s+i.timesWorn,0)}</div><div class="stat-label">👕 Getragen</div></div>
-        ${mw?`<div class="stat-card"><div style="font-size:2em">${CI[mw.category]}</div><div class="stat-label">⭐ Favorit</div><div style="font-weight:600;margin-top:5px">${mw.name}</div><div style="color:#999;font-size:0.85em">${mw.timesWorn}x</div></div>`:''}
-        ${lw?`<div class="stat-card"><div style="font-size:2em">${CI[lw.category]}</div><div class="stat-label">💤 Schrankhüter</div><div style="font-weight:600;margin-top:5px">${lw.name}</div><div style="color:#999;font-size:0.85em">${lw.timesWorn}x</div></div>`:''}
-        ${Object.entries(cc).map(([c,n])=>`<div class="stat-card"><div class="stat-number">${n}</div><div class="stat-label">${CI[c]} ${CN[c]}</div></div>`).join('')}`;
-}
-
-// ========================================================
-// UTILS
-// ========================================================
-function closeModal(id) { document.getElementById(id).classList.remove('active'); }
-document.getElementById('slotPickerModal').addEventListener('click',function(e){if(e.target===this)closeModal('slotPickerModal');});
-document.getElementById('dayOutfitModal').addEventListener('click',function(e){if(e.target===this)closeModal('dayOutfitModal');});
-
-function saveData() {
-    // Bilder separat speichern um localStorage-Limit zu umgehen
-    const wardrobeForStorage = wardrobe.map(i => {
-        const copy = {...i};
-        if (copy.imageData && copy.imageData.length > 50000) {
-            // Große Bilder in eigenen Key speichern
-            try { localStorage.setItem('img_'+copy.id, copy.imageData); } catch(e) {}
-            copy.imageData = 'ref:img_'+copy.id;
-        }
-        return copy;
-    });
-    try {
-        localStorage.setItem('wardrobe', JSON.stringify(wardrobeForStorage));
-        localStorage.setItem('outfits', JSON.stringify(outfits));
-        localStorage.setItem('calendarOutfits', JSON.stringify(calendarOutfits));
-    } catch(e) {
-        console.warn('Storage full, trying without images');
-        const noImg = wardrobe.map(i => ({...i, imageData: null}));
-        localStorage.setItem('wardrobe', JSON.stringify(noImg));
-        localStorage.setItem('outfits', JSON.stringify(outfits));
-        localStorage.setItem('calendarOutfits', JSON.stringify(calendarOutfits));
-    }
-}
-
-function loadData() {
-    wardrobe = JSON.parse(localStorage.getItem('wardrobe') || '[]');
-    // Bilder-Referenzen auflösen
-    wardrobe = wardrobe.map(i => {
-        if (i.imageData && typeof i.imageData === 'string' && i.imageData.startsWith('ref:')) {
-            const key = i.imageData.substring(4);
-            i.imageData = localStorage.getItem(key) || null;
-        }
-        return i;
-    });
-    outfits = JSON.parse(localStorage.getItem('outfits') || '[]');
-    calendarOutfits = JSON.parse(localStorage.getItem('calendarOutfits') || '{}');
-}
-
-function exportData() {
-    const d = { wardrobe, outfits, calendarOutfits };
-    const b = new Blob([JSON.stringify(d,null,2)],{type:'application/json'});
-    const a = document.createElement('a'); a.href=URL.createObjectURL(b);
-    a.download='outfit-planer-backup.json'; a.click();
-}
-
-function importData() { document.getElementById('importFile').click(); }
-
-function handleImport(e) {
-    const f=e.target.files[0]; if(!f) return;
-    const r=new FileReader();
-    r.onload=function(ev){
-        try {
-            const d=JSON.parse(ev.target.result);
-            if(d.wardrobe) wardrobe=d.wardrobe;
-            if(d.outfits) outfits=d.outfits;
-            if(d.calendarOutfits) calendarOutfits=d.calendarOutfits;
-            saveData(); renderWardrobe(); renderPlannerItems(); renderCalendar(); renderSavedOutfits(); renderStats();
-            alert('✅ Importiert!');
-        } catch(err) { alert('❌ Fehler: '+err.message); }
-    };
-    r.readAsText(f);
-}
-
-function clearAll() {
-    if(!confirm('ALLES löschen?')) return;
-    // Auch Bild-Keys löschen
-    Object.keys(localStorage).filter(k=>k.startsWith('img_')).forEach(k=>localStorage.removeItem(k));
-    wardrobe=[]; outfits=[]; calendarOutfits={};
-    saveData(); renderWardrobe(); renderPlannerItems(); renderCalendar(); renderSavedOutfits(); renderStats();
-    alert('🗑️ Gelöscht!');
-}
-
-// ========================================================
 // INIT
-// ========================================================
-function init() {
-    loadData();
+function init(){
+    ld();
+    const k=gk();if(k)document.getElementById('keyIn').value=k;
+    document.getElementById('modelSel').value=gm();
+    const t=gt();document.getElementById('tempSl').value=t;document.getElementById('tempV').textContent=t;
+    const c=localStorage.getItem('wcity')||'';document.getElementById('cityIn').value=c;
+    if(localStorage.getItem('dk')==='1')document.body.classList.add('dark');
+    updateBadge();
 
-    const k = getApiKey(); if(k) document.getElementById('apiKeyInput').value=k;
-    document.getElementById('aiModelSelect').value = getAiModel();
-    const t = getAiTemp(); document.getElementById('aiTempSlider').value=t; document.getElementById('aiTempValue').textContent=t;
-    updateAiStatus();
+    // Settings gear in header
+    document.querySelector('.header-actions').insertAdjacentHTML('beforeend',`<button class="header-btn" onclick="openM('settingsModal')"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></button>`);
 
-    if(!wardrobe.length) {
-        wardrobe = [
-            {id:1,name:'Weißes T-Shirt',category:'oberteil',color:'#ffffff',season:'sommer',timesWorn:5},
-            {id:2,name:'Blue Jeans',category:'unterteil',color:'#1e3a5f',season:'alle',timesWorn:8},
-            {id:3,name:'Schwarze Sneaker',category:'schuhe',color:'#333333',season:'alle',timesWorn:12},
-            {id:4,name:'Roter Hoodie',category:'oberteil',color:'#ff4757',season:'herbst',timesWorn:3},
-            {id:5,name:'Beige Chinos',category:'unterteil',color:'#d4a574',season:'fruehling',timesWorn:4},
-            {id:6,name:'Lederjacke',category:'jacke',color:'#2f1b14',season:'herbst',timesWorn:2},
-            {id:7,name:'Sonnenbrille',category:'accessoire',color:'#ffa502',season:'sommer',timesWorn:6},
-            {id:8,name:'Sommerkleid',category:'kleid',color:'#ff69b4',season:'sommer',timesWorn:1},
-            {id:9,name:'Wintermantel',category:'jacke',color:'#2c3e50',season:'winter',timesWorn:7},
-            {id:10,name:'Weiße Sneaker',category:'schuhe',color:'#ecf0f1',season:'alle',timesWorn:9}
+    if(!W.length){
+        W=[
+            {id:1,name:'White Basic Tee',category:'tshirt',color:'#FFFFFF',season:'sommer',brand:'H&M',price:9.99,worn:15,laundry:false,fav:true},
+            {id:2,name:'Slim Fit Jeans',category:'jeans',color:'#1A237E',season:'alle',brand:"Levi's",price:89.99,worn:22,laundry:false,fav:true},
+            {id:3,name:'Air Force 1',category:'sneaker',color:'#FAFAFA',season:'alle',brand:'Nike',price:119.99,worn:30,laundry:false,fav:false},
+            {id:4,name:'Roter Hoodie',category:'hoodie',color:'#E53935',season:'herbst',price:39.99,worn:8,laundry:false,fav:false},
+            {id:5,name:'Beige Chino',category:'hose',color:'#D4A574',season:'fruehling',brand:'Zara',price:35.99,worn:10,laundry:true,fav:false},
+            {id:6,name:'Schwarze Lederjacke',category:'jacke',color:'#1A1A1A',season:'herbst',price:199.99,worn:6,laundry:false,fav:true},
+            {id:7,name:'Sommerkleid Blumen',category:'kleid',color:'#FF69B4',season:'sommer',price:49.99,worn:3,laundry:false,fav:false},
+            {id:8,name:'Navy Wintermantel',category:'mantel',color:'#1A237E',season:'winter',price:179.99,worn:14,laundry:false,fav:false},
+            {id:9,name:'Stan Smith',category:'sneaker',color:'#FAFAFA',season:'alle',brand:'Adidas',price:99.99,worn:25,laundry:false,fav:true},
+            {id:10,name:'Oxford Hemd',category:'hemd',color:'#90CAF9',season:'alle',brand:'COS',price:59.99,worn:7,laundry:false,fav:false}
         ];
-        saveData();
+        sv();
     }
 
-    renderWardrobe(); renderPlannerItems(); renderCalendar(); renderSavedOutfits(); renderStats();
+    rHome();rCloset();rCal();uVis();
 }
 
 init();
