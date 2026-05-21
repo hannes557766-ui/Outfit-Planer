@@ -1,0 +1,1593 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>fits. — dein outfit planer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F8F7F4;
+    --surface: #FFFFFF;
+    --surface2: #F2F1EE;
+    --border: #E8E6E1;
+    --text: #1A1916;
+    --text-muted: #9B9690;
+    --accent: #2D2D2A;
+    --accent-warm: #C8A882;
+    --accent-light: #F0EBE3;
+    --danger: #E07070;
+    --radius: 16px;
+    --radius-sm: 10px;
+    --shadow: 0 2px 16px rgba(0,0,0,0.06);
+    --shadow-lg: 0 8px 40px rgba(0,0,0,0.10);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── LAYOUT ── */
+  .app {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    grid-template-rows: auto 1fr;
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  header {
+    grid-column: 1 / -1;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 32px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .logo {
+    font-family: 'DM Serif Display', serif;
+    font-size: 26px;
+    letter-spacing: -0.5px;
+    color: var(--text);
+  }
+  .logo span { color: var(--accent-warm); }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .api-badge {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-muted);
+    background: var(--surface2);
+    padding: 4px 10px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .api-badge:hover { border-color: var(--accent-warm); color: var(--accent-warm); }
+  .api-badge.connected { color: #68A96A; border-color: #C4E0C5; background: #F0F8F0; }
+
+  /* ── SIDEBAR ── */
+  aside {
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 24px 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .sidebar-section {
+    margin-bottom: 8px;
+  }
+
+  .sidebar-label {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    padding: 0 8px;
+    margin-bottom: 8px;
+  }
+
+  .nav-btn {
+    width: 100%;
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--text-muted);
+    transition: all 0.2s;
+    text-align: left;
+  }
+  .nav-btn:hover { background: var(--surface2); color: var(--text); }
+  .nav-btn.active { background: var(--accent-light); color: var(--text); font-weight: 500; }
+  .nav-btn .icon { font-size: 18px; width: 24px; text-align: center; }
+  .nav-btn .count {
+    margin-left: auto;
+    font-size: 11px;
+    background: var(--surface2);
+    color: var(--text-muted);
+    padding: 2px 7px;
+    border-radius: 10px;
+  }
+  .nav-btn.active .count { background: var(--accent-warm); color: #fff; }
+
+  .divider { height: 1px; background: var(--border); margin: 8px 0; }
+
+  /* ── MAIN CONTENT ── */
+  main {
+    overflow-y: auto;
+    padding: 32px;
+  }
+
+  /* ── PAGE HEADER ── */
+  .page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 28px;
+  }
+
+  .page-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 32px;
+    line-height: 1.1;
+    color: var(--text);
+  }
+  .page-subtitle {
+    font-size: 14px;
+    color: var(--text-muted);
+    margin-top: 4px;
+    font-weight: 300;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 20px;
+    border-radius: var(--radius-sm);
+    border: none;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.2s;
+  }
+
+  .btn-primary {
+    background: var(--text);
+    color: #fff;
+  }
+  .btn-primary:hover { background: #333; transform: translateY(-1px); box-shadow: var(--shadow); }
+
+  .btn-outline {
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+  .btn-outline:hover { border-color: var(--text); }
+
+  .btn-warm {
+    background: var(--accent-warm);
+    color: #fff;
+  }
+  .btn-warm:hover { background: #B8966E; transform: translateY(-1px); }
+
+  /* ── TABS ── */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    background: var(--surface2);
+    padding: 4px;
+    border-radius: var(--radius-sm);
+    margin-bottom: 24px;
+    width: fit-content;
+  }
+
+  .tab {
+    padding: 8px 18px;
+    border-radius: 8px;
+    border: none;
+    background: none;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .tab.active {
+    background: var(--surface);
+    color: var(--text);
+    font-weight: 500;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  }
+
+  /* ── GRID ── */
+  .wardrobe-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 16px;
+  }
+
+  .outfit-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 20px;
+  }
+
+  /* ── CLOTHING CARD ── */
+  .clothing-card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    border: 1.5px solid var(--border);
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.25s;
+    position: relative;
+  }
+  .clothing-card:hover {
+    border-color: var(--accent-warm);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+  }
+  .clothing-card.selected {
+    border-color: var(--accent-warm);
+    box-shadow: 0 0 0 3px rgba(200,168,130,0.2);
+  }
+
+  .clothing-card .check {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 22px;
+    height: 22px;
+    background: var(--accent-warm);
+    border-radius: 50%;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    z-index: 2;
+  }
+  .clothing-card.selected .check { display: flex; }
+
+  .clothing-image {
+    width: 100%;
+    aspect-ratio: 3/4;
+    object-fit: cover;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--surface2);
+    font-size: 48px;
+    line-height: 1;
+  }
+
+  .clothing-info {
+    padding: 12px;
+  }
+  .clothing-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .clothing-meta {
+    font-size: 11px;
+    color: var(--text-muted);
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+  .clothing-tag {
+    background: var(--surface2);
+    padding: 2px 7px;
+    border-radius: 6px;
+    font-size: 10px;
+    color: var(--text-muted);
+  }
+
+  /* ── ADD CLOTHING CARD ── */
+  .add-card {
+    background: none;
+    border: 1.5px dashed var(--border);
+    border-radius: var(--radius);
+    aspect-ratio: 3/4;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    color: var(--text-muted);
+    font-size: 13px;
+    transition: all 0.2s;
+  }
+  .add-card:hover { border-color: var(--accent-warm); color: var(--accent-warm); background: var(--accent-light); }
+  .add-card .plus { font-size: 28px; }
+
+  /* ── OUTFIT CARD ── */
+  .outfit-card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    border: 1.5px solid var(--border);
+    overflow: hidden;
+    transition: all 0.25s;
+    cursor: pointer;
+  }
+  .outfit-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); border-color: var(--border); }
+
+  .outfit-preview {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+    padding: 16px;
+    background: var(--surface2);
+    min-height: 140px;
+  }
+  .outfit-preview-item {
+    background: var(--surface);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    min-height: 60px;
+  }
+
+  .outfit-info {
+    padding: 14px 16px;
+    border-top: 1px solid var(--border);
+  }
+  .outfit-name {
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 4px;
+  }
+  .outfit-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .outfit-tag {
+    font-size: 10px;
+    background: var(--surface2);
+    color: var(--text-muted);
+    padding: 3px 8px;
+    border-radius: 10px;
+  }
+
+  /* ── AI PANEL ── */
+  .ai-panel {
+    background: var(--surface);
+    border-radius: var(--radius);
+    border: 1.5px solid var(--border);
+    overflow: hidden;
+    margin-bottom: 24px;
+  }
+
+  .ai-header {
+    padding: 16px 20px;
+    background: linear-gradient(135deg, #1A1916 0%, #3D3A35 100%);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .ai-header-text { flex: 1; }
+  .ai-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: #fff;
+    margin-bottom: 1px;
+  }
+  .ai-subtitle { font-size: 12px; color: rgba(255,255,255,0.5); }
+
+  .gemini-badge {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    color: var(--accent-warm);
+    background: rgba(200,168,130,0.15);
+    border: 1px solid rgba(200,168,130,0.3);
+    padding: 4px 9px;
+    border-radius: 20px;
+  }
+
+  .ai-body {
+    padding: 20px;
+  }
+
+  .ai-prompts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .prompt-chip {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 7px 14px;
+    font-size: 12px;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .prompt-chip:hover { border-color: var(--accent-warm); color: var(--text); background: var(--accent-light); }
+
+  .ai-input-row {
+    display: flex;
+    gap: 10px;
+  }
+
+  .ai-input {
+    flex: 1;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    background: var(--bg);
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .ai-input:focus { border-color: var(--accent-warm); }
+  .ai-input::placeholder { color: var(--text-muted); }
+
+  /* ── AI RESPONSE ── */
+  .ai-response {
+    margin-top: 16px;
+    padding: 16px;
+    background: var(--accent-light);
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(200,168,130,0.3);
+    display: none;
+    animation: fadeIn 0.3s ease;
+  }
+  .ai-response.visible { display: block; }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+  .ai-response-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--accent-warm);
+    margin-bottom: 8px;
+  }
+  .ai-response-text {
+    font-size: 14px;
+    line-height: 1.65;
+    color: var(--text);
+    font-weight: 300;
+  }
+
+  .ai-loading {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+  .dots span {
+    display: inline-block;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--accent-warm);
+    animation: bounce 1.2s infinite;
+    margin: 0 1px;
+  }
+  .dots span:nth-child(2) { animation-delay: 0.2s; }
+  .dots span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes bounce { 0%,80%,100% { transform: scale(0.6); opacity: 0.4; } 40% { transform: scale(1); opacity: 1; } }
+
+  /* ── OUTFIT BUILDER ── */
+  .builder-grid {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 24px;
+  }
+
+  .mannequin-area {
+    background: var(--surface);
+    border-radius: var(--radius);
+    border: 1.5px solid var(--border);
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 480px;
+    position: relative;
+  }
+
+  .mannequin {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    width: 260px;
+  }
+
+  .mannequin-slot {
+    width: 100%;
+    background: var(--surface2);
+    border: 1.5px dashed var(--border);
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+  }
+  .mannequin-slot:hover { border-color: var(--accent-warm); background: var(--accent-light); }
+  .mannequin-slot.filled { border-style: solid; border-color: var(--border); background: var(--surface); }
+  .mannequin-slot .slot-emoji { font-size: 24px; }
+  .mannequin-slot .slot-info { flex: 1; }
+  .mannequin-slot .slot-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; }
+  .mannequin-slot .slot-name { font-size: 13px; font-weight: 500; color: var(--text); margin-top: 1px; }
+  .mannequin-slot .slot-remove {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--surface2);
+    border: none;
+    cursor: pointer;
+    color: var(--text-muted);
+    font-size: 13px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+  }
+  .mannequin-slot.filled:hover .slot-remove { display: flex; }
+  .mannequin-slot .slot-remove:hover { background: var(--danger); color: #fff; }
+
+  .builder-panel {
+    background: var(--surface);
+    border-radius: var(--radius);
+    border: 1.5px solid var(--border);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .builder-panel-title { font-size: 14px; font-weight: 500; margin-bottom: 4px; }
+
+  /* ── API MODAL ── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.3);
+    backdrop-filter: blur(4px);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--surface);
+    border-radius: 20px;
+    padding: 32px;
+    width: 420px;
+    box-shadow: var(--shadow-lg);
+    animation: modalIn 0.25s ease;
+  }
+  @keyframes modalIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+
+  .modal-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px;
+    margin-bottom: 6px;
+  }
+  .modal-subtitle { font-size: 13px; color: var(--text-muted); margin-bottom: 24px; line-height: 1.5; }
+
+  .form-group { margin-bottom: 16px; }
+  .form-label { font-size: 12px; font-weight: 500; color: var(--text); margin-bottom: 6px; display: block; }
+
+  .form-input {
+    width: 100%;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    background: var(--bg);
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .form-input:focus { border-color: var(--accent-warm); }
+
+  .form-hint { font-size: 11px; color: var(--text-muted); margin-top: 5px; }
+
+  .modal-actions { display: flex; gap: 10px; margin-top: 24px; }
+  .modal-close-btn {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: var(--surface2);
+    border: none;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--text-muted);
+    font-size: 16px;
+  }
+  .modal { position: relative; }
+
+  /* ── ADD ITEM MODAL ── */
+  .emoji-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 6px;
+    margin-bottom: 16px;
+  }
+  .emoji-option {
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: 8px;
+    border: 1.5px solid var(--border);
+    background: var(--surface2);
+    font-size: 22px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+  }
+  .emoji-option:hover { border-color: var(--accent-warm); background: var(--accent-light); }
+  .emoji-option.selected { border-color: var(--accent-warm); background: var(--accent-light); }
+
+  .filter-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+  .filter-btn {
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .filter-btn:hover { border-color: var(--text); color: var(--text); }
+  .filter-btn.active { background: var(--text); color: #fff; border-color: var(--text); }
+
+  /* ── WEATHER WIDGET ── */
+  .weather-strip {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: var(--radius);
+    padding: 16px 20px;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .weather-icon { font-size: 36px; }
+  .weather-info { flex: 1; }
+  .weather-temp { font-size: 24px; font-weight: 500; }
+  .weather-desc { font-size: 12px; opacity: 0.8; margin-top: 1px; }
+  .weather-suggestion {
+    font-size: 12px;
+    background: rgba(255,255,255,0.15);
+    padding: 6px 12px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .weather-suggestion:hover { background: rgba(255,255,255,0.25); }
+
+  /* ── EMPTY STATE ── */
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-muted);
+  }
+  .empty-icon { font-size: 48px; margin-bottom: 12px; }
+  .empty-title { font-size: 16px; font-weight: 500; color: var(--text); margin-bottom: 6px; }
+  .empty-text { font-size: 13px; line-height: 1.5; }
+
+  /* ── PAGES ── */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  /* ── SELECT ── */
+  select {
+    width: 100%;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    background: var(--bg);
+    color: var(--text);
+    outline: none;
+    cursor: pointer;
+  }
+
+  .color-swatch-row { display: flex; gap: 6px; flex-wrap: wrap; }
+  .color-swatch {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: transform 0.15s;
+  }
+  .color-swatch:hover { transform: scale(1.15); }
+  .color-swatch.selected { border-color: var(--text); }
+
+  @media (max-width: 800px) {
+    .app { grid-template-columns: 1fr; }
+    aside { display: none; }
+    .builder-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- HEADER -->
+  <header>
+    <div class="logo">fits<span>.</span></div>
+    <div class="header-right">
+      <span class="api-badge" id="apiBadge" onclick="openApiModal()">⚙ Gemini API</span>
+    </div>
+  </header>
+
+  <!-- SIDEBAR -->
+  <aside>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Übersicht</div>
+      <button class="nav-btn active" onclick="showPage('today')" id="nav-today">
+        <span class="icon">✨</span> Heute
+      </button>
+      <button class="nav-btn" onclick="showPage('builder')" id="nav-builder">
+        <span class="icon">👗</span> Outfit erstellen
+      </button>
+      <button class="nav-btn" onclick="showPage('outfits')" id="nav-outfits">
+        <span class="icon">📋</span> Meine Outfits
+        <span class="count" id="outfitCountBadge">0</span>
+      </button>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Kleiderschrank</div>
+      <button class="nav-btn" onclick="showPage('wardrobe'); setFilter('Alle')" id="nav-wardrobe">
+        <span class="icon">🗂️</span> Alle Teile
+        <span class="count" id="wardrobeCountBadge">0</span>
+      </button>
+      <button class="nav-btn" onclick="showPage('wardrobe'); setFilter('Tops')" id="nav-tops">
+        <span class="icon">👕</span> Tops
+      </button>
+      <button class="nav-btn" onclick="showPage('wardrobe'); setFilter('Hosen')" id="nav-bottoms">
+        <span class="icon">👖</span> Hosen
+      </button>
+      <button class="nav-btn" onclick="showPage('wardrobe'); setFilter('Schuhe')" id="nav-shoes">
+        <span class="icon">👟</span> Schuhe
+      </button>
+      <button class="nav-btn" onclick="showPage('wardrobe'); setFilter('Jacken')" id="nav-jackets">
+        <span class="icon">🧥</span> Jacken
+      </button>
+      <button class="nav-btn" onclick="showPage('wardrobe'); setFilter('Accessoires')" id="nav-acc">
+        <span class="icon">💍</span> Accessoires
+      </button>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="sidebar-section">
+      <button class="nav-btn" onclick="showPage('stats')" id="nav-stats">
+        <span class="icon">📊</span> Statistiken
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main>
+
+    <!-- PAGE: TODAY -->
+    <div class="page active" id="page-today">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Guten Morgen ✦</div>
+          <div class="page-subtitle">Was ziehst du heute an?</div>
+        </div>
+        <button class="btn btn-primary" onclick="showPage('builder'); activateNav('nav-builder')">
+          + Outfit erstellen
+        </button>
+      </div>
+
+      <!-- Weather -->
+      <div class="weather-strip">
+        <div class="weather-icon">🌤️</div>
+        <div class="weather-info">
+          <div class="weather-temp">18°C – Frankfurt</div>
+          <div class="weather-desc">Leicht bewölkt, Wind 12 km/h</div>
+        </div>
+        <div class="weather-suggestion" onclick="askWeatherOutfit()">KI fragen →</div>
+      </div>
+
+      <!-- AI Panel -->
+      <div class="ai-panel">
+        <div class="ai-header">
+          <div>✦</div>
+          <div class="ai-header-text">
+            <div class="ai-title">KI-Styling-Assistent</div>
+            <div class="ai-subtitle">powered by Gemini</div>
+          </div>
+          <div class="gemini-badge">GEMINI</div>
+        </div>
+        <div class="ai-body">
+          <div class="ai-prompts">
+            <button class="prompt-chip" onclick="sendPrompt('Erstelle ein Business-Casual Outfit für mich.')">💼 Business-Casual</button>
+            <button class="prompt-chip" onclick="sendPrompt('Was passe ich zu einem weißen T-Shirt?')">👕 Kombinier-Hilfe</button>
+            <button class="prompt-chip" onclick="sendPrompt('Welche Trendfarben passen für diesen Frühling?')">🌸 Trend-Check</button>
+            <button class="prompt-chip" onclick="sendPrompt('Erstelle ein minimalistisches Monochrome-Outfit.')">⚪ Monochrome</button>
+            <button class="prompt-chip" onclick="sendPrompt('Welche Pieces fehlen mir für einen Basis-Kleiderschrank?')">🧺 Capsule Check</button>
+          </div>
+          <div class="ai-input-row">
+            <input class="ai-input" id="aiInput" placeholder="Frag nach Styling-Tipps, Kombis oder Trends…" onkeydown="if(event.key==='Enter') sendPrompt()">
+            <button class="btn btn-warm" onclick="sendPrompt()">✦ Fragen</button>
+          </div>
+          <div class="ai-response" id="aiResponse">
+            <div class="ai-response-label">✦ Gemini antwortet</div>
+            <div class="ai-response-text" id="aiResponseText"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Outfits -->
+      <div style="margin-bottom:16px; display:flex; align-items:center; justify-content:space-between;">
+        <div style="font-size:16px; font-weight:500;">Zuletzt getragen</div>
+        <button class="btn btn-outline" onclick="showPage('outfits'); activateNav('nav-outfits')" style="font-size:12px; padding:7px 14px;">Alle ansehen</button>
+      </div>
+      <div class="outfit-grid" id="recentOutfits"></div>
+    </div>
+
+    <!-- PAGE: WARDROBE -->
+    <div class="page" id="page-wardrobe">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Kleiderschrank</div>
+          <div class="page-subtitle" id="wardrobeSubtitle">Alle deine Kleidungsstücke</div>
+        </div>
+        <button class="btn btn-primary" onclick="openAddModal()">+ Hinzufügen</button>
+      </div>
+
+      <div class="filter-row" id="filterRow"></div>
+      <div class="wardrobe-grid" id="wardrobeGrid"></div>
+    </div>
+
+    <!-- PAGE: BUILDER -->
+    <div class="page" id="page-builder">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Outfit erstellen</div>
+          <div class="page-subtitle">Kombiniere deine Pieces</div>
+        </div>
+        <button class="btn btn-primary" onclick="saveOutfit()">💾 Outfit speichern</button>
+      </div>
+
+      <div class="builder-grid">
+        <div class="mannequin-area">
+          <div style="font-size:12px; color:var(--text-muted); margin-bottom:20px; letter-spacing:0.5px; text-transform:uppercase;">Dein Look</div>
+          <div class="mannequin" id="mannequin">
+            <div class="mannequin-slot" id="slot-head" onclick="openSlotPicker('head')">
+              <span class="slot-emoji">🎩</span>
+              <div class="slot-info">
+                <div class="slot-label">Kopfbedeckung</div>
+                <div class="slot-name" style="color:var(--text-muted)">Tap zum Auswählen</div>
+              </div>
+              <button class="slot-remove" onclick="clearSlot(event,'head')">×</button>
+            </div>
+            <div class="mannequin-slot" id="slot-outer" onclick="openSlotPicker('outer')">
+              <span class="slot-emoji">🧥</span>
+              <div class="slot-info">
+                <div class="slot-label">Jacke / Outer</div>
+                <div class="slot-name" style="color:var(--text-muted)">Tap zum Auswählen</div>
+              </div>
+              <button class="slot-remove" onclick="clearSlot(event,'outer')">×</button>
+            </div>
+            <div class="mannequin-slot" id="slot-top" onclick="openSlotPicker('top')">
+              <span class="slot-emoji">👕</span>
+              <div class="slot-info">
+                <div class="slot-label">Top / Shirt</div>
+                <div class="slot-name" style="color:var(--text-muted)">Tap zum Auswählen</div>
+              </div>
+              <button class="slot-remove" onclick="clearSlot(event,'top')">×</button>
+            </div>
+            <div class="mannequin-slot" id="slot-bottom" onclick="openSlotPicker('bottom')">
+              <span class="slot-emoji">👖</span>
+              <div class="slot-info">
+                <div class="slot-label">Hose / Rock</div>
+                <div class="slot-name" style="color:var(--text-muted)">Tap zum Auswählen</div>
+              </div>
+              <button class="slot-remove" onclick="clearSlot(event,'bottom')">×</button>
+            </div>
+            <div class="mannequin-slot" id="slot-shoes" onclick="openSlotPicker('shoes')">
+              <span class="slot-emoji">👟</span>
+              <div class="slot-info">
+                <div class="slot-label">Schuhe</div>
+                <div class="slot-name" style="color:var(--text-muted)">Tap zum Auswählen</div>
+              </div>
+              <button class="slot-remove" onclick="clearSlot(event,'shoes')">×</button>
+            </div>
+            <div class="mannequin-slot" id="slot-acc" onclick="openSlotPicker('acc')">
+              <span class="slot-emoji">💍</span>
+              <div class="slot-info">
+                <div class="slot-label">Accessoire</div>
+                <div class="slot-name" style="color:var(--text-muted)">Tap zum Auswählen</div>
+              </div>
+              <button class="slot-remove" onclick="clearSlot(event,'acc')">×</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="builder-panel">
+          <div>
+            <div class="builder-panel-title">Outfit-Name</div>
+            <input class="form-input" id="outfitName" placeholder="z.B. Casual Friday Look">
+          </div>
+          <div>
+            <div class="builder-panel-title">Anlass</div>
+            <select id="outfitOccasion">
+              <option value="">Auswählen…</option>
+              <option>Casual</option>
+              <option>Business</option>
+              <option>Sport</option>
+              <option>Abend / Event</option>
+              <option>Outdoor</option>
+              <option>Date</option>
+            </select>
+          </div>
+          <div>
+            <div class="builder-panel-title">Saison</div>
+            <select id="outfitSeason">
+              <option value="">Auswählen…</option>
+              <option>Frühling</option>
+              <option>Sommer</option>
+              <option>Herbst</option>
+              <option>Winter</option>
+            </select>
+          </div>
+
+          <div class="divider"></div>
+
+          <div>
+            <div class="builder-panel-title" style="margin-bottom:8px;">KI analysiert dein Outfit</div>
+            <button class="btn btn-outline" style="width:100%; justify-content:center;" onclick="analyzeCurrentOutfit()">✦ Von Gemini bewerten lassen</button>
+            <div class="ai-response" id="builderAiResponse" style="margin-top:12px;">
+              <div class="ai-response-label">✦ Gemini sagt</div>
+              <div class="ai-response-text" id="builderAiResponseText"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE: OUTFITS -->
+    <div class="page" id="page-outfits">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Meine Outfits</div>
+          <div class="page-subtitle">Gespeicherte Kombinationen</div>
+        </div>
+        <button class="btn btn-primary" onclick="showPage('builder'); activateNav('nav-builder')">+ Neu erstellen</button>
+      </div>
+      <div class="outfit-grid" id="outfitsGrid"></div>
+    </div>
+
+    <!-- PAGE: STATS -->
+    <div class="page" id="page-stats">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Statistiken</div>
+          <div class="page-subtitle">Dein Kleiderschrank auf einen Blick</div>
+        </div>
+      </div>
+      <div id="statsContent"></div>
+    </div>
+
+  </main>
+</div>
+
+<!-- MODAL: API KEY -->
+<div class="modal-overlay" id="apiModal">
+  <div class="modal">
+    <button class="modal-close-btn" onclick="closeApiModal()">×</button>
+    <div class="modal-title">Gemini verbinden</div>
+    <div class="modal-subtitle">Gib deinen Gemini API Key ein, um den KI-Styling-Assistenten zu aktivieren. Du bekommst einen kostenlosen Key bei <a href="https://aistudio.google.com" target="_blank" style="color:var(--accent-warm)">Google AI Studio</a>.</div>
+    <div class="form-group">
+      <label class="form-label">API Key</label>
+      <input class="form-input" type="password" id="apiKeyInput" placeholder="AIza…">
+      <div class="form-hint">Dein Key wird nur lokal im Browser gespeichert.</div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="saveApiKey()">Verbinden</button>
+      <button class="btn btn-outline" onclick="closeApiModal()">Abbrechen</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: ADD CLOTHING -->
+<div class="modal-overlay" id="addModal">
+  <div class="modal" style="width:480px;">
+    <button class="modal-close-btn" onclick="closeAddModal()">×</button>
+    <div class="modal-title">Piece hinzufügen</div>
+    <div style="margin-bottom:16px;">
+      <label class="form-label">Emoji / Icon</label>
+      <div class="emoji-grid" id="emojiGrid"></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Name</label>
+      <input class="form-input" id="itemName" placeholder="z.B. Weißes Linen Shirt">
+    </div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px;">
+      <div>
+        <label class="form-label">Kategorie</label>
+        <select id="itemCategory">
+          <option>Tops</option>
+          <option>Hosen</option>
+          <option>Schuhe</option>
+          <option>Jacken</option>
+          <option>Accessoires</option>
+          <option>Kleider</option>
+        </select>
+      </div>
+      <div>
+        <label class="form-label">Marke (optional)</label>
+        <input class="form-input" id="itemBrand" placeholder="z.B. Zara">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Farbe</label>
+      <div class="color-swatch-row" id="colorSwatches"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="addItem()">Hinzufügen</button>
+      <button class="btn btn-outline" onclick="closeAddModal()">Abbrechen</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: SLOT PICKER -->
+<div class="modal-overlay" id="slotModal">
+  <div class="modal" style="width:520px;">
+    <button class="modal-close-btn" onclick="closeSlotModal()">×</button>
+    <div class="modal-title" id="slotModalTitle">Piece auswählen</div>
+    <div class="wardrobe-grid" id="slotPickerGrid" style="max-height:380px; overflow-y:auto; margin-top:16px;"></div>
+  </div>
+</div>
+
+<script>
+// ─── STATE ───────────────────────────────────────────
+let apiKey = localStorage.getItem('gemini_api_key') || '';
+let currentFilter = 'Alle';
+let currentSlot = null;
+
+const slotCategoryMap = {
+  head: ['Accessoires'],
+  outer: ['Jacken'],
+  top: ['Tops', 'Kleider'],
+  bottom: ['Hosen', 'Kleider'],
+  shoes: ['Schuhe'],
+  acc: ['Accessoires']
+};
+
+const slotLabels = {
+  head: 'Kopfbedeckung',
+  outer: 'Jacke / Outer',
+  top: 'Top / Shirt',
+  bottom: 'Hose / Rock',
+  shoes: 'Schuhe',
+  acc: 'Accessoire'
+};
+
+let currentOutfitSlots = { head: null, outer: null, top: null, bottom: null, shoes: null, acc: null };
+
+let wardrobe = JSON.parse(localStorage.getItem('wardrobe') || '[]');
+let outfits = JSON.parse(localStorage.getItem('outfits') || '[]');
+
+// Seed data
+if (wardrobe.length === 0) {
+  wardrobe = [
+    { id: 1, name: 'Weißes T-Shirt', emoji: '👕', category: 'Tops', brand: 'Uniqlo', color: '#FFFFFF' },
+    { id: 2, name: 'Blaues Oxford Hemd', emoji: '👔', category: 'Tops', brand: 'COS', color: '#4A6FA5' },
+    { id: 3, name: 'Schwarze Jeans', emoji: '👖', category: 'Hosen', brand: 'Levi\'s', color: '#1A1A2E' },
+    { id: 4, name: 'Beige Chino', emoji: '🩳', category: 'Hosen', brand: 'Zara', color: '#D4B896' },
+    { id: 5, name: 'White Sneakers', emoji: '👟', category: 'Schuhe', brand: 'Nike', color: '#FFFFFF' },
+    { id: 6, name: 'Chelsea Boots', emoji: '🥾', category: 'Schuhe', brand: 'Dr. Martens', color: '#2C1810' },
+    { id: 7, name: 'Denim Jacket', emoji: '🧥', category: 'Jacken', brand: 'Weekday', color: '#4A6FA5' },
+    { id: 8, name: 'Silberne Uhr', emoji: '⌚', category: 'Accessoires', brand: 'Casio', color: '#C0C0C0' },
+    { id: 9, name: 'Strick-Pullover', emoji: '🧶', category: 'Tops', brand: 'H&M', color: '#8B7355' },
+    { id: 10, name: 'Leather Belt', emoji: '🪢', category: 'Accessoires', brand: 'Zara', color: '#2C1810' },
+  ];
+  saveWardrobe();
+}
+
+const EMOJIS = ['👕','👔','🧥','🥼','👗','👘','🩱','🩲','🩳','👖','👗','👙','🧤','🧣','🎩','⛑️','👟','👠','👡','👢','🥾','🥿','🩴','👒','🕶️','💍','⌚','👜','👛','🎒','🧢','🩰','🪢','🧶','🪭'];
+const COLORS = ['#FFFFFF','#1A1916','#4A6FA5','#D4B896','#8B7355','#C0C0C0','#2C1810','#5C8A5C','#E07070','#7B6B9E','#F5E6C8','#2D3748'];
+
+// ─── INIT ────────────────────────────────────────────
+function init() {
+  updateBadge();
+  renderEmojiGrid();
+  renderColorSwatches();
+  renderFilterRow();
+  renderAll();
+}
+
+function saveWardrobe() { localStorage.setItem('wardrobe', JSON.stringify(wardrobe)); }
+function saveOutfits() { localStorage.setItem('outfits', JSON.stringify(outfits)); }
+
+// ─── NAV ─────────────────────────────────────────────
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  const navMap = { today: 'nav-today', wardrobe: 'nav-wardrobe', builder: 'nav-builder', outfits: 'nav-outfits', stats: 'nav-stats' };
+  if (navMap[name]) document.getElementById(navMap[name]).classList.add('active');
+  if (name === 'wardrobe') renderWardrobe();
+  if (name === 'outfits') renderOutfits();
+  if (name === 'today') renderRecent();
+  if (name === 'stats') renderStats();
+}
+
+function activateNav(id) {
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// ─── RENDER ──────────────────────────────────────────
+function renderAll() {
+  renderWardrobe();
+  renderOutfits();
+  renderRecent();
+  updateCounts();
+}
+
+function renderWardrobe() {
+  const grid = document.getElementById('wardrobeGrid');
+  const filtered = currentFilter === 'Alle' ? wardrobe : wardrobe.filter(i => i.category === currentFilter);
+  document.getElementById('wardrobeSubtitle').textContent =
+    currentFilter === 'Alle' ? `${wardrobe.length} Teile insgesamt` : `${filtered.length} ${currentFilter}`;
+
+  if (filtered.length === 0) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
+      <div class="empty-icon">🧺</div>
+      <div class="empty-title">Noch leer hier</div>
+      <div class="empty-text">Füge deine ersten Kleidungsstücke hinzu.</div>
+    </div>`;
+    return;
+  }
+
+  grid.innerHTML = filtered.map(item => `
+    <div class="clothing-card">
+      <div class="clothing-image" style="background:${item.color}22">${item.emoji}</div>
+      <div class="clothing-info">
+        <div class="clothing-name">${item.name}</div>
+        <div class="clothing-meta">
+          <span class="clothing-tag">${item.category}</span>
+          ${item.brand ? `<span style="color:var(--text-muted)">${item.brand}</span>` : ''}
+        </div>
+      </div>
+    </div>
+  `).join('');
+
+  // Add button
+  const addBtn = document.createElement('div');
+  addBtn.className = 'add-card';
+  addBtn.onclick = openAddModal;
+  addBtn.innerHTML = '<div class="plus">+</div><div>Hinzufügen</div>';
+  grid.appendChild(addBtn);
+}
+
+function renderOutfits() {
+  const grid = document.getElementById('outfitsGrid');
+  if (outfits.length === 0) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
+      <div class="empty-icon">✨</div>
+      <div class="empty-title">Noch keine Outfits</div>
+      <div class="empty-text">Erstelle dein erstes Outfit im Builder.</div>
+    </div>`;
+    return;
+  }
+  grid.innerHTML = outfits.map(o => renderOutfitCard(o)).join('');
+}
+
+function renderRecent() {
+  const el = document.getElementById('recentOutfits');
+  const recent = [...outfits].reverse().slice(0, 4);
+  if (recent.length === 0) {
+    el.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
+      <div class="empty-icon">👗</div>
+      <div class="empty-title">Noch keine Outfits</div>
+      <div class="empty-text">Erstelle dein erstes Outfit und es erscheint hier.</div>
+    </div>`;
+    return;
+  }
+  el.innerHTML = recent.map(o => renderOutfitCard(o)).join('');
+}
+
+function renderOutfitCard(o) {
+  const items = Object.values(o.slots).filter(Boolean);
+  const preview = items.slice(0, 4).map(id => {
+    const item = wardrobe.find(w => w.id === id);
+    return `<div class="outfit-preview-item">${item ? item.emoji : '?'}</div>`;
+  }).join('');
+  const tags = [o.occasion, o.season].filter(Boolean);
+  return `<div class="outfit-card">
+    <div class="outfit-preview">${preview}</div>
+    <div class="outfit-info">
+      <div class="outfit-name">${o.name}</div>
+      <div class="outfit-tags">${tags.map(t => `<span class="outfit-tag">${t}</span>`).join('')}</div>
+    </div>
+  </div>`;
+}
+
+function renderStats() {
+  const byCategory = {};
+  wardrobe.forEach(i => { byCategory[i.category] = (byCategory[i.category] || 0) + 1; });
+  const bars = Object.entries(byCategory).map(([cat, count]) => {
+    const pct = Math.round((count / wardrobe.length) * 100);
+    return `<div style="margin-bottom:12px;">
+      <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;">
+        <span>${cat}</span><span style="color:var(--text-muted)">${count} Stück</span>
+      </div>
+      <div style="height:6px;background:var(--surface2);border-radius:3px;overflow:hidden;">
+        <div style="height:100%;width:${pct}%;background:var(--accent-warm);border-radius:3px;transition:width 0.6s ease;"></div>
+      </div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('statsContent').innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:28px;">
+      <div style="background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:20px;">
+        <div style="font-size:32px;font-weight:500;">${wardrobe.length}</div>
+        <div style="font-size:13px;color:var(--text-muted);margin-top:2px;">Kleidungsstücke</div>
+      </div>
+      <div style="background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:20px;">
+        <div style="font-size:32px;font-weight:500;">${outfits.length}</div>
+        <div style="font-size:13px;color:var(--text-muted);margin-top:2px;">Outfits gespeichert</div>
+      </div>
+      <div style="background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:20px;">
+        <div style="font-size:32px;font-weight:500;">${Object.keys(byCategory).length}</div>
+        <div style="font-size:13px;color:var(--text-muted);margin-top:2px;">Kategorien</div>
+      </div>
+    </div>
+    <div style="background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:24px;">
+      <div style="font-size:15px;font-weight:500;margin-bottom:20px;">Verteilung</div>
+      ${bars}
+    </div>`;
+}
+
+function updateCounts() {
+  document.getElementById('wardrobeCountBadge').textContent = wardrobe.length;
+  document.getElementById('outfitCountBadge').textContent = outfits.length;
+}
+
+// ─── FILTERS ─────────────────────────────────────────
+const filters = ['Alle', 'Tops', 'Hosen', 'Schuhe', 'Jacken', 'Accessoires', 'Kleider'];
+
+function renderFilterRow() {
+  const row = document.getElementById('filterRow');
+  row.innerHTML = filters.map(f => `
+    <button class="filter-btn ${f === currentFilter ? 'active' : ''}" onclick="setFilter('${f}')">${f}</button>
+  `).join('');
+}
+
+function setFilter(f) {
+  currentFilter = f;
+  showPage('wardrobe');
+  renderFilterRow();
+  renderWardrobe();
+}
+
+// ─── ADD MODAL ───────────────────────────────────────
+let selectedEmoji = '👕';
+let selectedColor = '#FFFFFF';
+
+function renderEmojiGrid() {
+  document.getElementById('emojiGrid').innerHTML = EMOJIS.map(e => `
+    <div class="emoji-option ${e === selectedEmoji ? 'selected' : ''}" onclick="selectEmoji('${e}')">${e}</div>
+  `).join('');
+}
+
+function renderColorSwatches() {
+  document.getElementById('colorSwatches').innerHTML = COLORS.map(c => `
+    <div class="color-swatch ${c === selectedColor ? 'selected' : ''}"
+      style="background:${c};border:1.5px solid ${c === '#FFFFFF' ? '#ddd' : c}"
+      onclick="selectColor('${c}')"></div>
+  `).join('');
+}
+
+function selectEmoji(e) {
+  selectedEmoji = e;
+  renderEmojiGrid();
+}
+
+function selectColor(c) {
+  selectedColor = c;
+  renderColorSwatches();
+}
+
+function openAddModal() { document.getElementById('addModal').classList.add('open'); }
+function closeAddModal() { document.getElementById('addModal').classList.remove('open'); }
+
+function addItem() {
+  const name = document.getElementById('itemName').value.trim();
+  if (!name) { document.getElementById('itemName').focus(); return; }
+  const item = {
+    id: Date.now(),
+    name,
+    emoji: selectedEmoji,
+    category: document.getElementById('itemCategory').value,
+    brand: document.getElementById('itemBrand').value.trim(),
+    color: selectedColor
+  };
+  wardrobe.push(item);
+  saveWardrobe();
+  updateCounts();
+  closeAddModal();
+  document.getElementById('itemName').value = '';
+  document.getElementById('itemBrand').value = '';
+  renderWardrobe();
+}
+
+// ─── SLOT PICKER ─────────────────────────────────────
+function openSlotPicker(slot) {
+  currentSlot = slot;
+  document.getElementById('slotModalTitle').textContent = slotLabels[slot] + ' wählen';
+  const cats = slotCategoryMap[slot];
+  const items = wardrobe.filter(i => cats.includes(i.category));
+  const grid = document.getElementById('slotPickerGrid');
+  if (items.length === 0) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
+      <div class="empty-icon">🧺</div>
+      <div class="empty-title">Keine Pieces</div>
+      <div class="empty-text">Füge zuerst Kleidungsstücke in dieser Kategorie hinzu.</div>
+    </div>`;
+  } else {
+    grid.innerHTML = items.map(item => `
+      <div class="clothing-card ${currentOutfitSlots[slot] === item.id ? 'selected' : ''}" onclick="selectSlotItem(${item.id})">
+        <div class="check">✓</div>
+        <div class="clothing-image" style="background:${item.color}22">${item.emoji}</div>
+        <div class="clothing-info">
+          <div class="clothing-name">${item.name}</div>
+          <div class="clothing-meta"><span class="clothing-tag">${item.category}</span></div>
+        </div>
+      </div>
+    `).join('');
+  }
+  document.getElementById('slotModal').classList.add('open');
+}
+
+function closeSlotModal() { document.getElementById('slotModal').classList.remove('open'); }
+
+function selectSlotItem(id) {
+  currentOutfitSlots[currentSlot] = id;
+  const item = wardrobe.find(i => i.id === id);
+  const slot = document.getElementById('slot-' + currentSlot);
+  slot.classList.add('filled');
+  slot.querySelector('.slot-emoji').textContent = item.emoji;
+  slot.querySelector('.slot-name').textContent = item.name;
+  slot.querySelector('.slot-name').style.color = 'var(--text)';
+  closeSlotModal();
+}
+
+function clearSlot(e, slot) {
+  e.stopPropagation();
+  currentOutfitSlots[slot] = null;
+  const slotEl = document.getElementById('slot-' + slot);
+  slotEl.classList.remove('filled');
+  const defaults = { head:'🎩',outer:'🧥',top:'👕',bottom:'👖',shoes:'👟',acc:'💍' };
+  slotEl.querySelector('.slot-emoji').textContent = defaults[slot];
+  slotEl.querySelector('.slot-name').textContent = 'Tap zum Auswählen';
+  slotEl.querySelector('.slot-name').style.color = 'var(--text-muted)';
+}
+
+// ─── SAVE OUTFIT ─────────────────────────────────────
+function saveOutfit() {
+  const name = document.getElementById('outfitName').value.trim() || 'Mein Outfit';
+  const hasItems = Object.values(currentOutfitSlots).some(Boolean);
+  if (!hasItems) { alert('Wähle mindestens ein Kleidungsstück aus.'); return; }
+  const outfit = {
+    id: Date.now(),
+    name,
+    occasion: document.getElementById('outfitOccasion').value,
+    season: document.getElementById('outfitSeason').value,
+    slots: { ...currentOutfitSlots },
+    createdAt: new Date().toISOString()
+  };
+  outfits.push(outfit);
+  saveOutfits();
+  updateCounts();
+  // Reset
+  currentOutfitSlots = { head: null, outer: null, top: null, bottom: null, shoes: null, acc: null };
+  document.getElementById('outfitName').value = '';
+  ['head','outer','top','bottom','shoes','acc'].forEach(s => clearSlot({stopPropagation:()=>{}}, s));
+  document.getElementById('builderAiResponse').classList.remove('visible');
+  showPage('outfits');
+}
+
+// ─── API MODAL ───────────────────────────────────────
+function openApiModal() { document.getElementById('apiModal').classList.add('open'); document.getElementById('apiKeyInput').value = apiKey; }
+function closeApiModal() { document.getElementById('apiModal').classList.remove('open'); }
+
+function saveApiKey() {
+  const key = document.getElementById('apiKeyInput').value.trim();
+  if (!key) return;
+  apiKey = key;
+  localStorage.setItem('gemini_api_key', key);
+  updateBadge();
+  closeApiModal();
+}
+
+function updateBadge() {
+  const badge = document.getElementById('apiBadge');
+  if (apiKey) {
+    badge.textContent = '✓ Gemini verbunden';
+    badge.classList.add('connected');
+  } else {
+    badge.textContent = '⚙ Gemini API';
+    badge.classList.remove('connected');
+  }
+}
+
+// ─── GEMINI API ──────────────────────────────────────
+async function callGemini(prompt) {
+  if (!apiKey) {
+    openApiModal();
+    return null;
+  }
+
+  const wardrobeContext = wardrobe.length > 0
+    ? `Der Nutzer hat folgende Kleidungsstücke: ${wardrobe.map(i => `${i.emoji} ${i.name} (${i.category}${i.brand ? ', ' + i.brand : ''})`).join(', ')}.`
+    : '';
+
+  const systemPrompt = `Du bist ein stilsicherer Modeberater namens "fits. Assistant". 
+Du gibst kurze, präzise und persönliche Styling-Ratschläge auf Deutsch.
+Antworte in 2-4 Sätzen, sei konkret und inspirierend. Kein Markdown.
+${wardrobeContext}`;
+
+  try {
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [
+            { role: 'user', parts: [{ text: systemPrompt + '\n\n' + prompt }] }
+          ],
+          generationConfig: { temperature: 0.8, maxOutputTokens: 300 }
+        })
+      }
+    );
+    const data = await response.json();
+    if (data.error) { alert('API Fehler: ' + data.error.message); return null; }
+    return data.candidates?.[0]?.content?.parts?.[0]?.text || 'Keine Antwort erhalten.';
+  } catch (e) {
+    alert('Verbindungsfehler: ' + e.message);
+    return null;
+  }
+}
+
+async function sendPrompt(customPrompt) {
+  const input = document.getElementById('aiInput');
+  const prompt = customPrompt || input.value.trim();
+  if (!prompt) return;
+  input.value = customPrompt || input.value;
+
+  const responseEl = document.getElementById('aiResponse');
+  const textEl = document.getElementById('aiResponseText');
+  responseEl.classList.add('visible');
+  textEl.innerHTML = `<div class="ai-loading">Gemini denkt nach <div class="dots"><span></span><span></span><span></span></div></div>`;
+
+  const result = await callGemini(prompt);
+  if (result) {
+    textEl.textContent = result;
+    if (!customPrompt) input.value = '';
+  } else {
+    responseEl.classList.remove('visible');
+  }
+}
+
+async function askWeatherOutfit() {
+  showPage('today');
+  await sendPrompt('Es ist heute 18°C und leicht bewölkt in Frankfurt. Welches Outfit empfiehlst du für dieses Wetter?');
+}
+
+async function analyzeCurrentOutfit() {
+  const items = Object.entries(currentOutfitSlots)
+    .filter(([, id]) => id)
+    .map(([slot, id]) => {
+      const item = wardrobe.find(i => i.id === id);
+      return item ? `${slotLabels[slot]}: ${item.emoji} ${item.name}` : null;
+    }).filter(Boolean);
+
+  if (items.length === 0) {
+    alert('Wähle zuerst Kleidungsstücke aus.');
+    return;
+  }
+
+  const respEl = document.getElementById('builderAiResponse');
+  const textEl = document.getElementById('builderAiResponseText');
+  respEl.classList.add('visible');
+  textEl.innerHTML = `<div class="ai-loading">Analysiere dein Outfit <div class="dots"><span></span><span></span><span></span></div></div>`;
+
+  const prompt = `Bewerte dieses Outfit: ${items.join(', ')}. Gib Feedback zur Kombination und einen Verbesserungsvorschlag.`;
+  const result = await callGemini(prompt);
+  if (result) textEl.textContent = result;
+}
+
+// ─── INIT ─────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>
