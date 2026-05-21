@@ -1,1592 +1,1846 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>fits. — dein outfit planer</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --bg: #F8F7F4;
-    --surface: #FFFFFF;
-    --surface2: #F2F1EE;
-    --border: #E8E6E1;
-    --text: #1A1916;
-    --text-muted: #9B9690;
-    --accent: #2D2D2A;
-    --accent-warm: #C8A882;
-    --accent-light: #F0EBE3;
-    --danger: #E07070;
-    --radius: 16px;
-    --radius-sm: 10px;
-    --shadow: 0 2px 16px rgba(0,0,0,0.06);
-    --shadow-lg: 0 8px 40px rgba(0,0,0,0.10);
-  }
-
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-
-  body {
-    font-family: 'DM Sans', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    -webkit-font-smoothing: antialiased;
-  }
-
-  /* ── LAYOUT ── */
-  .app {
-    display: grid;
-    grid-template-columns: 280px 1fr;
-    grid-template-rows: auto 1fr;
-    min-height: 100vh;
-  }
-
-  /* ── HEADER ── */
-  header {
-    grid-column: 1 / -1;
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    padding: 0 32px;
-    height: 64px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
-
-  .logo {
-    font-family: 'DM Serif Display', serif;
-    font-size: 26px;
-    letter-spacing: -0.5px;
-    color: var(--text);
-  }
-  .logo span { color: var(--accent-warm); }
-
-  .header-right {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-
-  .api-badge {
-    font-size: 11px;
-    font-weight: 500;
-    color: var(--text-muted);
-    background: var(--surface2);
-    padding: 4px 10px;
-    border-radius: 20px;
-    border: 1px solid var(--border);
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-  .api-badge:hover { border-color: var(--accent-warm); color: var(--accent-warm); }
-  .api-badge.connected { color: #68A96A; border-color: #C4E0C5; background: #F0F8F0; }
-
-  /* ── SIDEBAR ── */
-  aside {
-    background: var(--surface);
-    border-right: 1px solid var(--border);
-    padding: 24px 20px;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .sidebar-section {
-    margin-bottom: 8px;
-  }
-
-  .sidebar-label {
-    font-size: 10px;
-    font-weight: 500;
-    letter-spacing: 1.2px;
-    text-transform: uppercase;
-    color: var(--text-muted);
-    padding: 0 8px;
-    margin-bottom: 8px;
-  }
-
-  .nav-btn {
-    width: 100%;
-    background: none;
-    border: none;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 12px;
-    border-radius: var(--radius-sm);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 14px;
-    font-weight: 400;
-    color: var(--text-muted);
-    transition: all 0.2s;
-    text-align: left;
-  }
-  .nav-btn:hover { background: var(--surface2); color: var(--text); }
-  .nav-btn.active { background: var(--accent-light); color: var(--text); font-weight: 500; }
-  .nav-btn .icon { font-size: 18px; width: 24px; text-align: center; }
-  .nav-btn .count {
-    margin-left: auto;
-    font-size: 11px;
-    background: var(--surface2);
-    color: var(--text-muted);
-    padding: 2px 7px;
-    border-radius: 10px;
-  }
-  .nav-btn.active .count { background: var(--accent-warm); color: #fff; }
-
-  .divider { height: 1px; background: var(--border); margin: 8px 0; }
-
-  /* ── MAIN CONTENT ── */
-  main {
-    overflow-y: auto;
-    padding: 32px;
-  }
-
-  /* ── PAGE HEADER ── */
-  .page-header {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    margin-bottom: 28px;
-  }
-
-  .page-title {
-    font-family: 'DM Serif Display', serif;
-    font-size: 32px;
-    line-height: 1.1;
-    color: var(--text);
-  }
-  .page-subtitle {
-    font-size: 14px;
-    color: var(--text-muted);
-    margin-top: 4px;
-    font-weight: 300;
-  }
-
-  .btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 10px 20px;
-    border-radius: var(--radius-sm);
-    border: none;
-    cursor: pointer;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 13px;
-    font-weight: 500;
-    transition: all 0.2s;
-  }
-
-  .btn-primary {
-    background: var(--text);
-    color: #fff;
-  }
-  .btn-primary:hover { background: #333; transform: translateY(-1px); box-shadow: var(--shadow); }
-
-  .btn-outline {
-    background: var(--surface);
-    color: var(--text);
-    border: 1px solid var(--border);
-  }
-  .btn-outline:hover { border-color: var(--text); }
-
-  .btn-warm {
-    background: var(--accent-warm);
-    color: #fff;
-  }
-  .btn-warm:hover { background: #B8966E; transform: translateY(-1px); }
-
-  /* ── TABS ── */
-  .tabs {
-    display: flex;
-    gap: 4px;
-    background: var(--surface2);
-    padding: 4px;
-    border-radius: var(--radius-sm);
-    margin-bottom: 24px;
-    width: fit-content;
-  }
-
-  .tab {
-    padding: 8px 18px;
-    border-radius: 8px;
-    border: none;
-    background: none;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 13px;
-    font-weight: 400;
-    color: var(--text-muted);
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-  .tab.active {
-    background: var(--surface);
-    color: var(--text);
-    font-weight: 500;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-  }
-
-  /* ── GRID ── */
-  .wardrobe-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 16px;
-  }
-
-  .outfit-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: 20px;
-  }
-
-  /* ── CLOTHING CARD ── */
-  .clothing-card {
-    background: var(--surface);
-    border-radius: var(--radius);
-    border: 1.5px solid var(--border);
-    overflow: hidden;
-    cursor: pointer;
-    transition: all 0.25s;
-    position: relative;
-  }
-  .clothing-card:hover {
-    border-color: var(--accent-warm);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow);
-  }
-  .clothing-card.selected {
-    border-color: var(--accent-warm);
-    box-shadow: 0 0 0 3px rgba(200,168,130,0.2);
-  }
-
-  .clothing-card .check {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    width: 22px;
-    height: 22px;
-    background: var(--accent-warm);
-    border-radius: 50%;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
-    font-size: 12px;
-    font-weight: 700;
-    z-index: 2;
-  }
-  .clothing-card.selected .check { display: flex; }
-
-  .clothing-image {
-    width: 100%;
-    aspect-ratio: 3/4;
-    object-fit: cover;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--surface2);
-    font-size: 48px;
-    line-height: 1;
-  }
-
-  .clothing-info {
-    padding: 12px;
-  }
-  .clothing-name {
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--text);
-    margin-bottom: 2px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .clothing-meta {
-    font-size: 11px;
-    color: var(--text-muted);
-    display: flex;
-    gap: 6px;
-    align-items: center;
-  }
-  .clothing-tag {
-    background: var(--surface2);
-    padding: 2px 7px;
-    border-radius: 6px;
-    font-size: 10px;
-    color: var(--text-muted);
-  }
-
-  /* ── ADD CLOTHING CARD ── */
-  .add-card {
-    background: none;
-    border: 1.5px dashed var(--border);
-    border-radius: var(--radius);
-    aspect-ratio: 3/4;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    cursor: pointer;
-    color: var(--text-muted);
-    font-size: 13px;
-    transition: all 0.2s;
-  }
-  .add-card:hover { border-color: var(--accent-warm); color: var(--accent-warm); background: var(--accent-light); }
-  .add-card .plus { font-size: 28px; }
-
-  /* ── OUTFIT CARD ── */
-  .outfit-card {
-    background: var(--surface);
-    border-radius: var(--radius);
-    border: 1.5px solid var(--border);
-    overflow: hidden;
-    transition: all 0.25s;
-    cursor: pointer;
-  }
-  .outfit-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); border-color: var(--border); }
-
-  .outfit-preview {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 4px;
-    padding: 16px;
-    background: var(--surface2);
-    min-height: 140px;
-  }
-  .outfit-preview-item {
-    background: var(--surface);
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 28px;
-    min-height: 60px;
-  }
-
-  .outfit-info {
-    padding: 14px 16px;
-    border-top: 1px solid var(--border);
-  }
-  .outfit-name {
-    font-size: 14px;
-    font-weight: 500;
-    margin-bottom: 4px;
-  }
-  .outfit-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
-  }
-  .outfit-tag {
-    font-size: 10px;
-    background: var(--surface2);
-    color: var(--text-muted);
-    padding: 3px 8px;
-    border-radius: 10px;
-  }
-
-  /* ── AI PANEL ── */
-  .ai-panel {
-    background: var(--surface);
-    border-radius: var(--radius);
-    border: 1.5px solid var(--border);
-    overflow: hidden;
-    margin-bottom: 24px;
-  }
-
-  .ai-header {
-    padding: 16px 20px;
-    background: linear-gradient(135deg, #1A1916 0%, #3D3A35 100%);
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .ai-header-text { flex: 1; }
-  .ai-title {
-    font-size: 14px;
-    font-weight: 500;
-    color: #fff;
-    margin-bottom: 1px;
-  }
-  .ai-subtitle { font-size: 12px; color: rgba(255,255,255,0.5); }
-
-  .gemini-badge {
-    font-size: 10px;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-    color: var(--accent-warm);
-    background: rgba(200,168,130,0.15);
-    border: 1px solid rgba(200,168,130,0.3);
-    padding: 4px 9px;
-    border-radius: 20px;
-  }
-
-  .ai-body {
-    padding: 20px;
-  }
-
-  .ai-prompts {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-bottom: 16px;
-  }
-
-  .prompt-chip {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 7px 14px;
-    font-size: 12px;
-    color: var(--text-muted);
-    cursor: pointer;
-    transition: all 0.2s;
-    font-family: 'DM Sans', sans-serif;
-  }
-  .prompt-chip:hover { border-color: var(--accent-warm); color: var(--text); background: var(--accent-light); }
-
-  .ai-input-row {
-    display: flex;
-    gap: 10px;
-  }
-
-  .ai-input {
-    flex: 1;
-    border: 1.5px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 10px 14px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 14px;
-    background: var(--bg);
-    color: var(--text);
-    outline: none;
-    transition: border-color 0.2s;
-  }
-  .ai-input:focus { border-color: var(--accent-warm); }
-  .ai-input::placeholder { color: var(--text-muted); }
-
-  /* ── AI RESPONSE ── */
-  .ai-response {
-    margin-top: 16px;
-    padding: 16px;
-    background: var(--accent-light);
-    border-radius: var(--radius-sm);
-    border: 1px solid rgba(200,168,130,0.3);
-    display: none;
-    animation: fadeIn 0.3s ease;
-  }
-  .ai-response.visible { display: block; }
-
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
-
-  .ai-response-label {
-    font-size: 10px;
-    font-weight: 600;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    color: var(--accent-warm);
-    margin-bottom: 8px;
-  }
-  .ai-response-text {
-    font-size: 14px;
-    line-height: 1.65;
-    color: var(--text);
-    font-weight: 300;
-  }
-
-  .ai-loading {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 13px;
-    color: var(--text-muted);
-  }
-  .dots span {
-    display: inline-block;
-    width: 5px;
-    height: 5px;
-    border-radius: 50%;
-    background: var(--accent-warm);
-    animation: bounce 1.2s infinite;
-    margin: 0 1px;
-  }
-  .dots span:nth-child(2) { animation-delay: 0.2s; }
-  .dots span:nth-child(3) { animation-delay: 0.4s; }
-  @keyframes bounce { 0%,80%,100% { transform: scale(0.6); opacity: 0.4; } 40% { transform: scale(1); opacity: 1; } }
-
-  /* ── OUTFIT BUILDER ── */
-  .builder-grid {
-    display: grid;
-    grid-template-columns: 1fr 340px;
-    gap: 24px;
-  }
-
-  .mannequin-area {
-    background: var(--surface);
-    border-radius: var(--radius);
-    border: 1.5px solid var(--border);
-    padding: 32px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    min-height: 480px;
-    position: relative;
-  }
-
-  .mannequin {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    width: 260px;
-  }
-
-  .mannequin-slot {
-    width: 100%;
-    background: var(--surface2);
-    border: 1.5px dashed var(--border);
-    border-radius: var(--radius-sm);
-    padding: 14px 16px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    cursor: pointer;
-    transition: all 0.2s;
-    position: relative;
-  }
-  .mannequin-slot:hover { border-color: var(--accent-warm); background: var(--accent-light); }
-  .mannequin-slot.filled { border-style: solid; border-color: var(--border); background: var(--surface); }
-  .mannequin-slot .slot-emoji { font-size: 24px; }
-  .mannequin-slot .slot-info { flex: 1; }
-  .mannequin-slot .slot-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; }
-  .mannequin-slot .slot-name { font-size: 13px; font-weight: 500; color: var(--text); margin-top: 1px; }
-  .mannequin-slot .slot-remove {
-    position: absolute;
-    right: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    background: var(--surface2);
-    border: none;
-    cursor: pointer;
-    color: var(--text-muted);
-    font-size: 13px;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.15s;
-  }
-  .mannequin-slot.filled:hover .slot-remove { display: flex; }
-  .mannequin-slot .slot-remove:hover { background: var(--danger); color: #fff; }
-
-  .builder-panel {
-    background: var(--surface);
-    border-radius: var(--radius);
-    border: 1.5px solid var(--border);
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-  }
-  .builder-panel-title { font-size: 14px; font-weight: 500; margin-bottom: 4px; }
-
-  /* ── API MODAL ── */
-  .modal-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.3);
-    backdrop-filter: blur(4px);
-    z-index: 200;
-    align-items: center;
-    justify-content: center;
-  }
-  .modal-overlay.open { display: flex; }
-
-  .modal {
-    background: var(--surface);
-    border-radius: 20px;
-    padding: 32px;
-    width: 420px;
-    box-shadow: var(--shadow-lg);
-    animation: modalIn 0.25s ease;
-  }
-  @keyframes modalIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
-
-  .modal-title {
-    font-family: 'DM Serif Display', serif;
-    font-size: 22px;
-    margin-bottom: 6px;
-  }
-  .modal-subtitle { font-size: 13px; color: var(--text-muted); margin-bottom: 24px; line-height: 1.5; }
-
-  .form-group { margin-bottom: 16px; }
-  .form-label { font-size: 12px; font-weight: 500; color: var(--text); margin-bottom: 6px; display: block; }
-
-  .form-input {
-    width: 100%;
-    border: 1.5px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 10px 14px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 14px;
-    background: var(--bg);
-    color: var(--text);
-    outline: none;
-    transition: border-color 0.2s;
-  }
-  .form-input:focus { border-color: var(--accent-warm); }
-
-  .form-hint { font-size: 11px; color: var(--text-muted); margin-top: 5px; }
-
-  .modal-actions { display: flex; gap: 10px; margin-top: 24px; }
-  .modal-close-btn {
-    position: absolute;
-    top: 16px;
-    right: 16px;
-    background: var(--surface2);
-    border: none;
-    border-radius: 50%;
-    width: 30px;
-    height: 30px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    color: var(--text-muted);
-    font-size: 16px;
-  }
-  .modal { position: relative; }
-
-  /* ── ADD ITEM MODAL ── */
-  .emoji-grid {
-    display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    gap: 6px;
-    margin-bottom: 16px;
-  }
-  .emoji-option {
-    width: 100%;
-    aspect-ratio: 1;
-    border-radius: 8px;
-    border: 1.5px solid var(--border);
-    background: var(--surface2);
-    font-size: 22px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.15s;
-  }
-  .emoji-option:hover { border-color: var(--accent-warm); background: var(--accent-light); }
-  .emoji-option.selected { border-color: var(--accent-warm); background: var(--accent-light); }
-
-  .filter-row {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    margin-bottom: 20px;
-  }
-  .filter-btn {
-    padding: 6px 14px;
-    border-radius: 20px;
-    border: 1px solid var(--border);
-    background: var(--surface);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 12px;
-    color: var(--text-muted);
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-  .filter-btn:hover { border-color: var(--text); color: var(--text); }
-  .filter-btn.active { background: var(--text); color: #fff; border-color: var(--text); }
-
-  /* ── WEATHER WIDGET ── */
-  .weather-strip {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: var(--radius);
-    padding: 16px 20px;
-    color: #fff;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    margin-bottom: 24px;
-  }
-  .weather-icon { font-size: 36px; }
-  .weather-info { flex: 1; }
-  .weather-temp { font-size: 24px; font-weight: 500; }
-  .weather-desc { font-size: 12px; opacity: 0.8; margin-top: 1px; }
-  .weather-suggestion {
-    font-size: 12px;
-    background: rgba(255,255,255,0.15);
-    padding: 6px 12px;
-    border-radius: 20px;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-  .weather-suggestion:hover { background: rgba(255,255,255,0.25); }
-
-  /* ── EMPTY STATE ── */
-  .empty-state {
-    text-align: center;
-    padding: 60px 20px;
-    color: var(--text-muted);
-  }
-  .empty-icon { font-size: 48px; margin-bottom: 12px; }
-  .empty-title { font-size: 16px; font-weight: 500; color: var(--text); margin-bottom: 6px; }
-  .empty-text { font-size: 13px; line-height: 1.5; }
-
-  /* ── PAGES ── */
-  .page { display: none; }
-  .page.active { display: block; }
-
-  /* ── SCROLLBAR ── */
-  ::-webkit-scrollbar { width: 4px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-
-  /* ── SELECT ── */
-  select {
-    width: 100%;
-    border: 1.5px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 10px 14px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 14px;
-    background: var(--bg);
-    color: var(--text);
-    outline: none;
-    cursor: pointer;
-  }
-
-  .color-swatch-row { display: flex; gap: 6px; flex-wrap: wrap; }
-  .color-swatch {
-    width: 26px; height: 26px;
-    border-radius: 50%;
-    cursor: pointer;
-    border: 2px solid transparent;
-    transition: transform 0.15s;
-  }
-  .color-swatch:hover { transform: scale(1.15); }
-  .color-swatch.selected { border-color: var(--text); }
-
-  @media (max-width: 800px) {
-    .app { grid-template-columns: 1fr; }
-    aside { display: none; }
-    .builder-grid { grid-template-columns: 1fr; }
-  }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>👗 Outfit Planer mit KI</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container { max-width: 1200px; margin: 0 auto; }
+
+        h1 {
+            text-align: center; color: white; font-size: 2.5em;
+            margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .subtitle {
+            text-align: center; color: rgba(255,255,255,0.8);
+            margin-bottom: 30px; font-size: 1.1em;
+        }
+
+        .tabs {
+            display: flex; justify-content: center; gap: 8px;
+            margin-bottom: 30px; flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 12px 20px; border: none; border-radius: 25px;
+            background: rgba(255,255,255,0.2); color: white;
+            font-size: 0.95em; cursor: pointer; transition: all 0.3s;
+            backdrop-filter: blur(10px);
+        }
+
+        .tab-btn:hover { background: rgba(255,255,255,0.4); transform: translateY(-2px); }
+
+        .tab-btn.active {
+            background: white; color: #764ba2; font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        .section-box {
+            background: white; border-radius: 20px; padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2); margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 1.4em; color: #333; margin-bottom: 20px;
+            display: flex; align-items: center; gap: 10px;
+        }
+
+        .add-item-form {
+            display: grid; grid-template-columns: 1fr 1fr 1fr auto auto;
+            gap: 15px; align-items: end; margin-bottom: 20px;
+            padding: 20px; background: #f8f9fa; border-radius: 15px;
+        }
+
+        .form-group { display: flex; flex-direction: column; gap: 5px; }
+
+        .form-group label { font-size: 0.85em; color: #666; font-weight: 600; }
+
+        .form-group input, .form-group select, .form-group textarea {
+            padding: 10px 15px; border: 2px solid #e0e0e0; border-radius: 10px;
+            font-size: 1em; transition: border-color 0.3s; font-family: inherit;
+        }
+
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none; border-color: #764ba2;
+        }
+
+        .btn {
+            padding: 10px 20px; border: none; border-radius: 10px;
+            font-size: 1em; cursor: pointer; transition: all 0.3s;
+            font-weight: 600; font-family: inherit;
+        }
+
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .btn-add {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white; padding: 12px 25px;
+        }
+
+        .btn-add:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(118,75,162,0.4);
+        }
+
+        .btn-delete {
+            background: #ff4757; color: white; padding: 6px 12px;
+            font-size: 0.85em; border-radius: 8px;
+        }
+
+        .btn-delete:hover { background: #ff6b81; }
+
+        .btn-save-outfit {
+            background: linear-gradient(135deg, #2ed573, #26de81);
+            color: white; width: 100%; padding: 15px;
+            font-size: 1.1em; margin-top: 15px; border-radius: 12px;
+        }
+
+        .btn-save-outfit:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(46,213,115,0.4);
+        }
+
+        .btn-suggest {
+            background: linear-gradient(135deg, #ffa502, #ff6348);
+            color: white; width: 100%; padding: 12px;
+            margin-top: 10px; border-radius: 12px;
+        }
+
+        .btn-suggest:hover:not(:disabled) { transform: translateY(-2px); }
+
+        .btn-ai {
+            background: linear-gradient(135deg, #a855f7, #6366f1);
+            color: white; display: inline-flex; align-items: center;
+            gap: 8px; position: relative; overflow: hidden;
+        }
+
+        .btn-ai::before {
+            content: ''; position: absolute; top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+            animation: aiShimmer 3s infinite;
+        }
+
+        @keyframes aiShimmer {
+            0% { transform: translateX(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) rotate(45deg); }
+        }
+
+        .btn-ai:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(168,85,247,0.4);
+        }
+
+        .btn-cancel { background: #ddd; color: #666; }
+
+        .filter-bar {
+            display: flex; gap: 10px; margin-bottom: 20px;
+            flex-wrap: wrap; align-items: center;
+        }
+
+        .filter-bar select, .filter-bar input {
+            padding: 8px 15px; border: 2px solid #e0e0e0;
+            border-radius: 10px; font-size: 0.95em;
+        }
+
+        .clothes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .clothing-card {
+            background: white; border: 2px solid #f0f0f0;
+            border-radius: 15px; padding: 15px; text-align: center;
+            transition: all 0.3s; cursor: pointer; position: relative;
+            overflow: hidden;
+        }
+
+        .clothing-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            border-color: #764ba2;
+        }
+
+        .clothing-card.selected {
+            border-color: #667eea; background: #f0f0ff;
+            box-shadow: 0 0 0 3px rgba(102,126,234,0.3);
+        }
+
+        .clothing-icon { font-size: 3em; margin-bottom: 10px; }
+        .clothing-name { font-weight: 600; color: #333; margin-bottom: 5px; }
+
+        .clothing-color-dot {
+            width: 20px; height: 20px; border-radius: 50%;
+            display: inline-block; border: 2px solid #ddd;
+        }
+
+        .clothing-image {
+            width: 100%; height: 140px; object-fit: cover;
+            border-radius: 10px; margin-bottom: 10px;
+            background: #f0f0f0;
+        }
+
+        .card-actions {
+            display: flex; justify-content: center; gap: 5px; margin-top: 10px;
+        }
+
+        .planner-layout {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+        }
+
+        .outfit-slots { display: flex; flex-direction: column; gap: 12px; }
+
+        .outfit-slot {
+            border: 2px dashed #ddd; border-radius: 15px; padding: 15px;
+            display: flex; align-items: center; gap: 15px;
+            min-height: 60px; transition: all 0.3s; cursor: pointer;
+        }
+
+        .outfit-slot.filled {
+            border-style: solid; border-color: #667eea; background: #f8f9ff;
+        }
+
+        .slot-label { font-weight: 600; color: #999; min-width: 100px; font-size: 0.9em; }
+        .slot-content { flex: 1; display: flex; align-items: center; gap: 10px; }
+        .slot-content .clothing-name { margin: 0; }
+
+        .remove-slot-btn {
+            background: none; border: none; color: #ff4757;
+            font-size: 1.2em; cursor: pointer;
+        }
+
+        .outfit-name-input {
+            width: 100%; padding: 12px 15px; border: 2px solid #e0e0e0;
+            border-radius: 10px; font-size: 1em; margin-bottom: 15px;
+        }
+
+        .outfit-name-input:focus { outline: none; border-color: #764ba2; }
+
+        .calendar-header {
+            display: flex; justify-content: space-between;
+            align-items: center; margin-bottom: 20px;
+        }
+
+        .calendar-nav {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white; border: none; width: 40px; height: 40px;
+            border-radius: 50%; font-size: 1.2em; cursor: pointer;
+        }
+
+        .calendar-nav:hover { transform: scale(1.1); }
+
+        .calendar-grid {
+            display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px;
+        }
+
+        .calendar-day-header {
+            text-align: center; font-weight: 600; color: #999;
+            padding: 10px 0; font-size: 0.85em;
+        }
+
+        .calendar-day {
+            aspect-ratio: 1; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; border-radius: 10px;
+            cursor: pointer; transition: all 0.2s; font-size: 0.9em;
+            position: relative; border: 2px solid transparent;
+        }
+
+        .calendar-day:hover { background: #f0f0ff; }
+        .calendar-day.today { background: linear-gradient(135deg, #667eea, #764ba2); color: white; font-weight: bold; }
+        .calendar-day.has-outfit { border-color: #2ed573; }
+        .calendar-day.has-outfit::after { content: '👗'; font-size: 0.7em; position: absolute; bottom: 2px; }
+        .calendar-day.other-month { color: #ccc; }
+
+        .saved-outfits-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 15px; margin-top: 15px;
+        }
+
+        .saved-outfit-card {
+            border: 2px solid #f0f0f0; border-radius: 15px;
+            padding: 15px; transition: all 0.3s;
+        }
+
+        .saved-outfit-card:hover { box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
+        .outfit-date { font-weight: 600; color: #764ba2; margin-bottom: 10px; }
+        .outfit-items-list { list-style: none; padding: 0; }
+
+        .outfit-items-list li {
+            padding: 5px 0; border-bottom: 1px solid #f0f0f0;
+            display: flex; align-items: center; gap: 8px;
+        }
+
+        .outfit-items-list li:last-child { border-bottom: none; }
+
+        .stats-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px; margin-top: 15px;
+        }
+
+        .stat-card {
+            background: white; border-radius: 15px; padding: 20px;
+            text-align: center; box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .stat-number {
+            font-size: 2.5em; font-weight: bold;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-label { color: #999; font-size: 0.9em; margin-top: 5px; }
+
+        .tag {
+            display: inline-block; padding: 3px 10px; border-radius: 20px;
+            font-size: 0.75em; font-weight: 600; color: white; margin: 2px;
+        }
+
+        .tag-oberteil { background: #667eea; }
+        .tag-unterteil { background: #2ed573; }
+        .tag-schuhe { background: #ffa502; }
+        .tag-accessoire { background: #ff6348; }
+        .tag-jacke { background: #1e90ff; }
+        .tag-kleid { background: #ff69b4; }
+
+        .empty-state { text-align: center; color: #999; padding: 40px; }
+        .empty-state span { font-size: 3em; display: block; margin-bottom: 15px; }
+
+        .ai-box {
+            background: linear-gradient(135deg, #f5f3ff, #ede9fe);
+            border: 2px solid #c4b5fd; border-radius: 15px;
+            padding: 20px; margin-top: 20px;
+        }
+
+        .ai-box .section-title { color: #7c3aed; }
+
+        .ai-response {
+            background: white; border-radius: 12px; padding: 20px;
+            margin-top: 15px; border: 1px solid #e0e0e0;
+            white-space: pre-wrap; line-height: 1.7; color: #333;
+            font-size: 0.95em; max-height: 500px; overflow-y: auto;
+        }
+
+        .ai-response strong { color: #7c3aed; }
+
+        .ai-loading {
+            display: flex; align-items: center; gap: 10px;
+            padding: 15px; color: #7c3aed; font-weight: 600;
+        }
+
+        .ai-loading .dots::after { content: ''; animation: dots 1.5s infinite; }
+
+        @keyframes dots {
+            0% { content: ''; } 25% { content: '.'; }
+            50% { content: '..'; } 75% { content: '...'; }
+        }
+
+        .ai-status {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 4px 12px; border-radius: 20px; font-size: 0.8em;
+            font-weight: 600; margin-left: 10px;
+        }
+
+        .ai-status.connected { background: #dcfce7; color: #16a34a; }
+        .ai-status.disconnected { background: #fef2f2; color: #dc2626; }
+
+        .ai-chat-input { display: flex; gap: 10px; margin-top: 15px; }
+
+        .ai-chat-input input {
+            flex: 1; padding: 12px 15px; border: 2px solid #c4b5fd;
+            border-radius: 12px; font-size: 1em;
+        }
+
+        .ai-chat-input input:focus { outline: none; border-color: #7c3aed; }
+
+        .settings-grid { display: grid; gap: 20px; max-width: 600px; }
+
+        .setting-item {
+            background: #f8f9fa; padding: 20px; border-radius: 15px;
+        }
+
+        .setting-item h3 {
+            margin-bottom: 10px; color: #333;
+            display: flex; align-items: center; gap: 8px;
+        }
+
+        .setting-item p { color: #666; font-size: 0.9em; margin-bottom: 12px; }
+
+        .api-key-input { display: flex; gap: 10px; }
+
+        .api-key-input input {
+            flex: 1; padding: 10px 15px; border: 2px solid #e0e0e0;
+            border-radius: 10px; font-size: 1em; font-family: monospace;
+        }
+
+        .api-key-input input:focus { outline: none; border-color: #764ba2; }
+
+        /* ============ FOTO UPLOAD ============ */
+        .photo-upload-area {
+            border: 3px dashed #c4b5fd;
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            transition: all 0.3s;
+            cursor: pointer;
+            background: linear-gradient(135deg, #faf5ff, #f3e8ff);
+            margin-bottom: 15px;
+        }
+
+        .photo-upload-area:hover, .photo-upload-area.dragover {
+            border-color: #7c3aed;
+            background: linear-gradient(135deg, #f3e8ff, #ede9fe);
+            transform: scale(1.01);
+        }
+
+        .photo-upload-area .upload-icon { font-size: 3em; margin-bottom: 10px; }
+        .photo-upload-area h3 { color: #7c3aed; margin-bottom: 8px; }
+        .photo-upload-area p { color: #888; font-size: 0.9em; }
+
+        .photo-actions {
+            display: flex; gap: 10px; justify-content: center;
+            flex-wrap: wrap; margin-top: 15px;
+        }
+
+        .btn-camera {
+            background: linear-gradient(135deg, #06b6d4, #0891b2);
+            color: white;
+        }
+
+        .btn-gallery {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            color: white;
+        }
+
+        .preview-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px; margin-top: 20px;
+        }
+
+        .preview-card {
+            border-radius: 15px; overflow: hidden;
+            border: 2px solid #e0e0e0; position: relative;
+            background: #f8f8f8;
+        }
+
+        .preview-card img {
+            width: 100%; height: 150px; object-fit: cover;
+        }
+
+        .preview-card .preview-status {
+            padding: 8px; text-align: center; font-size: 0.8em;
+            font-weight: 600;
+        }
+
+        .preview-card .preview-status.analyzing {
+            background: #fef3c7; color: #d97706;
+        }
+
+        .preview-card .preview-status.done {
+            background: #dcfce7; color: #16a34a;
+        }
+
+        .preview-card .preview-status.error {
+            background: #fef2f2; color: #dc2626;
+        }
+
+        .preview-card .remove-preview {
+            position: absolute; top: 5px; right: 5px;
+            background: rgba(255,71,87,0.9); color: white;
+            border: none; width: 25px; height: 25px; border-radius: 50%;
+            cursor: pointer; font-size: 0.8em;
+        }
+
+        .recognized-items {
+            margin-top: 20px; padding: 20px; background: #f0fdf4;
+            border-radius: 15px; border: 2px solid #86efac;
+        }
+
+        .recognized-item {
+            display: flex; align-items: center; gap: 12px;
+            padding: 10px; background: white; border-radius: 10px;
+            margin-bottom: 8px; border: 1px solid #e0e0e0;
+        }
+
+        .recognized-item img {
+            width: 50px; height: 50px; border-radius: 8px;
+            object-fit: cover;
+        }
+
+        .recognized-item-info { flex: 1; }
+        .recognized-item-info .name { font-weight: 600; color: #333; }
+        .recognized-item-info .details { font-size: 0.85em; color: #666; }
+
+        .recognized-item .btn-add-recognized {
+            background: #2ed573; color: white; padding: 6px 14px;
+            border: none; border-radius: 8px; cursor: pointer;
+            font-weight: 600; font-size: 0.85em;
+        }
+
+        .recognized-item .btn-add-recognized:hover { background: #26de81; }
+
+        .recognized-item .btn-reject {
+            background: #ff4757; color: white; padding: 6px 10px;
+            border: none; border-radius: 8px; cursor: pointer;
+            font-size: 0.85em;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%; background: rgba(0,0,0,0.5);
+            z-index: 1000; justify-content: center; align-items: center;
+        }
+
+        .modal-overlay.active { display: flex; }
+
+        .modal {
+            background: white; border-radius: 20px; padding: 30px;
+            max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto;
+        }
+
+        .modal h2 { margin-bottom: 15px; color: #333; }
+
+        .modal-actions {
+            display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end;
+        }
+
+        .weather-input-row {
+            display: flex; gap: 10px; margin-bottom: 15px; align-items: end;
+        }
+
+        .weather-input-row .form-group { flex: 1; }
+
+        @media (max-width: 768px) {
+            .add-item-form { grid-template-columns: 1fr; }
+            .planner-layout { grid-template-columns: 1fr; }
+            h1 { font-size: 1.8em; }
+            .tabs { gap: 5px; }
+            .tab-btn { padding: 8px 12px; font-size: 0.85em; }
+            .ai-chat-input { flex-direction: column; }
+            .photo-actions { flex-direction: column; }
+            .weather-input-row { flex-direction: column; }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-in { animation: fadeIn 0.4s ease-out; }
+    </style>
 </head>
 <body>
 
-<div class="app">
-  <!-- HEADER -->
-  <header>
-    <div class="logo">fits<span>.</span></div>
-    <div class="header-right">
-      <span class="api-badge" id="apiBadge" onclick="openApiModal()">⚙ Gemini API</span>
-    </div>
-  </header>
+<div class="container">
+    <h1>👗 Outfit Planer
+        <span class="ai-status disconnected" id="aiStatus">● KI Offline</span>
+    </h1>
+    <p class="subtitle">Plane deine Outfits mit Gemini KI – ehrlich, direkt und hilfreich ✨</p>
 
-  <!-- SIDEBAR -->
-  <aside>
-    <div class="sidebar-section">
-      <div class="sidebar-label">Übersicht</div>
-      <button class="nav-btn active" onclick="showPage('today')" id="nav-today">
-        <span class="icon">✨</span> Heute
-      </button>
-      <button class="nav-btn" onclick="showPage('builder')" id="nav-builder">
-        <span class="icon">👗</span> Outfit erstellen
-      </button>
-      <button class="nav-btn" onclick="showPage('outfits')" id="nav-outfits">
-        <span class="icon">📋</span> Meine Outfits
-        <span class="count" id="outfitCountBadge">0</span>
-      </button>
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('wardrobe',this)">🗄️ Kleiderschrank</button>
+        <button class="tab-btn" onclick="switchTab('photo',this)">📸 Foto-Scan</button>
+        <button class="tab-btn" onclick="switchTab('planner',this)">👔 Outfit erstellen</button>
+        <button class="tab-btn" onclick="switchTab('calendar',this)">📅 Kalender</button>
+        <button class="tab-btn" onclick="switchTab('outfits',this)">💾 Outfits</button>
+        <button class="tab-btn" onclick="switchTab('ai',this)">🤖 KI-Berater</button>
+        <button class="tab-btn" onclick="switchTab('stats',this)">📊 Statistiken</button>
+        <button class="tab-btn" onclick="switchTab('settings',this)">⚙️ Einstellungen</button>
     </div>
 
-    <div class="divider"></div>
+    <!-- =============== KLEIDERSCHRANK =============== -->
+    <div class="tab-content active" id="tab-wardrobe">
+        <div class="section-box animate-in">
+            <div class="section-title">🗄️ Kleiderschrank</div>
 
-    <div class="sidebar-section">
-      <div class="sidebar-label">Kleiderschrank</div>
-      <button class="nav-btn" onclick="showPage('wardrobe'); setFilter('Alle')" id="nav-wardrobe">
-        <span class="icon">🗂️</span> Alle Teile
-        <span class="count" id="wardrobeCountBadge">0</span>
-      </button>
-      <button class="nav-btn" onclick="showPage('wardrobe'); setFilter('Tops')" id="nav-tops">
-        <span class="icon">👕</span> Tops
-      </button>
-      <button class="nav-btn" onclick="showPage('wardrobe'); setFilter('Hosen')" id="nav-bottoms">
-        <span class="icon">👖</span> Hosen
-      </button>
-      <button class="nav-btn" onclick="showPage('wardrobe'); setFilter('Schuhe')" id="nav-shoes">
-        <span class="icon">👟</span> Schuhe
-      </button>
-      <button class="nav-btn" onclick="showPage('wardrobe'); setFilter('Jacken')" id="nav-jackets">
-        <span class="icon">🧥</span> Jacken
-      </button>
-      <button class="nav-btn" onclick="showPage('wardrobe'); setFilter('Accessoires')" id="nav-acc">
-        <span class="icon">💍</span> Accessoires
-      </button>
-    </div>
-
-    <div class="divider"></div>
-
-    <div class="sidebar-section">
-      <button class="nav-btn" onclick="showPage('stats')" id="nav-stats">
-        <span class="icon">📊</span> Statistiken
-      </button>
-    </div>
-  </aside>
-
-  <!-- MAIN CONTENT -->
-  <main>
-
-    <!-- PAGE: TODAY -->
-    <div class="page active" id="page-today">
-      <div class="page-header">
-        <div>
-          <div class="page-title">Guten Morgen ✦</div>
-          <div class="page-subtitle">Was ziehst du heute an?</div>
-        </div>
-        <button class="btn btn-primary" onclick="showPage('builder'); activateNav('nav-builder')">
-          + Outfit erstellen
-        </button>
-      </div>
-
-      <!-- Weather -->
-      <div class="weather-strip">
-        <div class="weather-icon">🌤️</div>
-        <div class="weather-info">
-          <div class="weather-temp">18°C – Frankfurt</div>
-          <div class="weather-desc">Leicht bewölkt, Wind 12 km/h</div>
-        </div>
-        <div class="weather-suggestion" onclick="askWeatherOutfit()">KI fragen →</div>
-      </div>
-
-      <!-- AI Panel -->
-      <div class="ai-panel">
-        <div class="ai-header">
-          <div>✦</div>
-          <div class="ai-header-text">
-            <div class="ai-title">KI-Styling-Assistent</div>
-            <div class="ai-subtitle">powered by Gemini</div>
-          </div>
-          <div class="gemini-badge">GEMINI</div>
-        </div>
-        <div class="ai-body">
-          <div class="ai-prompts">
-            <button class="prompt-chip" onclick="sendPrompt('Erstelle ein Business-Casual Outfit für mich.')">💼 Business-Casual</button>
-            <button class="prompt-chip" onclick="sendPrompt('Was passe ich zu einem weißen T-Shirt?')">👕 Kombinier-Hilfe</button>
-            <button class="prompt-chip" onclick="sendPrompt('Welche Trendfarben passen für diesen Frühling?')">🌸 Trend-Check</button>
-            <button class="prompt-chip" onclick="sendPrompt('Erstelle ein minimalistisches Monochrome-Outfit.')">⚪ Monochrome</button>
-            <button class="prompt-chip" onclick="sendPrompt('Welche Pieces fehlen mir für einen Basis-Kleiderschrank?')">🧺 Capsule Check</button>
-          </div>
-          <div class="ai-input-row">
-            <input class="ai-input" id="aiInput" placeholder="Frag nach Styling-Tipps, Kombis oder Trends…" onkeydown="if(event.key==='Enter') sendPrompt()">
-            <button class="btn btn-warm" onclick="sendPrompt()">✦ Fragen</button>
-          </div>
-          <div class="ai-response" id="aiResponse">
-            <div class="ai-response-label">✦ Gemini antwortet</div>
-            <div class="ai-response-text" id="aiResponseText"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Recent Outfits -->
-      <div style="margin-bottom:16px; display:flex; align-items:center; justify-content:space-between;">
-        <div style="font-size:16px; font-weight:500;">Zuletzt getragen</div>
-        <button class="btn btn-outline" onclick="showPage('outfits'); activateNav('nav-outfits')" style="font-size:12px; padding:7px 14px;">Alle ansehen</button>
-      </div>
-      <div class="outfit-grid" id="recentOutfits"></div>
-    </div>
-
-    <!-- PAGE: WARDROBE -->
-    <div class="page" id="page-wardrobe">
-      <div class="page-header">
-        <div>
-          <div class="page-title">Kleiderschrank</div>
-          <div class="page-subtitle" id="wardrobeSubtitle">Alle deine Kleidungsstücke</div>
-        </div>
-        <button class="btn btn-primary" onclick="openAddModal()">+ Hinzufügen</button>
-      </div>
-
-      <div class="filter-row" id="filterRow"></div>
-      <div class="wardrobe-grid" id="wardrobeGrid"></div>
-    </div>
-
-    <!-- PAGE: BUILDER -->
-    <div class="page" id="page-builder">
-      <div class="page-header">
-        <div>
-          <div class="page-title">Outfit erstellen</div>
-          <div class="page-subtitle">Kombiniere deine Pieces</div>
-        </div>
-        <button class="btn btn-primary" onclick="saveOutfit()">💾 Outfit speichern</button>
-      </div>
-
-      <div class="builder-grid">
-        <div class="mannequin-area">
-          <div style="font-size:12px; color:var(--text-muted); margin-bottom:20px; letter-spacing:0.5px; text-transform:uppercase;">Dein Look</div>
-          <div class="mannequin" id="mannequin">
-            <div class="mannequin-slot" id="slot-head" onclick="openSlotPicker('head')">
-              <span class="slot-emoji">🎩</span>
-              <div class="slot-info">
-                <div class="slot-label">Kopfbedeckung</div>
-                <div class="slot-name" style="color:var(--text-muted)">Tap zum Auswählen</div>
-              </div>
-              <button class="slot-remove" onclick="clearSlot(event,'head')">×</button>
+            <div class="add-item-form">
+                <div class="form-group">
+                    <label>Name</label>
+                    <input type="text" id="itemName" placeholder="z.B. Blaues T-Shirt">
+                </div>
+                <div class="form-group">
+                    <label>Kategorie</label>
+                    <select id="itemCategory">
+                        <option value="oberteil">👕 Oberteil</option>
+                        <option value="unterteil">👖 Unterteil</option>
+                        <option value="kleid">👗 Kleid</option>
+                        <option value="jacke">🧥 Jacke</option>
+                        <option value="schuhe">👟 Schuhe</option>
+                        <option value="accessoire">🎒 Accessoire</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Saison</label>
+                    <select id="itemSeason">
+                        <option value="alle">🌍 Alle</option>
+                        <option value="fruehling">🌸 Frühling</option>
+                        <option value="sommer">☀️ Sommer</option>
+                        <option value="herbst">🍂 Herbst</option>
+                        <option value="winter">❄️ Winter</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Farbe</label>
+                    <input type="color" id="itemColor" value="#667eea" style="width:45px;height:45px;border:none;border-radius:50%;cursor:pointer;">
+                </div>
+                <button class="btn btn-add" onclick="addClothingItem()">+ Hinzufügen</button>
             </div>
-            <div class="mannequin-slot" id="slot-outer" onclick="openSlotPicker('outer')">
-              <span class="slot-emoji">🧥</span>
-              <div class="slot-info">
-                <div class="slot-label">Jacke / Outer</div>
-                <div class="slot-name" style="color:var(--text-muted)">Tap zum Auswählen</div>
-              </div>
-              <button class="slot-remove" onclick="clearSlot(event,'outer')">×</button>
+
+            <div class="ai-box">
+                <div class="section-title">🤖 KI: Kleidung per Text beschreiben</div>
+                <p style="color:#666;font-size:0.9em;margin-bottom:10px;">Beschreibe Kleidungsstücke und die KI erkennt alles automatisch.</p>
+                <div class="ai-chat-input">
+                    <input type="text" id="aiAddClothesInput" placeholder='"Rotes Sommerkleid, weiße Sneaker, blaue Jeans"'>
+                    <button class="btn btn-ai" onclick="aiAddClothes()">🤖 Erkennen</button>
+                </div>
+                <div id="aiAddClothesResponse"></div>
             </div>
-            <div class="mannequin-slot" id="slot-top" onclick="openSlotPicker('top')">
-              <span class="slot-emoji">👕</span>
-              <div class="slot-info">
-                <div class="slot-label">Top / Shirt</div>
-                <div class="slot-name" style="color:var(--text-muted)">Tap zum Auswählen</div>
-              </div>
-              <button class="slot-remove" onclick="clearSlot(event,'top')">×</button>
+
+            <div class="filter-bar" style="margin-top:20px;">
+                <span style="font-weight:600;color:#666;">Filter:</span>
+                <select id="filterCategory" onchange="renderWardrobe()">
+                    <option value="alle">Alle Kategorien</option>
+                    <option value="oberteil">👕 Oberteile</option>
+                    <option value="unterteil">👖 Unterteile</option>
+                    <option value="kleid">👗 Kleider</option>
+                    <option value="jacke">🧥 Jacken</option>
+                    <option value="schuhe">👟 Schuhe</option>
+                    <option value="accessoire">🎒 Accessoires</option>
+                </select>
+                <select id="filterSeason" onchange="renderWardrobe()">
+                    <option value="alle">Alle Saisons</option>
+                    <option value="fruehling">🌸 Frühling</option>
+                    <option value="sommer">☀️ Sommer</option>
+                    <option value="herbst">🍂 Herbst</option>
+                    <option value="winter">❄️ Winter</option>
+                </select>
+                <input type="text" id="filterSearch" placeholder="🔍 Suchen..." oninput="renderWardrobe()">
             </div>
-            <div class="mannequin-slot" id="slot-bottom" onclick="openSlotPicker('bottom')">
-              <span class="slot-emoji">👖</span>
-              <div class="slot-info">
-                <div class="slot-label">Hose / Rock</div>
-                <div class="slot-name" style="color:var(--text-muted)">Tap zum Auswählen</div>
-              </div>
-              <button class="slot-remove" onclick="clearSlot(event,'bottom')">×</button>
-            </div>
-            <div class="mannequin-slot" id="slot-shoes" onclick="openSlotPicker('shoes')">
-              <span class="slot-emoji">👟</span>
-              <div class="slot-info">
-                <div class="slot-label">Schuhe</div>
-                <div class="slot-name" style="color:var(--text-muted)">Tap zum Auswählen</div>
-              </div>
-              <button class="slot-remove" onclick="clearSlot(event,'shoes')">×</button>
-            </div>
-            <div class="mannequin-slot" id="slot-acc" onclick="openSlotPicker('acc')">
-              <span class="slot-emoji">💍</span>
-              <div class="slot-info">
-                <div class="slot-label">Accessoire</div>
-                <div class="slot-name" style="color:var(--text-muted)">Tap zum Auswählen</div>
-              </div>
-              <button class="slot-remove" onclick="clearSlot(event,'acc')">×</button>
-            </div>
-          </div>
+
+            <div class="clothes-grid" id="clothesGrid"></div>
         </div>
-
-        <div class="builder-panel">
-          <div>
-            <div class="builder-panel-title">Outfit-Name</div>
-            <input class="form-input" id="outfitName" placeholder="z.B. Casual Friday Look">
-          </div>
-          <div>
-            <div class="builder-panel-title">Anlass</div>
-            <select id="outfitOccasion">
-              <option value="">Auswählen…</option>
-              <option>Casual</option>
-              <option>Business</option>
-              <option>Sport</option>
-              <option>Abend / Event</option>
-              <option>Outdoor</option>
-              <option>Date</option>
-            </select>
-          </div>
-          <div>
-            <div class="builder-panel-title">Saison</div>
-            <select id="outfitSeason">
-              <option value="">Auswählen…</option>
-              <option>Frühling</option>
-              <option>Sommer</option>
-              <option>Herbst</option>
-              <option>Winter</option>
-            </select>
-          </div>
-
-          <div class="divider"></div>
-
-          <div>
-            <div class="builder-panel-title" style="margin-bottom:8px;">KI analysiert dein Outfit</div>
-            <button class="btn btn-outline" style="width:100%; justify-content:center;" onclick="analyzeCurrentOutfit()">✦ Von Gemini bewerten lassen</button>
-            <div class="ai-response" id="builderAiResponse" style="margin-top:12px;">
-              <div class="ai-response-label">✦ Gemini sagt</div>
-              <div class="ai-response-text" id="builderAiResponseText"></div>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
 
-    <!-- PAGE: OUTFITS -->
-    <div class="page" id="page-outfits">
-      <div class="page-header">
-        <div>
-          <div class="page-title">Meine Outfits</div>
-          <div class="page-subtitle">Gespeicherte Kombinationen</div>
+    <!-- =============== FOTO-SCAN =============== -->
+    <div class="tab-content" id="tab-photo">
+        <div class="section-box animate-in">
+            <div class="section-title">📸 Kleidung per Foto erkennen</div>
+            <p style="color:#666;margin-bottom:20px;">Fotografiere deine Kleidung oder wähle Bilder aus der Galerie. Die KI erkennt automatisch was auf dem Bild ist und fügt es deinem Kleiderschrank hinzu.</p>
+
+            <div class="photo-upload-area" id="photoDropZone"
+                 onclick="document.getElementById('photoGalleryInput').click()"
+                 ondragover="event.preventDefault();this.classList.add('dragover')"
+                 ondragleave="this.classList.remove('dragover')"
+                 ondrop="handleDrop(event)">
+                <div class="upload-icon">📸</div>
+                <h3>Fotos hierher ziehen oder klicken</h3>
+                <p>JPG, PNG, WEBP · Mehrere Bilder möglich</p>
+            </div>
+
+            <div class="photo-actions">
+                <button class="btn btn-camera" onclick="openCamera()">📷 Kamera öffnen</button>
+                <button class="btn btn-gallery" onclick="document.getElementById('photoGalleryInput').click()">🖼️ Aus Galerie wählen</button>
+                <button class="btn btn-ai" onclick="analyzeAllPhotos()" id="analyzeBtn" disabled>🤖 Alle Fotos analysieren</button>
+            </div>
+
+            <input type="file" id="photoGalleryInput" accept="image/*" multiple style="display:none" onchange="handleGallerySelect(event)">
+            <input type="file" id="photoCameraInput" accept="image/*" capture="environment" style="display:none" onchange="handleCameraCapture(event)">
+
+            <!-- Video für Kamera -->
+            <div id="cameraContainer" style="display:none; margin-top:20px;">
+                <div style="background:#000;border-radius:15px;overflow:hidden;position:relative;">
+                    <video id="cameraVideo" autoplay playsinline style="width:100%;max-height:400px;display:block;"></video>
+                    <div style="position:absolute;bottom:15px;left:0;right:0;text-align:center;">
+                        <button class="btn" style="background:white;color:#333;margin:0 5px;" onclick="capturePhoto()">📸 Auslösen</button>
+                        <button class="btn btn-delete" style="margin:0 5px;" onclick="closeCamera()">✕ Schließen</button>
+                    </div>
+                </div>
+                <canvas id="cameraCanvas" style="display:none;"></canvas>
+            </div>
+
+            <div class="preview-grid" id="photoPreviewGrid"></div>
+
+            <div id="recognizedItemsContainer" style="display:none;">
+                <div class="recognized-items">
+                    <div class="section-title">✅ Erkannte Kleidungsstücke</div>
+                    <p style="color:#666;font-size:0.9em;margin-bottom:15px;">Prüfe die Ergebnisse und füge hinzu was stimmt.</p>
+                    <div id="recognizedItemsList"></div>
+                    <div style="margin-top:15px;display:flex;gap:10px;">
+                        <button class="btn btn-add" onclick="addAllRecognized()">✅ Alle hinzufügen</button>
+                        <button class="btn btn-cancel" onclick="clearRecognized()">🗑️ Alle verwerfen</button>
+                    </div>
+                </div>
+            </div>
         </div>
-        <button class="btn btn-primary" onclick="showPage('builder'); activateNav('nav-builder')">+ Neu erstellen</button>
-      </div>
-      <div class="outfit-grid" id="outfitsGrid"></div>
     </div>
 
-    <!-- PAGE: STATS -->
-    <div class="page" id="page-stats">
-      <div class="page-header">
-        <div>
-          <div class="page-title">Statistiken</div>
-          <div class="page-subtitle">Dein Kleiderschrank auf einen Blick</div>
+    <!-- =============== OUTFIT ERSTELLEN =============== -->
+    <div class="tab-content" id="tab-planner">
+        <div class="planner-layout animate-in">
+            <div class="section-box">
+                <div class="section-title">👔 Outfit zusammenstellen</div>
+                <input type="text" class="outfit-name-input" id="outfitName" placeholder="Outfit-Name...">
+                <div class="outfit-slots">
+                    <div class="outfit-slot" onclick="openSlotPicker('oberteil')"><span class="slot-label">👕 Oberteil</span><div class="slot-content" id="slot-oberteil"><span style="color:#ccc">Auswählen...</span></div></div>
+                    <div class="outfit-slot" onclick="openSlotPicker('unterteil')"><span class="slot-label">👖 Unterteil</span><div class="slot-content" id="slot-unterteil"><span style="color:#ccc">Auswählen...</span></div></div>
+                    <div class="outfit-slot" onclick="openSlotPicker('kleid')"><span class="slot-label">👗 Kleid</span><div class="slot-content" id="slot-kleid"><span style="color:#ccc">Auswählen...</span></div></div>
+                    <div class="outfit-slot" onclick="openSlotPicker('jacke')"><span class="slot-label">🧥 Jacke</span><div class="slot-content" id="slot-jacke"><span style="color:#ccc">Auswählen...</span></div></div>
+                    <div class="outfit-slot" onclick="openSlotPicker('schuhe')"><span class="slot-label">👟 Schuhe</span><div class="slot-content" id="slot-schuhe"><span style="color:#ccc">Auswählen...</span></div></div>
+                    <div class="outfit-slot" onclick="openSlotPicker('accessoire')"><span class="slot-label">🎒 Accessoire</span><div class="slot-content" id="slot-accessoire"><span style="color:#ccc">Auswählen...</span></div></div>
+                </div>
+
+                <button class="btn btn-save-outfit" onclick="saveOutfit()">💾 Outfit speichern</button>
+                <button class="btn btn-suggest" onclick="suggestRandomOutfit()">🎲 Zufälliges Outfit</button>
+
+                <div class="ai-box">
+                    <div class="section-title">🤖 KI: Outfit bewerten</div>
+                    <button class="btn btn-ai" onclick="aiRateOutfit()" style="width:100%;">🤖 Ehrliches Feedback von der KI</button>
+                    <div id="aiRateResponse"></div>
+                </div>
+
+                <div class="ai-box">
+                    <div class="section-title">🤖 KI: Outfit für Anlass</div>
+                    <div class="ai-chat-input">
+                        <input type="text" id="aiOccasionInput" placeholder='"Vorstellungsgespräch", "Date", "Hochzeit"'>
+                        <button class="btn btn-ai" onclick="aiSuggestForOccasion()">🤖 Vorschlagen</button>
+                    </div>
+                    <div id="aiOccasionResponse"></div>
+                </div>
+            </div>
+
+            <div class="section-box">
+                <div class="section-title">🗄️ Verfügbare Kleidung</div>
+                <div class="filter-bar">
+                    <select id="plannerFilter" onchange="renderPlannerItems()">
+                        <option value="alle">Alle</option>
+                        <option value="oberteil">👕 Oberteile</option>
+                        <option value="unterteil">👖 Unterteile</option>
+                        <option value="kleid">👗 Kleider</option>
+                        <option value="jacke">🧥 Jacken</option>
+                        <option value="schuhe">👟 Schuhe</option>
+                        <option value="accessoire">🎒 Accessoires</option>
+                    </select>
+                </div>
+                <div class="clothes-grid" id="plannerGrid"></div>
+            </div>
         </div>
-      </div>
-      <div id="statsContent"></div>
     </div>
 
-  </main>
+    <!-- =============== KALENDER =============== -->
+    <div class="tab-content" id="tab-calendar">
+        <div class="section-box animate-in">
+            <div class="section-title">📅 Outfit Kalender</div>
+            <div class="ai-box" style="margin-bottom:20px;">
+                <div class="section-title">🤖 KI: Wochenplan</div>
+                <div class="weather-input-row">
+                    <div class="form-group"><label>Wetter</label><input type="text" id="aiWeatherInput" placeholder='"Mo Regen, Di sonnig 25°C..."'></div>
+                    <div class="form-group"><label>Anlässe</label><input type="text" id="aiWeekEventsInput" placeholder='"Mi Meeting, Fr Party"'></div>
+                    <button class="btn btn-ai" onclick="aiWeekPlan()">🤖 Planen</button>
+                </div>
+                <div id="aiWeekPlanResponse"></div>
+            </div>
+            <div class="calendar-header">
+                <button class="calendar-nav" onclick="changeMonth(-1)">◀</button>
+                <h2 id="calendarTitle"></h2>
+                <button class="calendar-nav" onclick="changeMonth(1)">▶</button>
+            </div>
+            <div class="calendar-grid" id="calendarGrid"></div>
+        </div>
+    </div>
+
+    <!-- =============== OUTFITS =============== -->
+    <div class="tab-content" id="tab-outfits">
+        <div class="section-box animate-in">
+            <div class="section-title">💾 Gespeicherte Outfits</div>
+            <div class="saved-outfits-grid" id="savedOutfitsGrid"></div>
+        </div>
+    </div>
+
+    <!-- =============== KI-BERATER =============== -->
+    <div class="tab-content" id="tab-ai">
+        <div class="section-box animate-in">
+            <div class="section-title">🤖 KI Fashion-Berater – Ehrlich & Direkt</div>
+            <p style="color:#666;margin-bottom:5px;">Die KI kennt deinen Kleiderschrank und gibt dir <strong>ehrliches, ungeschöntes</strong> Feedback. Wenn etwas nicht passt, sagt sie es dir direkt.</p>
+            <p style="color:#999;margin-bottom:20px;font-size:0.85em;">💡 Die KI lobt was gut ist, kritisiert aber auch offen was nicht funktioniert.</p>
+
+            <div class="ai-chat-input">
+                <input type="text" id="aiFreeInput" placeholder="Frage stellen..." onkeypress="if(event.key==='Enter')aiFreeChat()">
+                <button class="btn btn-ai" onclick="aiFreeChat()">🤖 Fragen</button>
+            </div>
+
+            <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:15px;">
+                <button class="btn btn-ai" style="font-size:0.85em;" onclick="aiQuick('Welche Farben in meinem Kleiderschrank passen zusammen und welche beißen sich? Sei ehrlich.')">🎨 Farbcheck</button>
+                <button class="btn btn-ai" style="font-size:0.85em;" onclick="aiQuick('Was fehlt in meinem Kleiderschrank? Was sollte ich dringend kaufen und was ist überflüssig? Sei kritisch und ehrlich.')">🛍️ Kaufberatung</button>
+                <button class="btn btn-ai" style="font-size:0.85em;" onclick="aiQuick('Erstelle 3 Outfit-Ideen und bewerte sie ehrlich. Sag auch wenn eine Kombi nicht ideal ist.')">💡 3 Outfit-Ideen</button>
+                <button class="btn btn-ai" style="font-size:0.85em;" onclick="aiQuick('Analysiere meinen Stil knallhart ehrlich. Was ist gut, was ist schlecht, was muss sich ändern?')">✨ Stil-Roast</button>
+                <button class="btn btn-ai" style="font-size:0.85em;" onclick="aiQuick('Welche meiner Kleidungsstücke sind Fehlkäufe und warum? Sei brutal ehrlich.')">🗑️ Fehlkauf-Check</button>
+                <button class="btn btn-ai" style="font-size:0.85em;" onclick="aiQuick('Bewerte jedes einzelne Kleidungsstück in meinem Schrank von 1-10. Sei streng aber fair.')">📝 Einzelbewertung</button>
+            </div>
+
+            <div id="aiFreeResponse"></div>
+        </div>
+    </div>
+
+    <!-- =============== STATISTIKEN =============== -->
+    <div class="tab-content" id="tab-stats">
+        <div class="section-box animate-in">
+            <div class="section-title">📊 Statistiken</div>
+            <div class="stats-grid" id="statsGrid"></div>
+            <div class="ai-box" style="margin-top:20px;">
+                <div class="section-title">🤖 KI: Garderobe-Analyse</div>
+                <button class="btn btn-ai" onclick="aiWardrobeAnalysis()" style="width:100%;">🤖 Ehrliche Komplett-Analyse</button>
+                <div id="aiAnalysisResponse"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- =============== EINSTELLUNGEN =============== -->
+    <div class="tab-content" id="tab-settings">
+        <div class="section-box animate-in">
+            <div class="section-title">⚙️ Einstellungen</div>
+            <div class="settings-grid">
+                <div class="setting-item">
+                    <h3>🔑 Gemini API Key</h3>
+                    <p>Hol dir einen kostenlosen Key: <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:#764ba2;">aistudio.google.com</a></p>
+                    <div class="api-key-input">
+                        <input type="password" id="apiKeyInput" placeholder="AIza...">
+                        <button class="btn btn-add" onclick="saveApiKey()">💾</button>
+                        <button class="btn" style="background:#eee;" onclick="toggleKeyVis()">👁️</button>
+                    </div>
+                    <div id="apiKeyStatus" style="margin-top:10px;font-size:0.9em;"></div>
+                </div>
+                <div class="setting-item">
+                    <h3>🤖 KI-Modell</h3>
+                    <p>Für Bilderkennung wird ein Vision-fähiges Modell benötigt.</p>
+                    <select id="aiModelSelect" onchange="saveAiModel()" style="padding:10px 15px;border:2px solid #e0e0e0;border-radius:10px;width:100%;font-size:1em;">
+                        <option value="gemini-2.0-flash">Gemini 2.0 Flash (Empfohlen)</option>
+                        <option value="gemini-2.5-flash-preview-05-20">Gemini 2.5 Flash Preview</option>
+                        <option value="gemini-2.5-pro-preview-05-06">Gemini 2.5 Pro (Beste Qualität)</option>
+                        <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
+                    </select>
+                </div>
+                <div class="setting-item">
+                    <h3>🌡️ KI Kreativität</h3>
+                    <input type="range" id="aiTempSlider" min="0" max="1" step="0.1" value="0.7" onchange="saveAiTemp()" style="width:100%;">
+                    <span id="aiTempValue" style="color:#764ba2;font-weight:600;">0.7</span>
+                </div>
+                <div class="setting-item">
+                    <h3>🧪 API Test</h3>
+                    <button class="btn btn-ai" onclick="testApi()">🤖 Verbindung testen</button>
+                    <div id="apiTestResult" style="margin-top:10px;"></div>
+                </div>
+                <div class="setting-item">
+                    <h3>🗑️ Daten</h3>
+                    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                        <button class="btn btn-add" onclick="exportData()">📤 Export</button>
+                        <button class="btn btn-delete" onclick="importData()">📥 Import</button>
+                        <button class="btn btn-delete" onclick="clearAll()">🗑️ Alles löschen</button>
+                    </div>
+                    <input type="file" id="importFile" accept=".json" style="display:none" onchange="handleImport(event)">
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
-<!-- MODAL: API KEY -->
-<div class="modal-overlay" id="apiModal">
-  <div class="modal">
-    <button class="modal-close-btn" onclick="closeApiModal()">×</button>
-    <div class="modal-title">Gemini verbinden</div>
-    <div class="modal-subtitle">Gib deinen Gemini API Key ein, um den KI-Styling-Assistenten zu aktivieren. Du bekommst einen kostenlosen Key bei <a href="https://aistudio.google.com" target="_blank" style="color:var(--accent-warm)">Google AI Studio</a>.</div>
-    <div class="form-group">
-      <label class="form-label">API Key</label>
-      <input class="form-input" type="password" id="apiKeyInput" placeholder="AIza…">
-      <div class="form-hint">Dein Key wird nur lokal im Browser gespeichert.</div>
+<!-- Modals -->
+<div class="modal-overlay" id="slotPickerModal">
+    <div class="modal">
+        <h2 id="modalTitle">Kleidungsstück wählen</h2>
+        <div class="clothes-grid" id="modalGrid"></div>
+        <div class="modal-actions"><button class="btn btn-cancel" onclick="closeModal('slotPickerModal')">Abbrechen</button></div>
     </div>
-    <div class="modal-actions">
-      <button class="btn btn-primary" onclick="saveApiKey()">Verbinden</button>
-      <button class="btn btn-outline" onclick="closeApiModal()">Abbrechen</button>
-    </div>
-  </div>
 </div>
 
-<!-- MODAL: ADD CLOTHING -->
-<div class="modal-overlay" id="addModal">
-  <div class="modal" style="width:480px;">
-    <button class="modal-close-btn" onclick="closeAddModal()">×</button>
-    <div class="modal-title">Piece hinzufügen</div>
-    <div style="margin-bottom:16px;">
-      <label class="form-label">Emoji / Icon</label>
-      <div class="emoji-grid" id="emojiGrid"></div>
+<div class="modal-overlay" id="dayOutfitModal">
+    <div class="modal">
+        <h2 id="dayModalTitle">Outfit</h2>
+        <div id="dayModalContent"></div>
+        <div class="modal-actions">
+            <button class="btn btn-delete" id="removeDayBtn" onclick="removeDayOutfit()" style="display:none;">🗑️</button>
+            <button class="btn btn-cancel" onclick="closeModal('dayOutfitModal')">Schließen</button>
+        </div>
     </div>
-    <div class="form-group">
-      <label class="form-label">Name</label>
-      <input class="form-input" id="itemName" placeholder="z.B. Weißes Linen Shirt">
-    </div>
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px;">
-      <div>
-        <label class="form-label">Kategorie</label>
-        <select id="itemCategory">
-          <option>Tops</option>
-          <option>Hosen</option>
-          <option>Schuhe</option>
-          <option>Jacken</option>
-          <option>Accessoires</option>
-          <option>Kleider</option>
-        </select>
-      </div>
-      <div>
-        <label class="form-label">Marke (optional)</label>
-        <input class="form-input" id="itemBrand" placeholder="z.B. Zara">
-      </div>
-    </div>
-    <div class="form-group">
-      <label class="form-label">Farbe</label>
-      <div class="color-swatch-row" id="colorSwatches"></div>
-    </div>
-    <div class="modal-actions">
-      <button class="btn btn-primary" onclick="addItem()">Hinzufügen</button>
-      <button class="btn btn-outline" onclick="closeAddModal()">Abbrechen</button>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL: SLOT PICKER -->
-<div class="modal-overlay" id="slotModal">
-  <div class="modal" style="width:520px;">
-    <button class="modal-close-btn" onclick="closeSlotModal()">×</button>
-    <div class="modal-title" id="slotModalTitle">Piece auswählen</div>
-    <div class="wardrobe-grid" id="slotPickerGrid" style="max-height:380px; overflow-y:auto; margin-top:16px;"></div>
-  </div>
 </div>
 
 <script>
-// ─── STATE ───────────────────────────────────────────
-let apiKey = localStorage.getItem('gemini_api_key') || '';
-let currentFilter = 'Alle';
-let currentSlot = null;
+// ========================================================
+// DATA
+// ========================================================
+let wardrobe = JSON.parse(localStorage.getItem('wardrobe')) || [];
+let outfits = JSON.parse(localStorage.getItem('outfits')) || [];
+let calendarOutfits = JSON.parse(localStorage.getItem('calendarOutfits')) || {};
+let currentOutfit = {};
+let currentMonth = new Date().getMonth();
+let currentYear = new Date().getFullYear();
+let currentSlot = '';
+let photoQueue = []; // {file, dataUrl, status}
+let recognizedItems = []; // erkannte Kleidungsstücke
+let cameraStream = null;
 
-const slotCategoryMap = {
-  head: ['Accessoires'],
-  outer: ['Jacken'],
-  top: ['Tops', 'Kleider'],
-  bottom: ['Hosen', 'Kleider'],
-  shoes: ['Schuhe'],
-  acc: ['Accessoires']
-};
+const CI = {oberteil:'👕',unterteil:'👖',kleid:'👗',jacke:'🧥',schuhe:'👟',accessoire:'🎒'};
+const CN = {oberteil:'Oberteil',unterteil:'Unterteil',kleid:'Kleid',jacke:'Jacke',schuhe:'Schuhe',accessoire:'Accessoire'};
+const SN = {alle:'🌍 Alle',fruehling:'🌸 Frühling',sommer:'☀️ Sommer',herbst:'🍂 Herbst',winter:'❄️ Winter'};
 
-const slotLabels = {
-  head: 'Kopfbedeckung',
-  outer: 'Jacke / Outer',
-  top: 'Top / Shirt',
-  bottom: 'Hose / Rock',
-  shoes: 'Schuhe',
-  acc: 'Accessoire'
-};
+// ========================================================
+// SYSTEM PROMPT - Ehrliche KI Persönlichkeit
+// ========================================================
+const SYSTEM_PROMPT = `Du bist ein erfahrener Fashion-Berater mit 20 Jahren Erfahrung. Deine Kernprinzipien:
 
-let currentOutfitSlots = { head: null, outer: null, top: null, bottom: null, shoes: null, acc: null };
+🔥 EHRLICHKEIT: Du bist IMMER brutal ehrlich. Wenn ein Outfit schlecht aussieht, sagst du das klar und direkt. Kein Rumgeeiere, kein "ist ganz nett". Wenn etwas hässlich ist, sag es.
 
-let wardrobe = JSON.parse(localStorage.getItem('wardrobe') || '[]');
-let outfits = JSON.parse(localStorage.getItem('outfits') || '[]');
+👏 LOBE was gut ist: Wenn etwas wirklich gut kombiniert ist, zeige echte Begeisterung. Aber nur wenn es verdient ist – leeres Lob gibt es nicht.
 
-// Seed data
-if (wardrobe.length === 0) {
-  wardrobe = [
-    { id: 1, name: 'Weißes T-Shirt', emoji: '👕', category: 'Tops', brand: 'Uniqlo', color: '#FFFFFF' },
-    { id: 2, name: 'Blaues Oxford Hemd', emoji: '👔', category: 'Tops', brand: 'COS', color: '#4A6FA5' },
-    { id: 3, name: 'Schwarze Jeans', emoji: '👖', category: 'Hosen', brand: 'Levi\'s', color: '#1A1A2E' },
-    { id: 4, name: 'Beige Chino', emoji: '🩳', category: 'Hosen', brand: 'Zara', color: '#D4B896' },
-    { id: 5, name: 'White Sneakers', emoji: '👟', category: 'Schuhe', brand: 'Nike', color: '#FFFFFF' },
-    { id: 6, name: 'Chelsea Boots', emoji: '🥾', category: 'Schuhe', brand: 'Dr. Martens', color: '#2C1810' },
-    { id: 7, name: 'Denim Jacket', emoji: '🧥', category: 'Jacken', brand: 'Weekday', color: '#4A6FA5' },
-    { id: 8, name: 'Silberne Uhr', emoji: '⌚', category: 'Accessoires', brand: 'Casio', color: '#C0C0C0' },
-    { id: 9, name: 'Strick-Pullover', emoji: '🧶', category: 'Tops', brand: 'H&M', color: '#8B7355' },
-    { id: 10, name: 'Leather Belt', emoji: '🪢', category: 'Accessoires', brand: 'Zara', color: '#2C1810' },
-  ];
-  saveWardrobe();
+❌ KRITISIERE was schlecht ist: Wenn Farben sich beißen, der Stil inkonsistent ist, oder etwas altbacken wirkt – sag es offen. Der Benutzer will die Wahrheit, nicht Schmeicheleien.
+
+💡 SEI KONSTRUKTIV: Nach jeder Kritik gibst du konkrete Verbesserungsvorschläge.
+
+🎯 SEI KONKRET: Keine vagen Aussagen. Nenne konkrete Kleidungsstücke, Farben, Kombinationen.
+
+📊 BEWERTE KLAR: Nutze klare Bewertungen (1-10), Kategorien (top/okay/schlecht), direkte Sprache.
+
+Du antwortest auf Deutsch und nutzt Emojis sparsam aber gezielt. Du bist wie ein ehrlicher bester Freund – der dir sagt wenn du scheiße aussiehst, aber auch feiert wenn du gut aussiehst.`;
+
+// ========================================================
+// GEMINI API
+// ========================================================
+function getApiKey() { return localStorage.getItem('gemini_api_key') || ''; }
+function getAiModel() { return localStorage.getItem('ai_model') || 'gemini-2.0-flash'; }
+function getAiTemp() { return parseFloat(localStorage.getItem('ai_temp') || '0.7'); }
+
+function saveApiKey() {
+    const key = document.getElementById('apiKeyInput').value.trim();
+    localStorage.setItem('gemini_api_key', key);
+    updateAiStatus();
+    document.getElementById('apiKeyStatus').innerHTML = key
+        ? '<span style="color:green;">✅ Gespeichert!</span>'
+        : '<span style="color:red;">❌ Entfernt</span>';
 }
 
-const EMOJIS = ['👕','👔','🧥','🥼','👗','👘','🩱','🩲','🩳','👖','👗','👙','🧤','🧣','🎩','⛑️','👟','👠','👡','👢','🥾','🥿','🩴','👒','🕶️','💍','⌚','👜','👛','🎒','🧢','🩰','🪢','🧶','🪭'];
-const COLORS = ['#FFFFFF','#1A1916','#4A6FA5','#D4B896','#8B7355','#C0C0C0','#2C1810','#5C8A5C','#E07070','#7B6B9E','#F5E6C8','#2D3748'];
+function saveAiModel() { localStorage.setItem('ai_model', document.getElementById('aiModelSelect').value); }
 
-// ─── INIT ────────────────────────────────────────────
-function init() {
-  updateBadge();
-  renderEmojiGrid();
-  renderColorSwatches();
-  renderFilterRow();
-  renderAll();
+function saveAiTemp() {
+    const v = document.getElementById('aiTempSlider').value;
+    localStorage.setItem('ai_temp', v);
+    document.getElementById('aiTempValue').textContent = v;
 }
 
-function saveWardrobe() { localStorage.setItem('wardrobe', JSON.stringify(wardrobe)); }
-function saveOutfits() { localStorage.setItem('outfits', JSON.stringify(outfits)); }
-
-// ─── NAV ─────────────────────────────────────────────
-function showPage(name) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.getElementById('page-' + name).classList.add('active');
-  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  const navMap = { today: 'nav-today', wardrobe: 'nav-wardrobe', builder: 'nav-builder', outfits: 'nav-outfits', stats: 'nav-stats' };
-  if (navMap[name]) document.getElementById(navMap[name]).classList.add('active');
-  if (name === 'wardrobe') renderWardrobe();
-  if (name === 'outfits') renderOutfits();
-  if (name === 'today') renderRecent();
-  if (name === 'stats') renderStats();
+function toggleKeyVis() {
+    const i = document.getElementById('apiKeyInput');
+    i.type = i.type === 'password' ? 'text' : 'password';
 }
 
-function activateNav(id) {
-  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
+function updateAiStatus() {
+    const el = document.getElementById('aiStatus');
+    if (getApiKey()) { el.className = 'ai-status connected'; el.textContent = '● KI Online'; }
+    else { el.className = 'ai-status disconnected'; el.textContent = '● KI Offline'; }
 }
 
-// ─── RENDER ──────────────────────────────────────────
-function renderAll() {
-  renderWardrobe();
-  renderOutfits();
-  renderRecent();
-  updateCounts();
+function wardrobeSummary() {
+    if (!wardrobe.length) return 'Der Kleiderschrank ist leer.';
+    return wardrobe.map(i =>
+        `- ${i.name} (${CN[i.category]}, Farbe: ${i.color}, Saison: ${SN[i.season]}, ${i.timesWorn}x getragen${i.imageData ? ', hat Foto' : ''})`
+    ).join('\n');
+}
+
+function currentOutfitSummary() {
+    const p = [];
+    for (const [c, id] of Object.entries(currentOutfit)) {
+        const i = wardrobe.find(x => x.id === id);
+        if (i) p.push(`${CI[c]} ${i.name} (Farbe: ${i.color})`);
+    }
+    return p.length ? p.join('\n') : 'Kein Outfit ausgewählt.';
+}
+
+// Text-only API call
+async function callGemini(prompt, responseElId) {
+    const apiKey = getApiKey();
+    if (!apiKey) { showAi(responseElId, '❌ Trage zuerst deinen Gemini API Key in den Einstellungen ein!', true); return null; }
+
+    showAi(responseElId, '<div class="ai-loading">🤖 <span>KI denkt nach<span class="dots"></span></span></div>', false);
+
+    const model = getAiModel();
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+
+    try {
+        const res = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
+                contents: [{ parts: [{ text: prompt }] }],
+                generationConfig: { temperature: getAiTemp(), maxOutputTokens: 4096 }
+            })
+        });
+
+        if (!res.ok) { const e = await res.json(); throw new Error(e.error?.message || `HTTP ${res.status}`); }
+
+        const data = await res.json();
+        const text = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Keine Antwort.';
+        showAi(responseElId, formatAi(text));
+        return text;
+    } catch (e) { showAi(responseElId, `❌ Fehler: ${e.message}`, true); return null; }
+}
+
+// Vision API call (with image)
+async function callGeminiVision(prompt, imageBase64, mimeType, responseElId) {
+    const apiKey = getApiKey();
+    if (!apiKey) { showAi(responseElId, '❌ API Key fehlt!', true); return null; }
+
+    if (responseElId) showAi(responseElId, '<div class="ai-loading">🤖 <span>KI analysiert Bild<span class="dots"></span></span></div>', false);
+
+    const model = getAiModel();
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+
+    try {
+        const res = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
+                contents: [{
+                    parts: [
+                        { text: prompt },
+                        { inline_data: { mime_type: mimeType, data: imageBase64 } }
+                    ]
+                }],
+                generationConfig: { temperature: 0.3, maxOutputTokens: 4096 }
+            })
+        });
+
+        if (!res.ok) { const e = await res.json(); throw new Error(e.error?.message || `HTTP ${res.status}`); }
+
+        const data = await res.json();
+        const text = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Keine Antwort.';
+        if (responseElId) showAi(responseElId, formatAi(text));
+        return text;
+    } catch (e) {
+        if (responseElId) showAi(responseElId, `❌ Fehler: ${e.message}`, true);
+        return null;
+    }
+}
+
+function showAi(id, html, err = false) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.innerHTML = `<div class="ai-response" style="${err ? 'border-color:#ff4757;color:#ff4757;' : ''}">${html}</div>`;
+}
+
+function formatAi(t) {
+    return t.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+        .replace(/^### (.*$)/gm, '<h3>$1</h3>')
+        .replace(/^## (.*$)/gm, '<h3>$1</h3>')
+        .replace(/^# (.*$)/gm, '<h3>$1</h3>')
+        .replace(/^- (.*$)/gm, '• $1')
+        .replace(/\n/g, '<br>');
+}
+
+// ========================================================
+// FOTO-SCAN: Kamera & Galerie
+// ========================================================
+function handleGallerySelect(e) {
+    const files = Array.from(e.target.files);
+    files.forEach(f => addPhotoToQueue(f));
+    e.target.value = '';
+}
+
+function handleDrop(e) {
+    e.preventDefault();
+    e.target.classList.remove('dragover');
+    const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+    files.forEach(f => addPhotoToQueue(f));
+}
+
+function handleCameraCapture(e) {
+    const file = e.target.files[0];
+    if (file) addPhotoToQueue(file);
+    e.target.value = '';
+}
+
+function addPhotoToQueue(file) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        photoQueue.push({
+            id: Date.now() + Math.random(),
+            file: file,
+            dataUrl: e.target.result,
+            base64: e.target.result.split(',')[1],
+            mimeType: file.type,
+            status: 'pending' // pending, analyzing, done, error
+        });
+        renderPhotoPreview();
+        document.getElementById('analyzeBtn').disabled = false;
+    };
+    reader.readAsDataURL(file);
+}
+
+function openCamera() {
+    // Mobile: use file input with capture
+    if (/Android|iPhone|iPad/i.test(navigator.userAgent)) {
+        document.getElementById('photoCameraInput').click();
+        return;
+    }
+
+    // Desktop: use getUserMedia
+    const container = document.getElementById('cameraContainer');
+    const video = document.getElementById('cameraVideo');
+
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+        .then(stream => {
+            cameraStream = stream;
+            video.srcObject = stream;
+            container.style.display = 'block';
+        })
+        .catch(err => {
+            alert('Kamera nicht verfügbar: ' + err.message + '\nVerwende stattdessen die Dateiauswahl.');
+            document.getElementById('photoCameraInput').click();
+        });
+}
+
+function capturePhoto() {
+    const video = document.getElementById('cameraVideo');
+    const canvas = document.getElementById('cameraCanvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext('2d').drawImage(video, 0, 0);
+
+    canvas.toBlob(blob => {
+        const file = new File([blob], 'camera_' + Date.now() + '.jpg', { type: 'image/jpeg' });
+        addPhotoToQueue(file);
+    }, 'image/jpeg', 0.85);
+}
+
+function closeCamera() {
+    if (cameraStream) {
+        cameraStream.getTracks().forEach(t => t.stop());
+        cameraStream = null;
+    }
+    document.getElementById('cameraContainer').style.display = 'none';
+}
+
+function removePhoto(id) {
+    photoQueue = photoQueue.filter(p => p.id !== id);
+    renderPhotoPreview();
+    if (!photoQueue.length) document.getElementById('analyzeBtn').disabled = true;
+}
+
+function renderPhotoPreview() {
+    const grid = document.getElementById('photoPreviewGrid');
+    grid.innerHTML = photoQueue.map(p => `
+        <div class="preview-card">
+            <button class="remove-preview" onclick="removePhoto(${p.id})">✕</button>
+            <img src="${p.dataUrl}" alt="Foto">
+            <div class="preview-status ${p.status === 'pending' ? '' : p.status}">
+                ${p.status === 'pending' ? '⏳ Wartet...' :
+                  p.status === 'analyzing' ? '🔍 Analysiere...' :
+                  p.status === 'done' ? '✅ Erkannt!' :
+                  '❌ Fehler'}
+            </div>
+        </div>
+    `).join('');
+}
+
+// ========================================================
+// FOTO ANALYSE MIT GEMINI VISION
+// ========================================================
+async function analyzeAllPhotos() {
+    const pending = photoQueue.filter(p => p.status === 'pending');
+    if (!pending.length) return alert('Keine neuen Fotos zum Analysieren.');
+
+    if (!getApiKey()) return alert('Bitte zuerst API Key eintragen!');
+
+    recognizedItems = [];
+    document.getElementById('analyzeBtn').disabled = true;
+
+    for (const photo of pending) {
+        photo.status = 'analyzing';
+        renderPhotoPreview();
+
+        const prompt = `Analysiere dieses Foto von Kleidung. Identifiziere JEDES Kleidungsstück das du siehst.
+
+Für jedes erkannte Kleidungsstück erstelle ein JSON-Objekt mit:
+- "name": Beschreibender Name auf Deutsch (z.B. "Dunkelblauer Wollpullover", "Weiße Leinenhose")
+- "category": GENAU eine von: oberteil, unterteil, kleid, jacke, schuhe, accessoire
+- "color": HEX-Farbcode der Hauptfarbe (z.B. "#1a237e" für dunkelblau)
+- "season": GENAU eine von: alle, fruehling, sommer, herbst, winter
+- "material": Geschätztes Material (z.B. "Baumwolle", "Polyester", "Leder")
+- "style": Stil-Einordnung (z.B. "casual", "elegant", "sportlich")
+- "condition": Geschätzter Zustand 1-10
+- "honest_comment": Deine EHRLICHE Meinung zu dem Stück. Wenn es abgenutzt, altmodisch oder hässlich aussieht, sag es. Wenn es ein tolles Teil ist, lob es.
+
+Sei bei der Erkennung so PRÄZISE wie möglich. Erkenne Marken wenn sichtbar. Beschreibe Muster, Details, Schnitt.
+
+Sei EHRLICH in deinem Kommentar – wenn das Teil aussieht wie aus 2005, sag es.
+
+Antworte NUR mit einem JSON-Array. Keine andere Erklärung.
+
+Falls kein Kleidungsstück erkannt wird, antworte mit: []`;
+
+        try {
+            const result = await callGeminiVision(prompt, photo.base64, photo.mimeType, null);
+
+            if (result) {
+                const jsonMatch = result.match(/\[[\s\S]*\]/);
+                if (jsonMatch) {
+                    const items = JSON.parse(jsonMatch[0]);
+                    items.forEach(item => {
+                        recognizedItems.push({
+                            ...item,
+                            id: Date.now() + Math.random(),
+                            photoId: photo.id,
+                            imageData: photo.dataUrl
+                        });
+                    });
+                    photo.status = 'done';
+                } else {
+                    photo.status = items.length === 0 ? 'done' : 'error';
+                }
+            } else {
+                photo.status = 'error';
+            }
+        } catch (e) {
+            photo.status = 'error';
+        }
+
+        renderPhotoPreview();
+    }
+
+    renderRecognizedItems();
+    document.getElementById('analyzeBtn').disabled = false;
+}
+
+function renderRecognizedItems() {
+    const container = document.getElementById('recognizedItemsContainer');
+    const list = document.getElementById('recognizedItemsList');
+
+    if (!recognizedItems.length) {
+        container.style.display = 'none';
+        return;
+    }
+
+    container.style.display = 'block';
+
+    list.innerHTML = recognizedItems.map(item => `
+        <div class="recognized-item" id="rec-${item.id}">
+            ${item.imageData ? `<img src="${item.imageData}" alt="${item.name}">` : ''}
+            <div class="recognized-item-info">
+                <div class="name">${CI[item.category] || '👕'} ${item.name}</div>
+                <div class="details">
+                    <span class="tag tag-${item.category}">${CN[item.category] || item.category}</span>
+                    <span class="clothing-color-dot" style="background:${item.color};width:14px;height:14px;vertical-align:middle;display:inline-block;border-radius:50%;border:1px solid #ddd;"></span>
+                    ${SN[item.season] || item.season}
+                    ${item.material ? ' · ' + item.material : ''}
+                    ${item.style ? ' · ' + item.style : ''}
+                </div>
+                ${item.honest_comment ? `<div style="margin-top:5px;font-size:0.85em;color:#555;font-style:italic;">"${item.honest_comment}"</div>` : ''}
+            </div>
+            <button class="btn-add-recognized" onclick="addRecognizedItem(${item.id})">✅ Hinzufügen</button>
+            <button class="btn-reject" onclick="rejectRecognized(${item.id})">✕</button>
+        </div>
+    `).join('');
+}
+
+function addRecognizedItem(id) {
+    const item = recognizedItems.find(i => i.id === id);
+    if (!item) return;
+
+    wardrobe.push({
+        id: Date.now() + Math.random(),
+        name: item.name,
+        category: item.category || 'oberteil',
+        color: item.color || '#667eea',
+        season: item.season || 'alle',
+        timesWorn: 0,
+        material: item.material || '',
+        style: item.style || '',
+        imageData: item.imageData || null,
+        aiComment: item.honest_comment || ''
+    });
+
+    recognizedItems = recognizedItems.filter(i => i.id !== id);
+    saveData();
+    renderRecognizedItems();
+    renderWardrobe();
+    renderPlannerItems();
+}
+
+function rejectRecognized(id) {
+    recognizedItems = recognizedItems.filter(i => i.id !== id);
+    renderRecognizedItems();
+}
+
+function addAllRecognized() {
+    recognizedItems.forEach(item => {
+        wardrobe.push({
+            id: Date.now() + Math.random(),
+            name: item.name,
+            category: item.category || 'oberteil',
+            color: item.color || '#667eea',
+            season: item.season || 'alle',
+            timesWorn: 0,
+            material: item.material || '',
+            style: item.style || '',
+            imageData: item.imageData || null,
+            aiComment: item.honest_comment || ''
+        });
+    });
+
+    const count = recognizedItems.length;
+    recognizedItems = [];
+    saveData();
+    renderRecognizedItems();
+    renderWardrobe();
+    renderPlannerItems();
+    alert(`✅ ${count} Kleidungsstück${count !== 1 ? 'e' : ''} hinzugefügt!`);
+}
+
+function clearRecognized() {
+    recognizedItems = [];
+    renderRecognizedItems();
+}
+
+// ========================================================
+// KI FUNKTIONEN
+// ========================================================
+async function aiAddClothes() {
+    const input = document.getElementById('aiAddClothesInput').value.trim();
+    if (!input) return alert('Beschreibe deine Kleidung!');
+
+    const prompt = `Der Benutzer beschreibt Kleidungsstücke. Extrahiere eine Liste.
+
+Für jedes Stück gib JSON mit: "name", "category" (oberteil/unterteil/kleid/jacke/schuhe/accessoire), "color" (HEX), "season" (alle/fruehling/sommer/herbst/winter)
+
+Antworte NUR mit JSON-Array.
+
+Eingabe: "${input}"`;
+
+    const result = await callGemini(prompt, 'aiAddClothesResponse');
+    if (!result) return;
+
+    try {
+        const m = result.match(/\[[\s\S]*\]/);
+        if (!m) throw new Error('Kein JSON');
+        const items = JSON.parse(m[0]);
+        let added = 0;
+        items.forEach(i => {
+            if (i.name && i.category) {
+                wardrobe.push({ id: Date.now()+Math.random(), name:i.name, category:i.category, color:i.color||'#667eea', season:i.season||'alle', timesWorn:0 });
+                added++;
+            }
+        });
+        saveData(); renderWardrobe(); renderPlannerItems();
+        showAi('aiAddClothesResponse', `✅ <strong>${added} Stück${added!==1?'e':''} hinzugefügt!</strong><br><br>` +
+            items.map(i=>`${CI[i.category]||'👕'} ${i.name} <span class="clothing-color-dot" style="background:${i.color};width:14px;height:14px;display:inline-block;border-radius:50;vertical-align:middle;border:1px solid #ddd;"></span>`).join('<br>'));
+        document.getElementById('aiAddClothesInput').value = '';
+    } catch(e) { showAi('aiAddClothesResponse', formatAi(result)); }
+}
+
+async function aiRateOutfit() {
+    const s = currentOutfitSummary();
+    if (s === 'Kein Outfit ausgewählt.') return showAi('aiRateResponse', '❌ Wähle zuerst ein Outfit!', true);
+
+    const prompt = `Bewerte dieses Outfit KNALLHART EHRLICH:
+
+${s}
+
+Gib eine Bewertung mit:
+1. Gesamtnote 1-10 (sei STRENG, eine 10 gibt es fast nie)
+2. Farbharmonie - passen die Farben wirklich zusammen?
+3. Was funktioniert gut (nur wenn wirklich was gut ist)
+4. Was NICHT funktioniert (sei schonungslos)
+5. Konkrete Verbesserungsvorschläge
+6. Für welche Anlässe ist das okay, für welche eine Katastrophe?
+
+Wenn das Outfit großartig ist, feiere es. Wenn es schlecht ist, sag es direkt. Kein "ist ganz okay" – nimm kein Blatt vor den Mund.`;
+
+    await callGemini(prompt, 'aiRateResponse');
+}
+
+async function aiSuggestForOccasion() {
+    const occ = document.getElementById('aiOccasionInput').value.trim();
+    if (!occ) return alert('Gib einen Anlass ein!');
+
+    const prompt = `Outfit für: "${occ}"
+
+Kleiderschrank:
+${wardrobeSummary()}
+
+Schlage das BESTE Outfit aus vorhandenen Teilen vor. Sei ehrlich – wenn nichts Passendes da ist, sag es klar. Wenn die verfügbare Kleidung für den Anlass ungeeignet ist, sag das direkt und was fehlt.`;
+
+    await callGemini(prompt, 'aiOccasionResponse');
+}
+
+async function aiWeekPlan() {
+    const w = document.getElementById('aiWeatherInput').value.trim() || 'keine Angabe';
+    const ev = document.getElementById('aiWeekEventsInput').value.trim() || 'keine';
+
+    const prompt = `Erstelle einen Wochenplan Mo-So mit Outfits.
+
+Kleidung:
+${wardrobeSummary()}
+
+Wetter: ${w}
+Anlässe: ${ev}
+
+Für jeden Tag ein Outfit aus VORHANDENEN Teilen. Sei ehrlich wenn der Kleiderschrank zu klein für Abwechslung ist. Markiere Tage wo es schwierig wird.`;
+
+    await callGemini(prompt, 'aiWeekPlanResponse');
+}
+
+async function aiFreeChat() {
+    const input = document.getElementById('aiFreeInput').value.trim();
+    if (!input) return;
+
+    const prompt = `Kleiderschrank des Benutzers:
+${wardrobeSummary()}
+
+${outfits.length} gespeicherte Outfits, ${Object.keys(calendarOutfits).length} geplante Tage.
+
+Frage: "${input}"
+
+Antworte ehrlich, direkt, konstruktiv. Lobe was gut ist, kritisiere was schlecht ist.`;
+
+    await callGemini(prompt, 'aiFreeResponse');
+    document.getElementById('aiFreeInput').value = '';
+}
+
+function aiQuick(q) { document.getElementById('aiFreeInput').value = q; aiFreeChat(); }
+
+async function aiWardrobeAnalysis() {
+    const prompt = `Analysiere diesen Kleiderschrank KOMPLETT und EHRLICH:
+
+${wardrobeSummary()}
+
+Erstelle eine schonungslose Analyse:
+1. 📊 Übersicht & erster Eindruck (ehrlich!)
+2. 🎨 Farbpalette: Was harmoniert, was beißt sich?
+3. 👗 Stil-Diagnose: Ist da ein roter Faden oder ein Chaos?
+4. ⚠️ Probleme & Lücken: Was fehlt dringend?
+5. 🗑️ Ausmisten: Was sollte raus und warum?
+6. 🛍️ Top 5 Anschaffungen die WIRKLICH fehlen
+7. 🔄 Kombi-Potenzial: Wie viele gute Outfits sind realistisch möglich?
+8. 💡 3 knallharte Styling-Tipps
+9. 📈 Gesamtnote für den Kleiderschrank (1-10, streng!)
+
+Sei ehrlich. Wenn der Schrank chaotisch ist, sag es. Wenn er gut sortiert ist, lob es.`;
+
+    await callGemini(prompt, 'aiAnalysisResponse');
+}
+
+async function testApi() {
+    const el = document.getElementById('apiTestResult');
+    if (!getApiKey()) { el.innerHTML = '<span style="color:red;">❌ Kein Key!</span>'; return; }
+    el.innerHTML = '<span style="color:#764ba2;">⏳ Teste...</span>';
+
+    try {
+        const model = getAiModel();
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${getApiKey()}`;
+        const res = await fetch(url, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: 'Sage genau: "Connection OK ✅ Bilderkennung bereit 📸"' }] }],
+                generationConfig: { temperature: 0, maxOutputTokens: 50 }
+            })
+        });
+        if (!res.ok) throw new Error((await res.json()).error?.message);
+        const d = await res.json();
+        el.innerHTML = `<span style="color:green;">✅ Verbindung OK! Modell: ${model}</span><br><small>${d.candidates?.[0]?.content?.parts?.[0]?.text||''}</small>`;
+        updateAiStatus();
+    } catch(e) { el.innerHTML = `<span style="color:red;">❌ ${e.message}</span>`; }
+}
+
+// ========================================================
+// TABS
+// ========================================================
+function switchTab(name, btn) {
+    document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.getElementById('tab-'+name).classList.add('active');
+    if(btn) btn.classList.add('active');
+    if(name==='wardrobe') renderWardrobe();
+    if(name==='planner') renderPlannerItems();
+    if(name==='calendar') renderCalendar();
+    if(name==='outfits') renderSavedOutfits();
+    if(name==='stats') renderStats();
+}
+
+// ========================================================
+// KLEIDERSCHRANK
+// ========================================================
+function addClothingItem() {
+    const n = document.getElementById('itemName').value.trim();
+    if(!n) return alert('Name eingeben!');
+    wardrobe.push({ id:Date.now(), name:n, category:document.getElementById('itemCategory').value,
+        color:document.getElementById('itemColor').value, season:document.getElementById('itemSeason').value, timesWorn:0 });
+    saveData(); renderWardrobe(); renderPlannerItems();
+    document.getElementById('itemName').value = '';
+}
+
+function deleteClothingItem(id) {
+    if(!confirm('Löschen?')) return;
+    wardrobe = wardrobe.filter(i=>i.id!==id);
+    saveData(); renderWardrobe(); renderPlannerItems(); renderStats();
 }
 
 function renderWardrobe() {
-  const grid = document.getElementById('wardrobeGrid');
-  const filtered = currentFilter === 'Alle' ? wardrobe : wardrobe.filter(i => i.category === currentFilter);
-  document.getElementById('wardrobeSubtitle').textContent =
-    currentFilter === 'Alle' ? `${wardrobe.length} Teile insgesamt` : `${filtered.length} ${currentFilter}`;
+    const grid = document.getElementById('clothesGrid');
+    const cat = document.getElementById('filterCategory').value;
+    const ssn = document.getElementById('filterSeason').value;
+    const srch = document.getElementById('filterSearch').value.toLowerCase();
 
-  if (filtered.length === 0) {
-    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
-      <div class="empty-icon">🧺</div>
-      <div class="empty-title">Noch leer hier</div>
-      <div class="empty-text">Füge deine ersten Kleidungsstücke hinzu.</div>
-    </div>`;
-    return;
-  }
+    let items = wardrobe.filter(i => {
+        if(cat!=='alle' && i.category!==cat) return false;
+        if(ssn!=='alle' && i.season!==ssn && i.season!=='alle') return false;
+        if(srch && !i.name.toLowerCase().includes(srch)) return false;
+        return true;
+    });
 
-  grid.innerHTML = filtered.map(item => `
-    <div class="clothing-card">
-      <div class="clothing-image" style="background:${item.color}22">${item.emoji}</div>
-      <div class="clothing-info">
-        <div class="clothing-name">${item.name}</div>
-        <div class="clothing-meta">
-          <span class="clothing-tag">${item.category}</span>
-          ${item.brand ? `<span style="color:var(--text-muted)">${item.brand}</span>` : ''}
+    if(!items.length) {
+        grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><span>🗄️</span><p>Keine Kleidung gefunden.</p></div>';
+        return;
+    }
+
+    grid.innerHTML = items.map(i => `
+        <div class="clothing-card">
+            ${i.imageData ? `<img class="clothing-image" src="${i.imageData}" alt="${i.name}">` :
+              `<div class="clothing-icon">${CI[i.category]}</div>`}
+            <div class="clothing-name">${i.name}</div>
+            <span class="tag tag-${i.category}">${CN[i.category]}</span>
+            <div style="margin:8px 0"><span class="clothing-color-dot" style="background:${i.color}"></span></div>
+            <div style="font-size:0.8em;color:#999">${SN[i.season]} · ${i.timesWorn}x getragen</div>
+            ${i.material ? `<div style="font-size:0.75em;color:#aaa">${i.material}${i.style?' · '+i.style:''}</div>` : ''}
+            ${i.aiComment ? `<div style="font-size:0.75em;color:#7c3aed;font-style:italic;margin-top:4px;">"${i.aiComment.substring(0,60)}${i.aiComment.length>60?'...':''}"</div>` : ''}
+            <div class="card-actions"><button class="btn btn-delete" onclick="deleteClothingItem(${JSON.stringify(i.id).replace(/"/g,'&quot;')})">🗑️</button></div>
         </div>
-      </div>
-    </div>
-  `).join('');
-
-  // Add button
-  const addBtn = document.createElement('div');
-  addBtn.className = 'add-card';
-  addBtn.onclick = openAddModal;
-  addBtn.innerHTML = '<div class="plus">+</div><div>Hinzufügen</div>';
-  grid.appendChild(addBtn);
-}
-
-function renderOutfits() {
-  const grid = document.getElementById('outfitsGrid');
-  if (outfits.length === 0) {
-    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
-      <div class="empty-icon">✨</div>
-      <div class="empty-title">Noch keine Outfits</div>
-      <div class="empty-text">Erstelle dein erstes Outfit im Builder.</div>
-    </div>`;
-    return;
-  }
-  grid.innerHTML = outfits.map(o => renderOutfitCard(o)).join('');
-}
-
-function renderRecent() {
-  const el = document.getElementById('recentOutfits');
-  const recent = [...outfits].reverse().slice(0, 4);
-  if (recent.length === 0) {
-    el.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
-      <div class="empty-icon">👗</div>
-      <div class="empty-title">Noch keine Outfits</div>
-      <div class="empty-text">Erstelle dein erstes Outfit und es erscheint hier.</div>
-    </div>`;
-    return;
-  }
-  el.innerHTML = recent.map(o => renderOutfitCard(o)).join('');
-}
-
-function renderOutfitCard(o) {
-  const items = Object.values(o.slots).filter(Boolean);
-  const preview = items.slice(0, 4).map(id => {
-    const item = wardrobe.find(w => w.id === id);
-    return `<div class="outfit-preview-item">${item ? item.emoji : '?'}</div>`;
-  }).join('');
-  const tags = [o.occasion, o.season].filter(Boolean);
-  return `<div class="outfit-card">
-    <div class="outfit-preview">${preview}</div>
-    <div class="outfit-info">
-      <div class="outfit-name">${o.name}</div>
-      <div class="outfit-tags">${tags.map(t => `<span class="outfit-tag">${t}</span>`).join('')}</div>
-    </div>
-  </div>`;
-}
-
-function renderStats() {
-  const byCategory = {};
-  wardrobe.forEach(i => { byCategory[i.category] = (byCategory[i.category] || 0) + 1; });
-  const bars = Object.entries(byCategory).map(([cat, count]) => {
-    const pct = Math.round((count / wardrobe.length) * 100);
-    return `<div style="margin-bottom:12px;">
-      <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;">
-        <span>${cat}</span><span style="color:var(--text-muted)">${count} Stück</span>
-      </div>
-      <div style="height:6px;background:var(--surface2);border-radius:3px;overflow:hidden;">
-        <div style="height:100%;width:${pct}%;background:var(--accent-warm);border-radius:3px;transition:width 0.6s ease;"></div>
-      </div>
-    </div>`;
-  }).join('');
-
-  document.getElementById('statsContent').innerHTML = `
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:28px;">
-      <div style="background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:20px;">
-        <div style="font-size:32px;font-weight:500;">${wardrobe.length}</div>
-        <div style="font-size:13px;color:var(--text-muted);margin-top:2px;">Kleidungsstücke</div>
-      </div>
-      <div style="background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:20px;">
-        <div style="font-size:32px;font-weight:500;">${outfits.length}</div>
-        <div style="font-size:13px;color:var(--text-muted);margin-top:2px;">Outfits gespeichert</div>
-      </div>
-      <div style="background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:20px;">
-        <div style="font-size:32px;font-weight:500;">${Object.keys(byCategory).length}</div>
-        <div style="font-size:13px;color:var(--text-muted);margin-top:2px;">Kategorien</div>
-      </div>
-    </div>
-    <div style="background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:24px;">
-      <div style="font-size:15px;font-weight:500;margin-bottom:20px;">Verteilung</div>
-      ${bars}
-    </div>`;
-}
-
-function updateCounts() {
-  document.getElementById('wardrobeCountBadge').textContent = wardrobe.length;
-  document.getElementById('outfitCountBadge').textContent = outfits.length;
-}
-
-// ─── FILTERS ─────────────────────────────────────────
-const filters = ['Alle', 'Tops', 'Hosen', 'Schuhe', 'Jacken', 'Accessoires', 'Kleider'];
-
-function renderFilterRow() {
-  const row = document.getElementById('filterRow');
-  row.innerHTML = filters.map(f => `
-    <button class="filter-btn ${f === currentFilter ? 'active' : ''}" onclick="setFilter('${f}')">${f}</button>
-  `).join('');
-}
-
-function setFilter(f) {
-  currentFilter = f;
-  showPage('wardrobe');
-  renderFilterRow();
-  renderWardrobe();
-}
-
-// ─── ADD MODAL ───────────────────────────────────────
-let selectedEmoji = '👕';
-let selectedColor = '#FFFFFF';
-
-function renderEmojiGrid() {
-  document.getElementById('emojiGrid').innerHTML = EMOJIS.map(e => `
-    <div class="emoji-option ${e === selectedEmoji ? 'selected' : ''}" onclick="selectEmoji('${e}')">${e}</div>
-  `).join('');
-}
-
-function renderColorSwatches() {
-  document.getElementById('colorSwatches').innerHTML = COLORS.map(c => `
-    <div class="color-swatch ${c === selectedColor ? 'selected' : ''}"
-      style="background:${c};border:1.5px solid ${c === '#FFFFFF' ? '#ddd' : c}"
-      onclick="selectColor('${c}')"></div>
-  `).join('');
-}
-
-function selectEmoji(e) {
-  selectedEmoji = e;
-  renderEmojiGrid();
-}
-
-function selectColor(c) {
-  selectedColor = c;
-  renderColorSwatches();
-}
-
-function openAddModal() { document.getElementById('addModal').classList.add('open'); }
-function closeAddModal() { document.getElementById('addModal').classList.remove('open'); }
-
-function addItem() {
-  const name = document.getElementById('itemName').value.trim();
-  if (!name) { document.getElementById('itemName').focus(); return; }
-  const item = {
-    id: Date.now(),
-    name,
-    emoji: selectedEmoji,
-    category: document.getElementById('itemCategory').value,
-    brand: document.getElementById('itemBrand').value.trim(),
-    color: selectedColor
-  };
-  wardrobe.push(item);
-  saveWardrobe();
-  updateCounts();
-  closeAddModal();
-  document.getElementById('itemName').value = '';
-  document.getElementById('itemBrand').value = '';
-  renderWardrobe();
-}
-
-// ─── SLOT PICKER ─────────────────────────────────────
-function openSlotPicker(slot) {
-  currentSlot = slot;
-  document.getElementById('slotModalTitle').textContent = slotLabels[slot] + ' wählen';
-  const cats = slotCategoryMap[slot];
-  const items = wardrobe.filter(i => cats.includes(i.category));
-  const grid = document.getElementById('slotPickerGrid');
-  if (items.length === 0) {
-    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
-      <div class="empty-icon">🧺</div>
-      <div class="empty-title">Keine Pieces</div>
-      <div class="empty-text">Füge zuerst Kleidungsstücke in dieser Kategorie hinzu.</div>
-    </div>`;
-  } else {
-    grid.innerHTML = items.map(item => `
-      <div class="clothing-card ${currentOutfitSlots[slot] === item.id ? 'selected' : ''}" onclick="selectSlotItem(${item.id})">
-        <div class="check">✓</div>
-        <div class="clothing-image" style="background:${item.color}22">${item.emoji}</div>
-        <div class="clothing-info">
-          <div class="clothing-name">${item.name}</div>
-          <div class="clothing-meta"><span class="clothing-tag">${item.category}</span></div>
-        </div>
-      </div>
     `).join('');
-  }
-  document.getElementById('slotModal').classList.add('open');
 }
 
-function closeSlotModal() { document.getElementById('slotModal').classList.remove('open'); }
+// ========================================================
+// OUTFIT PLANER
+// ========================================================
+function renderPlannerItems() {
+    const grid = document.getElementById('plannerGrid');
+    const f = document.getElementById('plannerFilter').value;
+    let items = f==='alle' ? wardrobe : wardrobe.filter(i=>i.category===f);
 
-function selectSlotItem(id) {
-  currentOutfitSlots[currentSlot] = id;
-  const item = wardrobe.find(i => i.id === id);
-  const slot = document.getElementById('slot-' + currentSlot);
-  slot.classList.add('filled');
-  slot.querySelector('.slot-emoji').textContent = item.emoji;
-  slot.querySelector('.slot-name').textContent = item.name;
-  slot.querySelector('.slot-name').style.color = 'var(--text)';
-  closeSlotModal();
+    grid.innerHTML = items.map(i => `
+        <div class="clothing-card ${isInOutfit(i.id)?'selected':''}" onclick="toggleItem(${JSON.stringify(i.id).replace(/"/g,'&quot;')})">
+            ${i.imageData ? `<img class="clothing-image" src="${i.imageData}" alt="${i.name}">` :
+              `<div class="clothing-icon">${CI[i.category]}</div>`}
+            <div class="clothing-name">${i.name}</div>
+            <span class="tag tag-${i.category}">${CN[i.category]}</span>
+        </div>
+    `).join('');
 }
 
-function clearSlot(e, slot) {
-  e.stopPropagation();
-  currentOutfitSlots[slot] = null;
-  const slotEl = document.getElementById('slot-' + slot);
-  slotEl.classList.remove('filled');
-  const defaults = { head:'🎩',outer:'🧥',top:'👕',bottom:'👖',shoes:'👟',acc:'💍' };
-  slotEl.querySelector('.slot-emoji').textContent = defaults[slot];
-  slotEl.querySelector('.slot-name').textContent = 'Tap zum Auswählen';
-  slotEl.querySelector('.slot-name').style.color = 'var(--text-muted)';
+function isInOutfit(id) { return Object.values(currentOutfit).some(v=>v===id); }
+
+function toggleItem(id) {
+    const i = wardrobe.find(x=>x.id===id);
+    if(!i) return;
+    if(currentOutfit[i.category]===id) delete currentOutfit[i.category];
+    else currentOutfit[i.category] = id;
+    updateSlots(); renderPlannerItems();
 }
 
-// ─── SAVE OUTFIT ─────────────────────────────────────
+function openSlotPicker(slot) {
+    currentSlot = slot;
+    document.getElementById('modalTitle').textContent = `${CI[slot]} ${CN[slot]} wählen`;
+    const items = wardrobe.filter(i=>i.category===slot);
+    document.getElementById('modalGrid').innerHTML = items.length ? items.map(i=>`
+        <div class="clothing-card ${currentOutfit[slot]===i.id?'selected':''}" onclick="selectSlot(${JSON.stringify(i.id).replace(/"/g,'&quot;')})">
+            ${i.imageData ? `<img class="clothing-image" src="${i.imageData}">` : `<div class="clothing-icon">${CI[i.category]}</div>`}
+            <div class="clothing-name">${i.name}</div>
+        </div>
+    `).join('') : '<div class="empty-state" style="grid-column:1/-1"><span>😢</span><p>Keine vorhanden</p></div>';
+    document.getElementById('slotPickerModal').classList.add('active');
+}
+
+function selectSlot(id) {
+    if(currentOutfit[currentSlot]===id) delete currentOutfit[currentSlot];
+    else currentOutfit[currentSlot] = id;
+    closeModal('slotPickerModal'); updateSlots(); renderPlannerItems();
+}
+
+function updateSlots() {
+    ['oberteil','unterteil','kleid','jacke','schuhe','accessoire'].forEach(s=>{
+        const el = document.getElementById('slot-'+s);
+        const c = el.closest('.outfit-slot');
+        if(currentOutfit[s]) {
+            const i = wardrobe.find(x=>x.id===currentOutfit[s]);
+            if(i) {
+                el.innerHTML = `<span class="clothing-color-dot" style="background:${i.color}"></span>
+                    <span class="clothing-name">${i.name}</span>
+                    <button class="remove-slot-btn" onclick="event.stopPropagation();removeSlot('${s}')">✕</button>`;
+                c.classList.add('filled');
+            }
+        } else {
+            el.innerHTML = '<span style="color:#ccc">Auswählen...</span>';
+            c.classList.remove('filled');
+        }
+    });
+}
+
+function removeSlot(s) { delete currentOutfit[s]; updateSlots(); renderPlannerItems(); }
+
 function saveOutfit() {
-  const name = document.getElementById('outfitName').value.trim() || 'Mein Outfit';
-  const hasItems = Object.values(currentOutfitSlots).some(Boolean);
-  if (!hasItems) { alert('Wähle mindestens ein Kleidungsstück aus.'); return; }
-  const outfit = {
-    id: Date.now(),
-    name,
-    occasion: document.getElementById('outfitOccasion').value,
-    season: document.getElementById('outfitSeason').value,
-    slots: { ...currentOutfitSlots },
-    createdAt: new Date().toISOString()
-  };
-  outfits.push(outfit);
-  saveOutfits();
-  updateCounts();
-  // Reset
-  currentOutfitSlots = { head: null, outer: null, top: null, bottom: null, shoes: null, acc: null };
-  document.getElementById('outfitName').value = '';
-  ['head','outer','top','bottom','shoes','acc'].forEach(s => clearSlot({stopPropagation:()=>{}}, s));
-  document.getElementById('builderAiResponse').classList.remove('visible');
-  showPage('outfits');
+    const n = document.getElementById('outfitName').value.trim() || 'Outfit '+(outfits.length+1);
+    if(!Object.keys(currentOutfit).length) return alert('Wähle mindestens ein Teil!');
+    outfits.push({id:Date.now(),name:n,items:{...currentOutfit},createdAt:new Date().toISOString()});
+    Object.values(currentOutfit).forEach(id=>{const i=wardrobe.find(x=>x.id===id);if(i)i.timesWorn++;});
+    saveData(); alert('Outfit "'+n+'" gespeichert! ✨');
+    currentOutfit = {}; document.getElementById('outfitName').value = '';
+    updateSlots(); renderPlannerItems();
 }
 
-// ─── API MODAL ───────────────────────────────────────
-function openApiModal() { document.getElementById('apiModal').classList.add('open'); document.getElementById('apiKeyInput').value = apiKey; }
-function closeApiModal() { document.getElementById('apiModal').classList.remove('open'); }
-
-function saveApiKey() {
-  const key = document.getElementById('apiKeyInput').value.trim();
-  if (!key) return;
-  apiKey = key;
-  localStorage.setItem('gemini_api_key', key);
-  updateBadge();
-  closeApiModal();
+function suggestRandomOutfit() {
+    currentOutfit = {};
+    ['oberteil','unterteil','schuhe'].forEach(c=>{const i=wardrobe.filter(x=>x.category===c);if(i.length)currentOutfit[c]=i[Math.floor(Math.random()*i.length)].id;});
+    ['jacke','accessoire'].forEach(c=>{if(Math.random()>0.5){const i=wardrobe.filter(x=>x.category===c);if(i.length)currentOutfit[c]=i[Math.floor(Math.random()*i.length)].id;}});
+    document.getElementById('outfitName').value = 'Zufalls-Outfit';
+    updateSlots(); renderPlannerItems();
 }
 
-function updateBadge() {
-  const badge = document.getElementById('apiBadge');
-  if (apiKey) {
-    badge.textContent = '✓ Gemini verbunden';
-    badge.classList.add('connected');
-  } else {
-    badge.textContent = '⚙ Gemini API';
-    badge.classList.remove('connected');
-  }
+// ========================================================
+// KALENDER
+// ========================================================
+function renderCalendar() {
+    const grid = document.getElementById('calendarGrid');
+    const title = document.getElementById('calendarTitle');
+    const ms = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+    const ds = ['Mo','Di','Mi','Do','Fr','Sa','So'];
+
+    title.textContent = `${ms[currentMonth]} ${currentYear}`;
+    let html = ds.map(d=>`<div class="calendar-day-header">${d}</div>`).join('');
+
+    let start = new Date(currentYear,currentMonth,1).getDay();
+    start = start===0?6:start-1;
+    const dim = new Date(currentYear,currentMonth+1,0).getDate();
+    const pdim = new Date(currentYear,currentMonth,0).getDate();
+    const today = new Date();
+
+    for(let i=start-1;i>=0;i--) html += `<div class="calendar-day other-month">${pdim-i}</div>`;
+    for(let d=1;d<=dim;d++) {
+        const ds2 = `${currentYear}-${String(currentMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        const isT = today.getDate()===d && today.getMonth()===currentMonth && today.getFullYear()===currentYear;
+        let cls = 'calendar-day'; if(isT) cls+=' today'; if(calendarOutfits[ds2]) cls+=' has-outfit';
+        html += `<div class="${cls}" onclick="selectDay('${ds2}')">${d}</div>`;
+    }
+    const rem = 7-((start+dim)%7); if(rem<7) for(let i=1;i<=rem;i++) html+=`<div class="calendar-day other-month">${i}</div>`;
+    grid.innerHTML = html;
 }
 
-// ─── GEMINI API ──────────────────────────────────────
-async function callGemini(prompt) {
-  if (!apiKey) {
-    openApiModal();
-    return null;
-  }
+function changeMonth(d) { currentMonth+=d; if(currentMonth>11){currentMonth=0;currentYear++;} if(currentMonth<0){currentMonth=11;currentYear--;} renderCalendar(); }
 
-  const wardrobeContext = wardrobe.length > 0
-    ? `Der Nutzer hat folgende Kleidungsstücke: ${wardrobe.map(i => `${i.emoji} ${i.name} (${i.category}${i.brand ? ', ' + i.brand : ''})`).join(', ')}.`
-    : '';
-
-  const systemPrompt = `Du bist ein stilsicherer Modeberater namens "fits. Assistant". 
-Du gibst kurze, präzise und persönliche Styling-Ratschläge auf Deutsch.
-Antworte in 2-4 Sätzen, sei konkret und inspirierend. Kein Markdown.
-${wardrobeContext}`;
-
-  try {
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [
-            { role: 'user', parts: [{ text: systemPrompt + '\n\n' + prompt }] }
-          ],
-          generationConfig: { temperature: 0.8, maxOutputTokens: 300 }
-        })
-      }
-    );
-    const data = await response.json();
-    if (data.error) { alert('API Fehler: ' + data.error.message); return null; }
-    return data.candidates?.[0]?.content?.parts?.[0]?.text || 'Keine Antwort erhalten.';
-  } catch (e) {
-    alert('Verbindungsfehler: ' + e.message);
-    return null;
-  }
+function selectDay(ds) {
+    if(calendarOutfits[ds]) {
+        const o = outfits.find(x=>x.id===calendarOutfits[ds]);
+        document.getElementById('dayModalTitle').textContent = `Outfit: ${formatDate(ds)}`;
+        document.getElementById('removeDayBtn').style.display='inline-block';
+        document.getElementById('removeDayBtn').setAttribute('data-date',ds);
+        document.getElementById('dayModalContent').innerHTML = o ? `
+            <div class="saved-outfit-card"><div class="outfit-date">${o.name}</div>
+            <ul class="outfit-items-list">${Object.entries(o.items).map(([c,id])=>{const i=wardrobe.find(x=>x.id===id);return i?`<li>${CI[c]} ${i.name}</li>`:''}).join('')}</ul></div>`
+            : '<p style="color:#999">Nicht mehr vorhanden.</p>';
+        document.getElementById('dayOutfitModal').classList.add('active');
+    } else {
+        if(!outfits.length) return alert('Erstelle zuerst ein Outfit!');
+        document.getElementById('dayModalTitle').textContent = `Outfit für ${formatDate(ds)}`;
+        document.getElementById('removeDayBtn').style.display='none';
+        document.getElementById('dayModalContent').innerHTML = outfits.map(o=>`
+            <div class="saved-outfit-card" style="cursor:pointer;margin-bottom:10px;" onclick="assignOutfit('${ds}',${o.id})">
+                <div class="outfit-date">${o.name}</div>
+                <ul class="outfit-items-list">${Object.entries(o.items).map(([c,id])=>{const i=wardrobe.find(x=>x.id===id);return i?`<li>${CI[c]} ${i.name}</li>`:''}).join('')}</ul>
+            </div>`).join('');
+        document.getElementById('dayOutfitModal').classList.add('active');
+    }
 }
 
-async function sendPrompt(customPrompt) {
-  const input = document.getElementById('aiInput');
-  const prompt = customPrompt || input.value.trim();
-  if (!prompt) return;
-  input.value = customPrompt || input.value;
+function assignOutfit(ds,id) { calendarOutfits[ds]=id; saveData(); closeModal('dayOutfitModal'); renderCalendar(); }
+function removeDayOutfit() { delete calendarOutfits[document.getElementById('removeDayBtn').getAttribute('data-date')]; saveData(); closeModal('dayOutfitModal'); renderCalendar(); }
+function formatDate(ds) { const[y,m,d]=ds.split('-'); return `${d}.${m}.${y}`; }
 
-  const responseEl = document.getElementById('aiResponse');
-  const textEl = document.getElementById('aiResponseText');
-  responseEl.classList.add('visible');
-  textEl.innerHTML = `<div class="ai-loading">Gemini denkt nach <div class="dots"><span></span><span></span><span></span></div></div>`;
-
-  const result = await callGemini(prompt);
-  if (result) {
-    textEl.textContent = result;
-    if (!customPrompt) input.value = '';
-  } else {
-    responseEl.classList.remove('visible');
-  }
+// ========================================================
+// OUTFITS
+// ========================================================
+function renderSavedOutfits() {
+    const grid = document.getElementById('savedOutfitsGrid');
+    if(!outfits.length) { grid.innerHTML='<div class="empty-state" style="grid-column:1/-1"><span>👔</span><p>Noch keine Outfits.</p></div>'; return; }
+    grid.innerHTML = outfits.map(o=>`
+        <div class="saved-outfit-card animate-in">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+                <div class="outfit-date">${o.name}</div>
+                <button class="btn btn-delete" onclick="deleteOutfit(${o.id})">🗑️</button>
+            </div>
+            <div style="font-size:0.8em;color:#999;margin-bottom:10px;">${new Date(o.createdAt).toLocaleDateString('de-DE')}</div>
+            <ul class="outfit-items-list">${Object.entries(o.items).map(([c,id])=>{const i=wardrobe.find(x=>x.id===id);return i?`<li>${CI[c]} ${i.name} <span class="clothing-color-dot" style="background:${i.color};width:14px;height:14px;margin-left:auto;border:1px solid #ddd;"></span></li>`:`<li style="color:#ccc">❌ Gelöscht</li>`;}).join('')}</ul>
+            <button class="btn btn-suggest" style="margin-top:10px;font-size:0.85em;" onclick="loadOutfit(${o.id})">📋 Laden</button>
+        </div>`).join('');
 }
 
-async function askWeatherOutfit() {
-  showPage('today');
-  await sendPrompt('Es ist heute 18°C und leicht bewölkt in Frankfurt. Welches Outfit empfiehlst du für dieses Wetter?');
+function deleteOutfit(id) {
+    if(!confirm('Löschen?')) return;
+    outfits=outfits.filter(o=>o.id!==id);
+    Object.keys(calendarOutfits).forEach(d=>{if(calendarOutfits[d]===id) delete calendarOutfits[d];});
+    saveData(); renderSavedOutfits(); renderCalendar();
 }
 
-async function analyzeCurrentOutfit() {
-  const items = Object.entries(currentOutfitSlots)
-    .filter(([, id]) => id)
-    .map(([slot, id]) => {
-      const item = wardrobe.find(i => i.id === id);
-      return item ? `${slotLabels[slot]}: ${item.emoji} ${item.name}` : null;
-    }).filter(Boolean);
-
-  if (items.length === 0) {
-    alert('Wähle zuerst Kleidungsstücke aus.');
-    return;
-  }
-
-  const respEl = document.getElementById('builderAiResponse');
-  const textEl = document.getElementById('builderAiResponseText');
-  respEl.classList.add('visible');
-  textEl.innerHTML = `<div class="ai-loading">Analysiere dein Outfit <div class="dots"><span></span><span></span><span></span></div></div>`;
-
-  const prompt = `Bewerte dieses Outfit: ${items.join(', ')}. Gib Feedback zur Kombination und einen Verbesserungsvorschlag.`;
-  const result = await callGemini(prompt);
-  if (result) textEl.textContent = result;
+function loadOutfit(id) {
+    const o=outfits.find(x=>x.id===id); if(!o) return;
+    currentOutfit={...o.items}; document.getElementById('outfitName').value=o.name;
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+    document.getElementById('tab-planner').classList.add('active');
+    document.querySelectorAll('.tab-btn')[2].classList.add('active');
+    updateSlots(); renderPlannerItems();
 }
 
-// ─── INIT ─────────────────────────────────────────────
+// ========================================================
+// STATS
+// ========================================================
+function renderStats() {
+    const grid = document.getElementById('statsGrid');
+    const mw = wardrobe.length?wardrobe.reduce((a,b)=>a.timesWorn>b.timesWorn?a:b):null;
+    const lw = wardrobe.length?wardrobe.reduce((a,b)=>a.timesWorn<b.timesWorn?a:b):null;
+    const cc = {}; wardrobe.forEach(i=>cc[i.category]=(cc[i.category]||0)+1);
+    const withImg = wardrobe.filter(i=>i.imageData).length;
+
+    grid.innerHTML = `
+        <div class="stat-card"><div class="stat-number">${wardrobe.length}</div><div class="stat-label">🗄️ Kleidungsstücke</div></div>
+        <div class="stat-card"><div class="stat-number">${withImg}</div><div class="stat-label">📸 Mit Foto</div></div>
+        <div class="stat-card"><div class="stat-number">${outfits.length}</div><div class="stat-label">👔 Outfits</div></div>
+        <div class="stat-card"><div class="stat-number">${Object.keys(calendarOutfits).length}</div><div class="stat-label">📅 Geplant</div></div>
+        <div class="stat-card"><div class="stat-number">${wardrobe.reduce((s,i)=>s+i.timesWorn,0)}</div><div class="stat-label">👕 Getragen</div></div>
+        ${mw?`<div class="stat-card"><div style="font-size:2em">${CI[mw.category]}</div><div class="stat-label">⭐ Favorit</div><div style="font-weight:600;margin-top:5px">${mw.name}</div><div style="color:#999;font-size:0.85em">${mw.timesWorn}x</div></div>`:''}
+        ${lw?`<div class="stat-card"><div style="font-size:2em">${CI[lw.category]}</div><div class="stat-label">💤 Schrankhüter</div><div style="font-weight:600;margin-top:5px">${lw.name}</div><div style="color:#999;font-size:0.85em">${lw.timesWorn}x</div></div>`:''}
+        ${Object.entries(cc).map(([c,n])=>`<div class="stat-card"><div class="stat-number">${n}</div><div class="stat-label">${CI[c]} ${CN[c]}</div></div>`).join('')}`;
+}
+
+// ========================================================
+// UTILS
+// ========================================================
+function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+document.getElementById('slotPickerModal').addEventListener('click',function(e){if(e.target===this)closeModal('slotPickerModal');});
+document.getElementById('dayOutfitModal').addEventListener('click',function(e){if(e.target===this)closeModal('dayOutfitModal');});
+
+function saveData() {
+    // Bilder separat speichern um localStorage-Limit zu umgehen
+    const wardrobeForStorage = wardrobe.map(i => {
+        const copy = {...i};
+        if (copy.imageData && copy.imageData.length > 50000) {
+            // Große Bilder in eigenen Key speichern
+            try { localStorage.setItem('img_'+copy.id, copy.imageData); } catch(e) {}
+            copy.imageData = 'ref:img_'+copy.id;
+        }
+        return copy;
+    });
+    try {
+        localStorage.setItem('wardrobe', JSON.stringify(wardrobeForStorage));
+        localStorage.setItem('outfits', JSON.stringify(outfits));
+        localStorage.setItem('calendarOutfits', JSON.stringify(calendarOutfits));
+    } catch(e) {
+        console.warn('Storage full, trying without images');
+        const noImg = wardrobe.map(i => ({...i, imageData: null}));
+        localStorage.setItem('wardrobe', JSON.stringify(noImg));
+        localStorage.setItem('outfits', JSON.stringify(outfits));
+        localStorage.setItem('calendarOutfits', JSON.stringify(calendarOutfits));
+    }
+}
+
+function loadData() {
+    wardrobe = JSON.parse(localStorage.getItem('wardrobe') || '[]');
+    // Bilder-Referenzen auflösen
+    wardrobe = wardrobe.map(i => {
+        if (i.imageData && typeof i.imageData === 'string' && i.imageData.startsWith('ref:')) {
+            const key = i.imageData.substring(4);
+            i.imageData = localStorage.getItem(key) || null;
+        }
+        return i;
+    });
+    outfits = JSON.parse(localStorage.getItem('outfits') || '[]');
+    calendarOutfits = JSON.parse(localStorage.getItem('calendarOutfits') || '{}');
+}
+
+function exportData() {
+    const d = { wardrobe, outfits, calendarOutfits };
+    const b = new Blob([JSON.stringify(d,null,2)],{type:'application/json'});
+    const a = document.createElement('a'); a.href=URL.createObjectURL(b);
+    a.download='outfit-planer-backup.json'; a.click();
+}
+
+function importData() { document.getElementById('importFile').click(); }
+
+function handleImport(e) {
+    const f=e.target.files[0]; if(!f) return;
+    const r=new FileReader();
+    r.onload=function(ev){
+        try {
+            const d=JSON.parse(ev.target.result);
+            if(d.wardrobe) wardrobe=d.wardrobe;
+            if(d.outfits) outfits=d.outfits;
+            if(d.calendarOutfits) calendarOutfits=d.calendarOutfits;
+            saveData(); renderWardrobe(); renderPlannerItems(); renderCalendar(); renderSavedOutfits(); renderStats();
+            alert('✅ Importiert!');
+        } catch(err) { alert('❌ Fehler: '+err.message); }
+    };
+    r.readAsText(f);
+}
+
+function clearAll() {
+    if(!confirm('ALLES löschen?')) return;
+    // Auch Bild-Keys löschen
+    Object.keys(localStorage).filter(k=>k.startsWith('img_')).forEach(k=>localStorage.removeItem(k));
+    wardrobe=[]; outfits=[]; calendarOutfits={};
+    saveData(); renderWardrobe(); renderPlannerItems(); renderCalendar(); renderSavedOutfits(); renderStats();
+    alert('🗑️ Gelöscht!');
+}
+
+// ========================================================
+// INIT
+// ========================================================
+function init() {
+    loadData();
+
+    const k = getApiKey(); if(k) document.getElementById('apiKeyInput').value=k;
+    document.getElementById('aiModelSelect').value = getAiModel();
+    const t = getAiTemp(); document.getElementById('aiTempSlider').value=t; document.getElementById('aiTempValue').textContent=t;
+    updateAiStatus();
+
+    if(!wardrobe.length) {
+        wardrobe = [
+            {id:1,name:'Weißes T-Shirt',category:'oberteil',color:'#ffffff',season:'sommer',timesWorn:5},
+            {id:2,name:'Blue Jeans',category:'unterteil',color:'#1e3a5f',season:'alle',timesWorn:8},
+            {id:3,name:'Schwarze Sneaker',category:'schuhe',color:'#333333',season:'alle',timesWorn:12},
+            {id:4,name:'Roter Hoodie',category:'oberteil',color:'#ff4757',season:'herbst',timesWorn:3},
+            {id:5,name:'Beige Chinos',category:'unterteil',color:'#d4a574',season:'fruehling',timesWorn:4},
+            {id:6,name:'Lederjacke',category:'jacke',color:'#2f1b14',season:'herbst',timesWorn:2},
+            {id:7,name:'Sonnenbrille',category:'accessoire',color:'#ffa502',season:'sommer',timesWorn:6},
+            {id:8,name:'Sommerkleid',category:'kleid',color:'#ff69b4',season:'sommer',timesWorn:1},
+            {id:9,name:'Wintermantel',category:'jacke',color:'#2c3e50',season:'winter',timesWorn:7},
+            {id:10,name:'Weiße Sneaker',category:'schuhe',color:'#ecf0f1',season:'alle',timesWorn:9}
+        ];
+        saveData();
+    }
+
+    renderWardrobe(); renderPlannerItems(); renderCalendar(); renderSavedOutfits(); renderStats();
+}
+
 init();
 </script>
 </body>
